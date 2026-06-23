@@ -1,0 +1,19 @@
+name = "zjd-web"
+compatibility_date = "2024-12-01"
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+GEMINI_API_KEY = ""
+SITE_URL = "https://zjd.cn"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "zjd-main"
+database_id = "YOUR_D1_DATABASE_ID"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "zjd-assets"
+
+[site]
+bucket = ".vercel/output/static"
