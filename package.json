@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx @cloudflare/next-on-pages",
     "start": "next start",
     "lint": "next lint",
+    "preview": "wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat",
+    "deploy": "npm run build && wrangler pages deploy .vercel/output/static",
     "db:init": "wrangler d1 execute zjd-main --file=./sql/schema.sql",
     "db:seed": "wrangler d1 execute zjd-main --file=./sql/seed.sql",
     "scrape": "node scrapers/catcher.js"
@@ -14,15 +16,16 @@
   "dependencies": {
     "next": "^15.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "hono": "^4.0.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.14.0",
     "@cloudflare/workers-types": "^4.0.0",
     "typescript": "^5.0.0",
     "tailwindcss": "^3.4.0",
     "autoprefixer": "^10.0.0",
     "postcss": "^8.0.0",
-    "wrangler": "^3.0.0"
+    "wrangler": "^3.0.0",
+    "vercel": "^41.0.0"
   }
 }
