@@ -1,16 +1,98 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const NAV_ITEMS = [
-  { icon: '📊', label: '运营控制台', href: '/admin', active: true },
+  { icon: '📊', label: '运营控制台', href: '/admin' },
   { icon: '🏠', label: '资产审核', href: '/admin/assets' },
   { icon: '🛰️', label: '爬虫管理', href: '/admin/scrapers' },
   { icon: '⚙️', label: '全局配置', href: '/admin/config' },
 ];
 
+function LoginPage({ onLogin }: { onLogin: () => void }) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onLogin();
+      } else {
+        setError(data.error || '密码错误');
+      }
+    } catch {
+      setError('网络错误');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-2">🔐</div>
+          <h1 className="text-xl font-bold text-gray-900">后台管理</h1>
+          <p className="text-sm text-gray-500 mt-1">请输入管理密码</p>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="管理密码"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green"
+            autoFocus
+          />
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-brand-green hover:bg-brand-light text-white py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
+          >
+            {loading ? '验证中...' : '登录'}
+          </button>
+        </form>
+        <a href="/" className="block text-center text-sm text-gray-400 hover:text-gray-600 mt-4">
+          ← 返回首页
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch('/api/admin/auth')
+      .then((r) => r.json())
+      .then((data) => setAuthed(data.authenticated))
+      .catch(() => setAuthed(false));
+  }, []);
+
+  if (authed === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-400">加载中...</div>
+      </div>
+    );
+  }
+
+  if (!authed) {
+    return <LoginPage onLogin={() => setAuthed(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -29,11 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <a
               key={item.href}
               href={item.href}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                item.active
-                  ? 'bg-brand-green text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
-              }`}
+              className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/10 transition-all"
             >
               <span className="text-lg">{item.icon}</span>
               {!collapsed && <span>{item.label}</span>}
