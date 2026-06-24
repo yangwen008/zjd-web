@@ -1,5 +1,3 @@
-"use client";
-
 import HeroSection from "@/components/test-home/HeroSection";
 import RegionGrid from "@/components/test-home/RegionGrid";
 import MarketStats from "@/components/test-home/MarketStats";
@@ -9,10 +7,106 @@ import BulkProjectCard from "@/components/test-home/BulkProjectCard";
 import InfraRatingCard from "@/components/test-home/InfraRatingCard";
 import BrokerCard from "@/components/test-home/BrokerCard";
 import CTASection from "@/components/test-home/CTASection";
-import { mockProperties, mockVillageProjects, mockBulkProjects, mockInfraRatings, mockBrokers } from "@/lib/test-home-data";
 
-// --- 内部小组件 (Nav & Footer) ---
+import { 
+  getHotAssets, 
+  getMarketData, 
+  getAssetsBySource, 
+  getFeaturedAssets,
+  getInfraRatings,
+  getBrokers,
+  getHomepageConfig,
+  type Asset,
+  type MarketData,
+  type InfraRating,
+  type Broker
+} from "@/lib/data";
 
+export const runtime = 'edge';
+
+// 格式化价格
+function formatPrice(price: number | null): string {
+  if (!price) return '面议';
+  return `${price}万`;
+}
+
+// 格式化图片URL（从JSON数组中取第一张）
+function getFirstImage(images: string | null): string {
+  if (!images) return 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
+  try {
+    const arr = JSON.parse(images);
+    return Array.isArray(arr) && arr.length > 0 ? arr[0] : 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
+  } catch {
+    return 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
+  }
+}
+
+// 转换资产数据为PropertyCard格式
+function toPropertyFormat(asset: Asset) {
+  return {
+    id: asset.id.toString(),
+    title: asset.title,
+    price: formatPrice(asset.price_year),
+    priceUnit: '年',
+    type: `${asset.lease_years || 20}年期${asset.asset_type || '宅基地'}使用权`,
+    imageUrl: getFirstImage(asset.images),
+    badge: asset.source_type === 'official' ? '一手官方资源' : 
+           asset.source_type === 'village' ? '村委直发' : '用户上传'
+  };
+}
+
+// 转换资产数据为VillageDirectCard格式
+function toVillageFormat(asset: Asset) {
+  return {
+    id: asset.id.toString(),
+    title: asset.title,
+    contact: asset.contact_name || '村委负责人',
+    description: asset.description || '【村委官方直招】已完成林地及基本农田交叉排查。',
+    price: formatPrice(asset.price_year) + '/年',
+    imageUrl: getFirstImage(asset.images)
+  };
+}
+
+// 转换资产数据为BulkProjectCard格式
+function toBulkFormat(asset: Asset) {
+  return {
+    id: asset.id.toString(),
+    code: `ZJD-${asset.id.toString().padStart(3, '0')}`,
+    title: asset.title,
+    description: asset.description || '包含完整空间、宽敞院落。权属已归属乡村经济合作社。',
+    area: asset.area_mu ? `约${Math.round(asset.area_mu * 666.7)}㎡` : '约1000㎡',
+    yieldRate: '6.80%',
+    price: formatPrice(asset.price_year) + '/年起',
+    hasCertificate: true
+  };
+}
+
+// 转换基建数据
+function toInfraFormat(infra: InfraRating) {
+  return {
+    id: infra.id.toString(),
+    region: infra.region,
+    score: infra.signal_5g_ms < 50 ? 9.5 : infra.signal_5g_ms < 100 ? 8.8 : 7.2,
+    internet: `${infra.signal_5g_ms}ms 5G延迟`,
+    medical: `${infra.hospital_min}分钟到三甲医院`,
+    power: infra.grid_redundancy > 1 ? '双回路高压电备份' : '单回路供电'
+  };
+}
+
+// 转换合伙人数据
+function toBrokerFormat(broker: Broker) {
+  return {
+    id: broker.id.toString(),
+    name: broker.name,
+    region: broker.region || '全国',
+    avatarUrl: broker.avatar_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+    successRate: `${Math.round(broker.good_rate * 100)}%`,
+    leads: `${broker.show_count} 宗`,
+    phone: broker.phone_encrypted || '138****0000'
+  };
+}
+
+// --- 导航栏 ---
 function Navigation() {
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -70,7 +164,7 @@ function Navigation() {
   );
 }
 
-// 替换为这个高大上的全新 Footer：
+// --- 全新高大上页脚（四列布局） ---
 function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-8">
@@ -149,25 +243,58 @@ function Footer() {
   );
 }
 
-// --- 主页面 ---
+// --- 主页面（异步服务端组件） ---
+export default async function TestNewHomePage() {
+  // 并行查询所有数据
+  const [hotAssets, marketData, officialAssets, villageAssets, bulkAssets, infraRatings, brokers, config] = await Promise.all([
+    getHotAssets(6).catch(() => [] as Asset[]),
+    getMarketData().catch(() => [] as MarketData[]),
+    getAssetsBySource('official', 6).catch(() => [] as Asset[]),
+    getAssetsBySource('village', 2).catch(() => [] as Asset[]),
+    getFeaturedAssets(2).catch(() => [] as Asset[]),
+    getInfraRatings().catch(() => [] as InfraRating[]),
+    getBrokers(3).catch(() => [] as Broker[]),
+    getHomepageConfig().catch(() => ({} as Record<string, string>)),
+  ]);
 
-export default function TestNewHomePage() {
+  // 转换数据格式
+  const regions = hotAssets.map((asset, i) => ({
+    id: asset.id.toString(),
+    rank: i + 1,
+    name: asset.title.split('·')[0] || asset.title,
+    subtitle: asset.asset_type || '宅基地',
+    views: asset.views,
+    imageUrl: getFirstImage(asset.images)
+  }));
+
+  const properties = officialAssets.map(toPropertyFormat);
+  const villageProjects = villageAssets.map(toVillageFormat);
+  const bulkProjects = bulkAssets.map(toBulkFormat);
+  const infraRatingsFormatted = infraRatings.map(toInfraFormat);
+  const brokersFormatted = brokers.map(toBrokerFormat);
+
+  const totalAssets = config.total_assets || '104,281';
+  const todayNew = config.today_new || '142';
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 全局样式注入 */}
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .image-zoom { transition: transform 0.5s ease; }
         .group:hover .image-zoom { transform: scale(1.1); }
-      `}</style>
+      `}} />
 
       <Navigation />
       
       <main>
-        <HeroSection />
-        <RegionGrid />
-        <MarketStats />
+        <HeroSection 
+          totalAssets={totalAssets}
+          todayNew={todayNew}
+        />
+        
+        <RegionGrid regions={regions} />
+        <MarketStats marketData={marketData} />
         
         {/* 官方原矿区 */}
         <section className="py-16 bg-white">
@@ -178,14 +305,15 @@ export default function TestNewHomePage() {
                 <span className="text-2xl">🏛️</span>
                 <h2 className="text-2xl font-bold text-gray-900">纯净一手官方原矿区</h2>
               </div>
-              <a href="#" className="text-sm text-[#1a4731] hover:underline">进入原矿搜寻引擎 →</a>
+              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">进入原矿搜寻引擎 →</a>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mockProperties.map((p) => <PropertyCard key={p.id} property={p} />)}
+              {properties.map((p) => <PropertyCard key={p.id} property={p} />)}
             </div>
           </div>
         </section>
 
+        {/* 村集体直发专区 */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
@@ -194,13 +322,15 @@ export default function TestNewHomePage() {
                 <span className="text-2xl">🏛️</span>
                 <h2 className="text-2xl font-bold text-gray-900">村集体直发专区</h2>
               </div>
+              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">查看所有村委直发 →</a>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {mockVillageProjects.map((p) => <VillageDirectCard key={p.id} project={p} />)}
+              {villageProjects.map((p) => <VillageDirectCard key={p.id} project={p} />)}
             </div>
           </div>
         </section>
 
+        {/* 文旅大宗产业路演带 */}
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
@@ -209,13 +339,15 @@ export default function TestNewHomePage() {
                 <span className="text-2xl">🎪</span>
                 <h2 className="text-2xl font-bold text-gray-900">文旅大宗产业路演带</h2>
               </div>
+              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">进入独立路演大厅 →</a>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {mockBulkProjects.map((p) => <BulkProjectCard key={p.id} project={p} />)}
+              {bulkProjects.map((p) => <BulkProjectCard key={p.id} project={p} />)}
             </div>
           </div>
         </section>
 
+        {/* 数字化隐居基建硬指标 */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
@@ -224,13 +356,15 @@ export default function TestNewHomePage() {
                 <span className="text-2xl">📡</span>
                 <h2 className="text-2xl font-bold text-gray-900">数字化隐居基建硬指标</h2>
               </div>
+              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">查看全国基建指数表 →</a>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {mockInfraRatings.map((i) => <InfraRatingCard key={i.id} infra={i} />)}
+              {infraRatingsFormatted.map((i) => <InfraRatingCard key={i.id} infra={i} />)}
             </div>
           </div>
         </section>
 
+        {/* 本地金牌合伙人联播网 */}
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
@@ -239,9 +373,10 @@ export default function TestNewHomePage() {
                 <span className="text-2xl">🤝</span>
                 <h2 className="text-2xl font-bold text-gray-900">本地金牌"农房合伙人"联播网</h2>
               </div>
+              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">查看全网合伙人名册 →</a>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {mockBrokers.map((b) => <BrokerCard key={b.id} broker={b} />)}
+              {brokersFormatted.map((b) => <BrokerCard key={b.id} broker={b} />)}
             </div>
           </div>
         </section>
@@ -253,5 +388,3 @@ export default function TestNewHomePage() {
     </div>
   );
 }
-
-export const runtime = 'edge';
