@@ -25,13 +25,57 @@ import {
 
 export const runtime = 'edge';
 
+// --- 原版辅助函数与字典（用于行情表格） ---
+const REGION_EMOJIS: Record<string, string> = {
+  '浙江省': '🌊',
+  '四川省': '🐼',
+  '云南省': '🏔️',
+  '贵州省': '🌄',
+  '广西壮族自治区': '🌿',
+  '广西': '🌿',
+};
+
+function getChangeStyle(pct: number): string {
+  if (pct > 0) return 'text-green-500';
+  if (pct < 0) return 'text-red-500';
+  return 'text-gray-400';
+}
+
+function getChangeText(pct: number): string {
+  if (pct > 0) return `↑ +${pct}%`;
+  if (pct < 0) return `↓ ${pct}%`;
+  return '→ 持平';
+}
+
+function getBargainColor(space: number): string {
+  if (space > -10) return 'text-red-400';
+  if (space > -15) return 'text-orange-400';
+  return 'text-blue-500';
+}
+
+function getBargainNote(space: number): string {
+  if (space > -10) return '流转速度极快';
+  if (space > -15) return '空间充足';
+  return '建议抄底';
+}
+
+function getBarWidth(space: number): string {
+  return `${Math.min(Math.abs(space) * 5, 100)}%`;
+}
+
+function getBarColor(space: number): string {
+  if (space > -10) return 'bg-red-400';
+  if (space > -15) return 'bg-orange-400';
+  return 'bg-blue-400';
+}
+
 // 格式化价格
 function formatPrice(price: number | null): string {
   if (!price) return '面议';
   return `${price}万`;
 }
 
-// 格式化图片URL（从JSON数组中取第一张）
+// 格式化图片URL
 function getFirstImage(images: string | null): string {
   if (!images) return 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
   try {
@@ -114,9 +158,7 @@ function Navigation() {
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* 左侧：Logo + 菜单 */}
           <div className="flex items-center gap-8">
-            {/* Logo */}
             <Link href="/" className="flex items-center gap-3 flex-shrink-0">
               <div className="text-2xl font-bold">
                 <span className="text-gray-900">zjd</span>
@@ -125,7 +167,6 @@ function Navigation() {
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">宅基地计划 v8.8.1</span>
             </Link>
             
-            {/* 导航菜单 */}
             <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
               <Link href="/regions" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
                 <span>🔥</span> 热点寻源
@@ -148,7 +189,6 @@ function Navigation() {
             </div>
           </div>
 
-          {/* 右侧：按钮 */}
           <div className="flex items-center gap-3">
             <Link href="/admin" className="text-sm text-gray-600 hover:text-[#1a4731] flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
               <span>⚙️</span> 后台管理
@@ -166,15 +206,12 @@ function Navigation() {
   );
 }
 
-// --- 全新高大上页脚（四列布局） ---
+// --- 全新高大上页脚 ---
 function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 顶部：四列内容布局 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          
-          {/* 第一列：品牌介绍 */}
           <div>
             <div className="text-2xl font-bold text-[#1a4731] mb-3">zjd.cn</div>
             <p className="text-sm text-gray-600 mb-4 leading-relaxed">
@@ -193,7 +230,6 @@ function Footer() {
             </div>
           </div>
 
-          {/* 第二列：流转大厅 */}
           <div>
             <h4 className="font-semibold text-gray-900 mb-4">流转大厅</h4>
             <ul className="space-y-2 text-sm text-gray-600">
@@ -203,7 +239,6 @@ function Footer() {
             </ul>
           </div>
 
-          {/* 第三列：双边生态 */}
           <div>
             <h4 className="font-semibold text-gray-900 mb-4">双边生态</h4>
             <ul className="space-y-2 text-sm text-gray-600">
@@ -213,7 +248,6 @@ function Footer() {
             </ul>
           </div>
 
-          {/* 第四列：合作与法务 */}
           <div>
             <h4 className="font-semibold text-gray-900 mb-4">合作与法务通道</h4>
             <ul className="space-y-2 text-sm text-gray-600 mb-4">
@@ -226,7 +260,6 @@ function Footer() {
           </div>
         </div>
 
-        {/* 底部：版权与备案信息 */}
         <div className="border-t border-gray-200 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
             <div>© 2026 绵阳网安科技有限公司 版权所有</div>
@@ -290,13 +323,75 @@ export default async function TestNewHomePage() {
       <Navigation />
       
       <main>
-        <HeroSection 
-          totalAssets={totalAssets}
-          todayNew={todayNew}
-        />
-        
+        <HeroSection totalAssets={totalAssets} todayNew={todayNew} />
         <RegionGrid regions={regions} />
         <MarketStats marketData={marketData} />
+        
+        {/* 行情数据详细表格（动态） */}
+        <section className="bg-gray-50 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="font-bold text-gray-900">省级行政细分流速与交易深度</h3>
+                <div className="flex items-center space-x-1 text-xs text-green-500">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span>CONNECTED</span>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 text-left">
+                      <th className="px-6 py-3 font-medium text-gray-500">省级行政区域</th>
+                      <th className="px-6 py-3 font-medium text-gray-500">官方存量挂牌</th>
+                      <th className="px-6 py-3 font-medium text-gray-500">租金中位数 (年)</th>
+                      <th className="px-6 py-3 font-medium text-gray-500">环比本周涨跌</th>
+                      <th className="px-6 py-3 font-medium text-gray-500">散户民间砍价空间</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {marketData.length > 0 ? marketData.map((row) => (
+                      <tr key={row.province} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-lg">{REGION_EMOJIS[row.province] || '📍'}</span>
+                            <div>
+                              <div className="font-medium text-gray-900">{row.province}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-medium">{row.total_listings?.toLocaleString() || 0} 宗</td>
+                        <td className="px-6 py-4 font-bold text-gray-900">¥{row.median_price} 万</td>
+                        <td className="px-6 py-4">
+                          <span className={`font-medium ${getChangeStyle(row.change_pct)}`}>
+                            {getChangeText(row.change_pct)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            <div className="flex-1 bg-gray-100 rounded-full h-2 max-w-[100px]">
+                              <div 
+                                className={`${getBarColor(row.bargain_space)} h-2 rounded-full`} 
+                                style={{ width: getBarWidth(row.bargain_space) }}
+                              ></div>
+                            </div>
+                            <span className={`${getBargainColor(row.bargain_space)} text-xs font-medium`}>
+                              {row.bargain_space}% ({getBargainNote(row.bargain_space)})
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-400">暂无行情数据</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
         
         {/* 官方原矿区 */}
         <section className="py-16 bg-white">
