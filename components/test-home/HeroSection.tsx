@@ -12,7 +12,7 @@ export default function HeroSection({ totalAssets = '104,281', todayNew = '142' 
         <h1 className="text-5xl font-bold text-gray-900 mb-4">
           寻找被低估的 <span className="text-[#1a4731] italic">低密度空间资产</span>
         </h1>
-        <p className="text-lg text-gray-600 mb-8 max-w-3xl mx-auto">
+        <p className="text-lg text-gray-600 mb-12 max-w-3xl mx-auto">
           乡村资产数字化绿色流转中枢。全网多源产权低频提纯，一键交叉碰撞，让技术重归山川。
         </p>
         
