@@ -3,9 +3,10 @@ import Footer from '@/components/layout/Footer';
 import { getAssetById, getAssets, getHomepageConfig } from '@/lib/data';
 import { notFound } from 'next/navigation';
 
-export default async function AssetDetailPage({ params }: { params: { id: string } }) {
+export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const [asset, config] = await Promise.all([
-    getAssetById(params.id).catch(() => null),
+    getAssetById(id).catch(() => null),
     getHomepageConfig().catch(() => ({})),
   ]);
 
