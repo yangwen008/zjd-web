@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { execute } from '@/lib/db';
 
-export async function POST(_request: Request, { params }: { params: { id: string } }) {
+export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     await execute(
       'UPDATE assets SET status = ?, updated_at = datetime("now") WHERE id = ?',
-      'rejected', params.id
+      'rejected', id
     );
     return NextResponse.json({ success: true });
   } catch (error) {
