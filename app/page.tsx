@@ -1,31 +1,40 @@
+import Link from "next/link";
+import HeroSection from "@/components/test-home/HeroSection";
+import RegionGrid from "@/components/test-home/RegionGrid";
+import MarketStats from "@/components/test-home/MarketStats";
+import PropertyCard from "@/components/test-home/PropertyCard";
+import VillageDirectCard from "@/components/test-home/VillageDirectCard";
+import BulkProjectCard from "@/components/test-home/BulkProjectCard";
+import InfraRatingCard from "@/components/test-home/InfraRatingCard";
+import BrokerCard from "@/components/test-home/BrokerCard";
+import CTASection from "@/components/test-home/CTASection";
+
+import { 
+  getHotAssets, 
+  getMarketData, 
+  getAssetsBySource, 
+  getFeaturedAssets,
+  getInfraRatings,
+  getBrokers,
+  getHomepageConfig,
+  type Asset,
+  type MarketData,
+  type InfraRating,
+  type Broker
+} from "@/lib/data";
+
 export const runtime = 'edge';
 
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import AssetCard from '@/components/shared/AssetCard';
-import HeroSection from '@/components/shared/HeroSection';
-import { getHotAssets, getMarketData, getHomepageConfig, getAssetsBySource } from '@/lib/data';
-import type { Asset, MarketData } from '@/lib/data';
+// --- 原版辅助函数与字典（用于行情表格） ---
+const REGION_EMOJIS: Record<string, string> = {
+  '浙江省': '🌊',
+  '四川省': '🐼',
+  '云南省': '🏔️',
+  '贵州省': '🌄',
+  '广西壮族自治区': '🌿',
+  '广西': '🌿',
+};
 
-// 格式化价格显示
-function formatPrice(price: number | null): string {
-  if (!price) return '价格面议';
-  return `¥${price}万/年起`;
-}
-
-// 资产卡片渐变色映射
-const GRADIENTS = [
-  'from-emerald-800 to-emerald-600',
-  'from-teal-800 to-teal-600',
-  'from-cyan-800 to-cyan-600',
-  'from-green-800 to-green-600',
-  'from-lime-800 to-lime-600',
-  'from-stone-800 to-stone-600',
-  'from-sky-800 to-sky-600',
-  'from-rose-800 to-rose-600',
-];
-
-// 行情数据样式
 function getChangeStyle(pct: number): string {
   if (pct > 0) return 'text-green-500';
   if (pct < 0) return 'text-red-500';
@@ -60,216 +69,439 @@ function getBarColor(space: number): string {
   return 'bg-blue-400';
 }
 
-const REGION_EMOJIS: Record<string, string> = {
-  '浙江省': '🌊',
-  '四川省': '🐼',
-  '云南省': '🏔️',
-  '贵州省': '🌄',
-  '广西壮族自治区': '🌿',
-  '广西': '🌿',
-};
+// 格式化价格
+function formatPrice(price: number | null): string {
+  if (!price) return '面议';
+  return `${price}万`;
+}
 
-const FEATURES = [
-  { emoji: '⚖️', badge: 'OFFICIAL', badgeColor: 'text-brand-green', bgColor: 'bg-brand-green/10', hoverBg: 'hover:bg-brand-green/20', title: '纯净一手官方原矿区', desc: '进入原矿搜索引擎', href: '/search?source=official' },
-  { emoji: '🏛️', badge: 'VILLAGE DIRECT', badgeColor: 'text-amber-600', bgColor: 'bg-amber-50', hoverBg: 'hover:bg-amber-100', title: '村集体直发专区', desc: '查看所有村委直发', href: '/search?source=village' },
-  { emoji: '🏢', badge: 'BULK ROADSHOW', badgeColor: 'text-blue-600', bgColor: 'bg-blue-50', hoverBg: 'hover:bg-blue-100', title: '文旅大宗产业路演带', desc: '进入独立路演大厅', href: '/bulk-projects' },
-  { emoji: '🛰️', badge: 'INFRASTRUCTURE', badgeColor: 'text-purple-600', bgColor: 'bg-purple-50', hoverBg: 'hover:bg-purple-100', title: '数字化隐居基建硬指标', desc: '查看全国基建指数大表', href: '/infra-rating' },
-  { emoji: '🌾', badge: 'BROKERS', badgeColor: 'text-green-600', bgColor: 'bg-green-50', hoverBg: 'hover:bg-green-100', title: '本地金牌合伙人联播网', desc: '查看全网合伙人名册', href: '/brokers' },
-];
+// 格式化图片URL
+function getFirstImage(images: string | null): string {
+  if (!images) return 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
+  try {
+    const arr = JSON.parse(images);
+    return Array.isArray(arr) && arr.length > 0 ? arr[0] : 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
+  } catch {
+    return 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
+  }
+}
 
+// 转换资产数据为PropertyCard格式
+function toPropertyFormat(asset: Asset) {
+  return {
+    id: asset.id.toString(),
+    title: asset.title,
+    price: formatPrice(asset.price_year),
+    priceUnit: '年',
+    location: asset.province ? `${asset.province}·${asset.city || ''}` : '全国',
+    type: `${asset.lease_years || 20}年期${asset.asset_type || '宅基地'}使用权`,
+    imageUrl: getFirstImage(asset.images),
+    badge: asset.source_type === 'official' ? '一手官方资源' : 
+           asset.source_type === 'village' ? '村委直发' : '用户上传'
+  };
+}
+
+// 转换资产数据为VillageDirectCard格式
+function toVillageFormat(asset: Asset) {
+  return {
+    id: asset.id.toString(),
+    title: asset.title,
+    contact: asset.contact_name || '村委负责人',
+    description: asset.description || '【村委官方直招】已完成林地及基本农田交叉排查。',
+    price: formatPrice(asset.price_year) + '/年',
+    imageUrl: getFirstImage(asset.images)
+  };
+}
+
+// 转换资产数据为BulkProjectCard格式
+function toBulkFormat(asset: Asset) {
+  return {
+    id: asset.id.toString(),
+    code: `ZJD-${asset.id.toString().padStart(3, '0')}`,
+    title: asset.title,
+    description: asset.description || '包含完整空间、宽敞院落。权属已归属乡村经济合作社。',
+    area: asset.area_mu ? `约${Math.round(asset.area_mu * 666.7)}㎡` : '约1000㎡',
+    yieldRate: '6.80%',
+    price: formatPrice(asset.price_year) + '/年起',
+    hasCertificate: true
+  };
+}
+
+// 转换基建数据
+function toInfraFormat(infra: InfraRating) {
+  return {
+    id: infra.id.toString(),
+    region: infra.region,
+    score: infra.signal_5g_ms < 50 ? 9.5 : infra.signal_5g_ms < 100 ? 8.8 : 7.2,
+    internet: `${infra.signal_5g_ms}ms 5G延迟`,
+    medical: `${infra.hospital_min}分钟到三甲医院`,
+    power: infra.grid_redundancy > 1 ? '双回路高压电备份' : '单回路供电'
+  };
+}
+
+// 转换合伙人数据
+function toBrokerFormat(broker: Broker) {
+  return {
+    id: broker.id.toString(),
+    name: broker.name,
+    region: broker.region || '全国',
+    avatarUrl: broker.avatar_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+    successRate: `${Math.round(broker.good_rate * 100)}%`,
+    leads: `${broker.show_count} 宗`,
+    phone: broker.phone_encrypted || '138****0000'
+  };
+}
+
+// --- 导航栏 ---
+function Navigation() {
+  return (
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center gap-3 flex-shrink-0">
+              <div className="text-2xl font-bold">
+                <span className="text-gray-900">zjd</span>
+                <span className="text-[#1a4731]">.cn</span>
+              </div>
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">宅基地计划 v8.8.1</span>
+            </Link>
+            
+            <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
+              <Link href="/regions" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🔥</span> 热点寻源
+              </Link>
+              <Link href="/market-index" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>📊</span> 流转大盘
+              </Link>
+              <Link href="/search" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🔍</span> 资产搜索
+              </Link>
+              <Link href="/bulk-projects" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🏢</span> 大宗路演
+              </Link>
+              <Link href="/infra-rating" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🏘️</span> 隐居基建
+              </Link>
+              <Link href="/brokers" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🌾</span> 金牌合伙人
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link href="/admin" className="text-sm text-gray-600 hover:text-[#1a4731] flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <span>⚙️</span> 后台管理
+            </Link>
+            <button className="bg-[#1a4731] hover:bg-[#2d5a45] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+              </svg>
+              微信安全登录
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// --- 全新高大上页脚 ---
+function Footer() {
+  return (
+    <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          <div>
+            <div className="text-2xl font-bold text-[#1a4731] mb-3">zjd.cn</div>
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              zjd.cn 是由绵阳网安科技有限公司倾力打造的乡村闲置资产数字交易所。我们通过分布式低频智能采矿与大模型型价值清洗，将零散、非结构化的民间资产重塑为具备高依托信用、完美基建指标、完全穿透地理边界的数字化绿色大宗资产。
+            </p>
+            <div className="flex gap-4">
+              <a href="#" className="text-gray-400 hover:text-[#1a4731] transition-colors">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-[#1a4731] transition-colors">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-[#1a4731] transition-colors">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-4">流转大厅</h4>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li><Link href="/regions" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🔥</span> 热点寻源榜</Link></li>
+              <li><Link href="/market-index" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>📊</span> 土地价格大盘</Link></li>
+              <li><Link href="/search" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🔍</span> 官方原矿检索</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-4">双边生态</h4>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li><Link href="/bulk-projects" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🎪</span> 大宗项目路演</Link></li>
+              <li><Link href="/infra-rating" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🏘️</span> 隐居新基建指标</Link></li>
+              <li><Link href="/brokers" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🤝</span> 地陪合伙人名册</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-4">合作与法务通道</h4>
+            <ul className="space-y-2 text-sm text-gray-600 mb-4">
+              <li><span className="text-gray-500">合作热线：</span><strong className="text-gray-900">13696266999</strong></li>
+              <li><span className="text-gray-500">企业邮箱：</span><strong className="text-gray-900">cooperate@zjd.cn</strong></li>
+            </ul>
+            <div className="p-3 bg-gray-100 rounded-lg text-xs text-gray-500 leading-relaxed">
+              【合规与演绎隔离声明】本平台展示的所有官方产权信息均通过合法公开手段采集，前端呈现的拼凑在新积木上属于"演绎再创作作品"。本店铺坚持共享求真，交易双方须线下验证产权真实性。
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-200 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+            <div>© 2026 绵阳网安科技有限公司 版权所有</div>
+            <div className="flex gap-6">
+              <span>蜀ICP备16015085号-5</span>
+              <span>蜀公网安备 51070302000888号</span>
+            </div>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-[#1a4731] transition-colors">《平台数据隐私保护白皮书》</a>
+              <a href="#" className="hover:text-[#1a4731] transition-colors">《免责声明4.0》</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// --- 主页面（异步服务端组件） ---
 export default async function HomePage() {
   // 并行查询所有数据
-  const [hotAssets, marketData, config] = await Promise.all([
+  const [hotAssets, marketData, officialAssets, villageAssets, bulkAssets, infraRatings, brokers, config] = await Promise.all([
     getHotAssets(6).catch(() => [] as Asset[]),
     getMarketData().catch(() => [] as MarketData[]),
+    getAssetsBySource('official', 6).catch(() => [] as Asset[]),
+    getAssetsBySource('village', 2).catch(() => [] as Asset[]),
+    getFeaturedAssets(2).catch(() => [] as Asset[]),
+    getInfraRatings().catch(() => [] as InfraRating[]),
+    getBrokers(3).catch(() => [] as Broker[]),
     getHomepageConfig().catch(() => ({} as Record<string, string>)),
   ]);
 
-  const totalAssets = config.total_assets || '0';
-  const todayNew = config.today_new || '0';
+  // 转换数据格式
+  const regions = hotAssets.map((asset, i) => ({
+    id: asset.id.toString(),
+    rank: i + 1,
+    name: asset.title.split('·')[0] || asset.title,
+    subtitle: asset.asset_type || '宅基地',
+    views: asset.views,
+    imageUrl: getFirstImage(asset.images)
+  }));
+
+  const properties = officialAssets.map(toPropertyFormat);
+  const villageProjects = villageAssets.map(toVillageFormat);
+  const bulkProjects = bulkAssets.map(toBulkFormat);
+  const infraRatingsFormatted = infraRatings.map(toInfraFormat);
+  const brokersFormatted = brokers.map(toBrokerFormat);
+
+  const totalAssets = config.total_assets || '104,281';
+  const todayNew = config.today_new || '142';
 
   return (
-    <>
-      <Navbar />
+    <div className="min-h-screen bg-gray-50">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .image-zoom { transition: transform 0.5s ease; }
+        .group:hover .image-zoom { transform: scale(1.1); }
+      `}} />
 
-      {/* Hero */}
-      <HeroSection
-        title={config.hero_title || '寻找被低估的低密度空间资产'}
-        subtitle={config.hero_subtitle || '乡村资产数字化绿色流转中枢。全网多源产权低频提纯，一键交叉碰撞，让技术重归山川。'}
-        totalAssets={totalAssets}
-        todayNew={todayNew}
-      />
-
-      {/* Hot Assets */}
-      <section id="hot" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <div className="flex items-center space-x-2 mb-2">
-              <span className="text-2xl">🔥</span>
-              <h2 className="text-2xl font-bold text-gray-900">核心热点寻源区</h2>
-            </div>
-            <p className="text-sm text-gray-500">默认按本站最热点击量、收藏爆款降序排列</p>
-          </div>
-          <a href="/regions" className="text-sm text-brand-green hover:text-brand-light flex items-center space-x-1">
-            <span>查看本站热度排行</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </a>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {hotAssets.length > 0 ? (
-            hotAssets.map((asset, i) => (
-              <AssetCard
-                key={asset.id}
-                rank={i + 1}
-                title={asset.title}
-                subtitle={asset.location || asset.asset_type || ''}
-                views={asset.views}
-                price={formatPrice(asset.price_year)}
-                gradient={GRADIENTS[i % GRADIENTS.length]}
-                href={`/asset/${asset.id}`}
-              />
-            ))
-          ) : (
-            // 无数据时的占位
-            <div className="col-span-3 text-center py-12 text-gray-400">
-              <div className="text-4xl mb-3">🌾</div>
-              <p>数据加载中...请先执行 npm run db:seed 导入种子数据</p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Market Index */}
-      <section id="market" className="bg-gray-50 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="text-2xl">📊</span>
-                <h2 className="text-2xl font-bold text-gray-900">流转行情看板</h2>
-              </div>
-              <p className="text-sm text-gray-500">点击进入独立二级行情数据终端</p>
-            </div>
-            <a href="/market-index" className="text-sm text-brand-green hover:text-brand-light flex items-center space-x-1">
-              <span>进入完整数据终端</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            </a>
-          </div>
-
-          {/* Metric cards */}
-          {marketData.length > 0 && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {marketData.slice(0, 2).map((m) => (
-                <div key={m.province} className="bg-white rounded-xl p-5 border border-gray-100 card-hover">
-                  <div className="text-xs text-gray-500 mb-1">2026 实时指数</div>
-                  <div className="text-xl font-bold text-brand-green">{m.province}流转均价</div>
-                  <div className="text-2xl font-bold text-gray-900 mt-1">
-                    ¥{m.median_price}<span className="text-sm font-normal text-gray-500">万/年</span>
-                  </div>
-                  <div className={`text-sm mt-1 ${getChangeStyle(m.change_pct)}`}>{getChangeText(m.change_pct)}</div>
+      <Navigation />
+      
+      <main>
+        <HeroSection totalAssets={totalAssets} todayNew={todayNew} />
+        <RegionGrid regions={regions} />
+        <MarketStats marketData={marketData} />
+        
+        {/* 行情数据详细表格（动态） */}
+        <section className="bg-gray-50 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="font-bold text-gray-900">省级行政细分流速与交易深度</h3>
+                <div className="flex items-center space-x-1 text-xs text-green-500">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span>CONNECTED</span>
                 </div>
-              ))}
-              <div className="bg-white rounded-xl p-5 border border-gray-100 card-hover">
-                <div className="text-xs text-gray-500 mb-1">供需指标</div>
-                <div className="text-xl font-bold text-brand-green">全网潜在买卖比</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">1.48<span className="text-sm font-normal text-gray-500">: 1</span></div>
-                <div className="text-sm mt-1 text-orange-500">⚠ 供不应求</div>
               </div>
-              <div className="bg-white rounded-xl p-5 border border-gray-100 card-hover">
-                <div className="text-xs text-gray-500 mb-1">散户指标</div>
-                <div className="text-xl font-bold text-brand-green">散户溢价空间</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">{marketData[0]?.bargain_space || '-12.4'}<span className="text-sm font-normal text-gray-500">%</span></div>
-                <div className="text-sm mt-1 text-blue-500">💡 砍价空间大</div>
-              </div>
-            </div>
-          )}
-
-          {/* Market table */}
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-bold text-gray-900">省级行政细分流速与交易深度</h3>
-              <div className="flex items-center space-x-1 text-xs text-green-500">
-                <span className="w-2 h-2 bg-green-500 rounded-full pulse-dot"></span>
-                <span>CONNECTED</span>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-left">
-                    <th className="px-6 py-3 font-medium text-gray-500">省级行政区域</th>
-                    <th className="px-6 py-3 font-medium text-gray-500">官方存量挂牌</th>
-                    <th className="px-6 py-3 font-medium text-gray-500">租金中位数 (年)</th>
-                    <th className="px-6 py-3 font-medium text-gray-500">环比本周涨跌</th>
-                    <th className="px-6 py-3 font-medium text-gray-500">散户民间砍价空间</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {marketData.length > 0 ? marketData.map((row) => (
-                    <tr key={row.province} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">{REGION_EMOJIS[row.province] || '📍'}</span>
-                          <div>
-                            <div className="font-medium text-gray-900">{row.province}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-medium">{row.total_listings.toLocaleString()} 宗</td>
-                      <td className="px-6 py-4 font-bold text-gray-900">¥{row.median_price} 万</td>
-                      <td className="px-6 py-4"><span className={`font-medium ${getChangeStyle(row.change_pct)}`}>{getChangeText(row.change_pct)}</span></td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex-1 bg-gray-100 rounded-full h-2 max-w-[100px]">
-                            <div className={`${getBarColor(row.bargain_space)} h-2 rounded-full`} style={{ width: getBarWidth(row.bargain_space) }}></div>
-                          </div>
-                          <span className={`${getBargainColor(row.bargain_space)} text-xs font-medium`}>{row.bargain_space}% ({getBargainNote(row.bargain_space)})</span>
-                        </div>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 text-left">
+                      <th className="px-6 py-3 font-medium text-gray-500">省级行政区域</th>
+                      <th className="px-6 py-3 font-medium text-gray-500">官方存量挂牌</th>
+                      <th className="px-6 py-3 font-medium text-gray-500">租金中位数 (年)</th>
+                      <th className="px-6 py-3 font-medium text-gray-500">环比本周涨跌</th>
+                      <th className="px-6 py-3 font-medium text-gray-500">散户民间砍价空间</th>
                     </tr>
-                  )) : (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">暂无行情数据</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Data Security + Feature Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-gradient-to-r from-brand-dark to-brand-green rounded-2xl p-8 mb-12 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="relative z-10 flex items-start space-x-4">
-            <div className="text-4xl">🛡️</div>
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2">数据安全装甲</h3>
-              <p className="text-gray-300 text-sm leading-relaxed max-w-2xl">
-                为死守平台的数据资产护城河，防范竞争同行恶意&quot;抄底白嫖&quot;，系统<strong className="text-yellow-400">永久封锁任何离线下载 Excel/CAD 的通道</strong>。所有的深度比对分析、GIS 交叉校验流程必须在平台内无缝完成。
-              </p>
-              <button className="mt-4 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-lg border border-white/20 transition-all">
-                批量导出 (测试防盗墙)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {FEATURES.map((f) => (
-            <a key={f.badge} href={f.href} className={`group bg-white rounded-xl p-6 border border-gray-100 card-hover text-center`}>
-              <div className={`w-14 h-14 mx-auto mb-4 rounded-xl ${f.bgColor} flex items-center justify-center ${f.hoverBg} transition-colors`}>
-                <span className="text-2xl">{f.emoji}</span>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {marketData.length > 0 ? marketData.map((row) => (
+                      <tr key={row.province} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-lg">{REGION_EMOJIS[row.province] || '📍'}</span>
+                            <div>
+                              <div className="font-medium text-gray-900">{row.province}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-medium">{row.total_listings?.toLocaleString() || 0} 宗</td>
+                        <td className="px-6 py-4 font-bold text-gray-900">¥{row.median_price} 万</td>
+                        <td className="px-6 py-4">
+                          <span className={`font-medium ${getChangeStyle(row.change_pct)}`}>
+                            {getChangeText(row.change_pct)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            <div className="flex-1 bg-gray-100 rounded-full h-2 max-w-[100px]">
+                              <div 
+                                className={`${getBarColor(row.bargain_space)} h-2 rounded-full`} 
+                                style={{ width: getBarWidth(row.bargain_space) }}
+                              ></div>
+                            </div>
+                            <span className={`${getBargainColor(row.bargain_space)} text-xs font-medium`}>
+                              {row.bargain_space}% ({getBargainNote(row.bargain_space)})
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-400">暂无行情数据</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-              <div className={`text-xs font-bold ${f.badgeColor} uppercase tracking-wider mb-1`}>{f.badge}</div>
-              <div className="font-bold text-gray-900 mb-1">{f.title}</div>
-              <div className="text-xs text-gray-400">{f.desc}</div>
-            </a>
-          ))}
-        </div>
-      </section>
+            </div>
+          </div>
+        </section>
+        
+        {/* 官方原矿区 */}
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#1a4731] text-white px-2 py-1 rounded text-xs font-bold">OFFICIAL</span>
+                <span className="text-2xl">🏛️</span>
+                <h2 className="text-2xl font-bold text-gray-900">纯净一手官方原矿区</h2>
+              </div>
+              <Link href="/search?source=official" className="text-sm text-[#1a4731] hover:underline font-medium">进入原矿搜寻引擎 →</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {properties.map((p) => (
+                <Link key={p.id} href={`/asset/${p.id}`} className="block">
+                  <PropertyCard property={p} />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
 
-      <Footer config={config} />
-    </>
+        {/* 村集体直发专区 */}
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2">
+                <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">VILLAGE DIRECT</span>
+                <span className="text-2xl">🏛️</span>
+                <h2 className="text-2xl font-bold text-gray-900">村集体直发专区</h2>
+              </div>
+              <Link href="/search?source=village" className="text-sm text-[#1a4731] hover:underline font-medium">查看所有村委直发 →</Link>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {villageProjects.map((p) => (
+                <Link key={p.id} href={`/asset/${p.id}`} className="block">
+                  <VillageDirectCard project={p} />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 文旅大宗产业路演带 */}
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2">
+                <span className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">BULK ROADSHOW</span>
+                <span className="text-2xl">🎪</span>
+                <h2 className="text-2xl font-bold text-gray-900">文旅大宗产业路演带</h2>
+              </div>
+              <Link href="/bulk-projects" className="text-sm text-[#1a4731] hover:underline font-medium">进入独立路演大厅 →</Link>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {bulkProjects.map((p) => (
+                <Link key={p.id} href={`/asset/${p.id}`} className="block">
+                  <BulkProjectCard project={p} />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 数字化隐居基建硬指标 */}
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#1a4731] text-white px-2 py-1 rounded text-xs font-bold">INFRASTRUCTURE</span>
+                <span className="text-2xl">📡</span>
+                <h2 className="text-2xl font-bold text-gray-900">数字化隐居基建硬指标</h2>
+              </div>
+              <Link href="/infra-rating" className="text-sm text-[#1a4731] hover:underline font-medium">查看全国基建指数表 →</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {infraRatingsFormatted.map((i) => (
+                <Link key={i.id} href="/infra-rating" className="block">
+                  <InfraRatingCard infra={i} />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 本地金牌合伙人联播网 */}
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#1a4731] text-white px-2 py-1 rounded text-xs font-bold">BROKERS</span>
+                <span className="text-2xl">🤝</span>
+                <h2 className="text-2xl font-bold text-gray-900">本地金牌"农房合伙人"联播网</h2>
+              </div>
+              <Link href="/brokers" className="text-sm text-[#1a4731] hover:underline font-medium">查看全网合伙人名册 →</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {brokersFormatted.map((b) => (
+                <Link key={b.id} href="/brokers" className="block">
+                  <BrokerCard broker={b} />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <CTASection />
+      </main>
+
+      <Footer />
+    </div>
   );
 }
