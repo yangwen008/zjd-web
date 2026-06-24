@@ -39,12 +39,80 @@ function Navigation() {
   );
 }
 
+// 替换为这个高大上的全新 Footer：
 function Footer() {
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
-        <p>© 2026 绵阳网安科技有限公司 版权所有</p>
-        <p className="mt-2">蜀ICP备16015085号-5 | 蜀公网安备 51070302000888号</p>
+    <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* 顶部：四列内容布局 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          
+          {/* 第一列：品牌介绍 */}
+          <div>
+            <div className="text-2xl font-bold text-[#1a4731] mb-3">zjd.cn</div>
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              zjd.cn 是由绵阳网安科技有限公司倾力打造的乡村闲置资产数字交易所。我们通过分布式低频智能采矿与大模型型价值清洗，将零散、非结构化的民间资产重塑为具备高依托信用、完美基建指标、完全穿透地理边界的数字化绿色大宗资产。
+            </p>
+            <div className="flex gap-4">
+              <a href="#" className="text-gray-400 hover:text-[#1a4731] transition-colors">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-[#1a4731] transition-colors">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-[#1a4731] transition-colors">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>
+              </a>
+            </div>
+          </div>
+
+          {/* 第二列：流转大厅 */}
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-4">流转大厅</h4>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🔥</span> 热点寻源榜</a></li>
+              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>📊</span> 土地价格大盘</a></li>
+              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🔍</span> 官方原矿检索</a></li>
+            </ul>
+          </div>
+
+          {/* 第三列：双边生态 */}
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-4">双边生态</h4>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🎪</span> 大宗项目路演</a></li>
+              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🏘️</span> 隐居新基建指标</a></li>
+              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🤝</span> 地陪合伙人名册</a></li>
+            </ul>
+          </div>
+
+          {/* 第四列：合作与法务 */}
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-4">合作与法务通道</h4>
+            <ul className="space-y-2 text-sm text-gray-600 mb-4">
+              <li><span className="text-gray-500">合作热线：</span><strong className="text-gray-900">13696266999</strong></li>
+              <li><span className="text-gray-500">企业邮箱：</span><strong className="text-gray-900">cooperate@zjd.cn</strong></li>
+            </ul>
+            <div className="p-3 bg-gray-100 rounded-lg text-xs text-gray-500 leading-relaxed">
+              【合规与演绎隔离声明】本平台展示的所有官方产权信息均通过合法公开手段采集，前端呈现的拼凑在新积木上属于"演绎再创作作品"。本店铺坚持共享求真，交易双方须线下验证产权真实性。
+            </div>
+          </div>
+        </div>
+
+        {/* 底部：版权与备案信息 */}
+        <div className="border-t border-gray-200 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+            <div>© 2026 绵阳网安科技有限公司 版权所有</div>
+            <div className="flex gap-6">
+              <span>蜀ICP备16015085号-5</span>
+              <span>蜀公网安备 51070302000888号</span>
+            </div>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-[#1a4731] transition-colors">《平台数据隐私保护白皮书》</a>
+              <a href="#" className="hover:text-[#1a4731] transition-colors">《免责声明4.0》</a>
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
   );
