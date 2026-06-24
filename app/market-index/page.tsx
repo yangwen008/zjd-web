@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { getMarketData, getHomepageConfig } from '@/lib/data';
