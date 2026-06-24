@@ -18,20 +18,51 @@ function Navigation() {
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
+          {/* 左侧：Logo + 菜单 */}
           <div className="flex items-center gap-8">
-            <div className="flex-shrink-0">
-              <span className="text-2xl font-bold text-[#1a4731]">zjd.cn</span>
-              <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">测试版 v9.0</span>
+            {/* Logo */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="text-2xl font-bold">
+                <span className="text-gray-900">zjd</span>
+                <span className="text-[#1a4731]">.cn</span>
+              </div>
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">宅基地计划 v8.8.1</span>
             </div>
+            
+            {/* 导航菜单 */}
             <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-              <a href="#" className="hover:text-[#1a4731]">🔥 热点寻源</a>
-              <a href="#" className="hover:text-[#1a4731]">📊 流转大盘</a>
-              <a href="#" className="hover:text-[#1a4731]">🔍 资产搜索</a>
+              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🔥</span> 热点寻源
+              </a>
+              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>📊</span> 流转大盘
+              </a>
+              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🔍</span> 资产搜索
+              </a>
+              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🏢</span> 大宗路演
+              </a>
+              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🏘️</span> 隐居基建
+              </a>
+              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+                <span>🌾</span> 金牌合伙人
+              </a>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <a href="/" className="text-sm text-[#1a4731] hover:underline font-medium">← 返回旧版</a>
-            <button className="bg-[#1a4731] hover:bg-[#2d5a45] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">微信安全登录</button>
+
+          {/* 右侧：按钮 */}
+          <div className="flex items-center gap-3">
+            <button className="text-sm text-gray-600 hover:text-[#1a4731] flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <span>⚙️</span> 后台管理
+            </button>
+            <button className="bg-[#1a4731] hover:bg-[#2d5a45] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+              </svg>
+              微信安全登录
+            </button>
           </div>
         </div>
       </div>
