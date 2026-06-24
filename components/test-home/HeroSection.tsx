@@ -27,7 +27,7 @@ export default function HeroSection({ totalAssets = '104,281', todayNew = '142' 
   return (
     <section className="bg-gradient-to-b from-gray-50 to-white py-20">
       <div className="max-w-5xl mx-auto px-4 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">
+        <h1 className="text-6xl font-bold text-gray-900 mb-4">
           寻找被低估的 <span className="text-[#1a4731] italic">低密度空间资产</span>
         </h1>
         <p className="text-lg text-gray-600 mb-12 max-w-3xl mx-auto">
