@@ -43,7 +43,7 @@ export default function AdminAssetsPage() {
       if (status && status !== 'all') params.set('status', status);
       params.set('limit', '50');
       const res = await fetch(`/api/admin/assets?${params.toString()}`);
-      const data = await res.json();
+      const data: any = await res.json();
       setAssets(data.data || []);
     } catch {
       setAssets([]);
@@ -59,7 +59,7 @@ export default function AdminAssetsPage() {
   const handleAction = async (id: number, action: 'approve' | 'reject') => {
     try {
       const res = await fetch(`/api/admin/assets/${id}/${action}`, { method: 'POST' });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         fetchAssets(filter);
       }

@@ -58,7 +58,7 @@ export default function SearchPage() {
       params.set('limit', '20');
 
       const res = await fetch(`/api/assets?${params.toString()}`);
-      const data = await res.json();
+      const data: any = await res.json();
       setResults(data.data || []);
     } catch (err) {
       console.error('Search failed:', err);

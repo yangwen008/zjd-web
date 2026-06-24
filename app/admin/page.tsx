@@ -31,7 +31,7 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         setMessage(`✅ ${section} 配置已保存并同步至 D1`);
       } else {

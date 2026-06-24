@@ -35,7 +35,7 @@ export default function AdminScrapersPage() {
     setLoading(true);
     try {
       const res = await fetch('/api/scrape/recipes');
-      const data = await res.json();
+      const data: any = await res.json();
       setRecipes(data.recipes || []);
     } catch {
       setRecipes([]);
@@ -57,7 +57,7 @@ export default function AdminScrapersPage() {
           selectors: { list: { container: '', fields: {} } },
         }),
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         setShowForm(false);
         setFormData({ name: '', base_url: '', list_url: '', max_pages: 10, pagination_type: 'url', ai_prompt: '' });
