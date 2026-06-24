@@ -78,7 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     fetch('/api/admin/auth')
       .then((r) => r.json())
-      .then((data) => setAuthed(data.authenticated))
+      .then((data: any) => setAuthed(data.authenticated))
       .catch(() => setAuthed(false));
   }, []);
 
