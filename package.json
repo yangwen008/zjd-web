@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx @cloudflare/next-on-pages",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "preview": "wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat",
-    "deploy": "npm run build && wrangler pages deploy .vercel/output/static",
+    "deploy": "npx @cloudflare/next-on-pages && wrangler pages deploy .vercel/output/static",
     "db:init": "wrangler d1 execute zjd-main --file=./sql/schema.sql",
     "db:seed": "wrangler d1 execute zjd-main --file=./sql/seed.sql",
     "scrape": "node scrapers/catcher.js"
