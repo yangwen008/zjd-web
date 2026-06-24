@@ -24,7 +24,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         onLogin();
       } else {
