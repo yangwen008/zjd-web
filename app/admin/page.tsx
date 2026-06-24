@@ -16,7 +16,7 @@ export default function AdminDashboard() {
     // 加载配置
     fetch('/api/admin/config')
       .then((r) => r.json())
-      .then((data) => {
+      .then((data: any) => {
         if (data.success) setConfig((prev) => ({ ...prev, ...data.data }));
       })
       .catch(() => {});
