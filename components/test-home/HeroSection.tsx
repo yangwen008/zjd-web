@@ -1,4 +1,7 @@
-// components/test-home/HeroSection.tsx
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface HeroSectionProps {
   totalAssets?: string;
@@ -6,6 +9,21 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ totalAssets = '104,281', todayNew = '142' }: HeroSectionProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <section className="bg-gradient-to-b from-gray-50 to-white py-20">
       <div className="max-w-5xl mx-auto px-4 text-center">
@@ -26,9 +44,15 @@ export default function HeroSection({ totalAssets = '104,281', todayNew = '142' 
                 type="text" 
                 placeholder="输入你想隐居的城市、地块特色或寻找本地合伙人..." 
                 className="w-full outline-none text-gray-700 placeholder-gray-400"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
               />
             </div>
-            <button className="bg-[#1a4731] hover:bg-[#2d5a45] text-white px-8 py-4 font-medium transition-colors">
+            <button 
+              onClick={handleSearch}
+              className="bg-[#1a4731] hover:bg-[#2d5a45] text-white px-8 py-4 font-medium transition-colors"
+            >
               智能检索
             </button>
           </div>
