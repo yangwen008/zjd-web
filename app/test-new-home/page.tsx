@@ -42,12 +42,14 @@ function getFirstImage(images: string | null): string {
 }
 
 // 转换资产数据为PropertyCard格式
+// 转换资产数据为PropertyCard格式
 function toPropertyFormat(asset: Asset) {
   return {
     id: asset.id.toString(),
     title: asset.title,
     price: formatPrice(asset.price_year),
     priceUnit: '年',
+    location: asset.province ? `${asset.province}·${asset.city || ''}` : '全国',
     type: `${asset.lease_years || 20}年期${asset.asset_type || '宅基地'}使用权`,
     imageUrl: getFirstImage(asset.images),
     badge: asset.source_type === 'official' ? '一手官方资源' : 
