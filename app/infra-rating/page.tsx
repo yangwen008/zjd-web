@@ -1,16 +1,52 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { getInfraRatings, getHomepageConfig } from '@/lib/data';
 
-const RATINGS = [
-  { rank: 1, region: '杭州·安吉', signal: '12ms', signalColor: 'text-green-500', hospital: '8分钟', hospitalColor: 'text-green-500', grid: '98%', gridColor: 'text-green-500', grade: 'S+', gradeBg: 'bg-green-100 text-green-700' },
-  { rank: 2, region: '成都·都江堰', signal: '18ms', signalColor: 'text-green-500', hospital: '12分钟', hospitalColor: 'text-green-500', grid: '95%', gridColor: 'text-green-500', grade: 'S', gradeBg: 'bg-green-100 text-green-700' },
-  { rank: 3, region: '大理·苍洱', signal: '35ms', signalColor: 'text-yellow-500', hospital: '25分钟', hospitalColor: 'text-yellow-500', grid: '92%', gridColor: 'text-green-500', grade: 'A+', gradeBg: 'bg-yellow-100 text-yellow-700' },
-  { rank: 4, region: '丽水·缙云', signal: '42ms', signalColor: 'text-yellow-500', hospital: '30分钟', hospitalColor: 'text-yellow-500', grid: '88%', gridColor: 'text-yellow-500', grade: 'A', gradeBg: 'bg-yellow-100 text-yellow-700' },
-  { rank: 5, region: '桂林·阳朔', signal: '48ms', signalColor: 'text-yellow-500', hospital: '35分钟', hospitalColor: 'text-yellow-500', grid: '85%', gridColor: 'text-yellow-500', grade: 'A-', gradeBg: 'bg-yellow-100 text-yellow-700' },
-  { rank: 6, region: '北京·延庆', signal: '15ms', signalColor: 'text-green-500', hospital: '10分钟', hospitalColor: 'text-green-500', grid: '96%', gridColor: 'text-green-500', grade: 'S', gradeBg: 'bg-green-100 text-green-700' },
-];
+function getSignalColor(ms: number): string {
+  if (ms <= 20) return 'text-green-500';
+  if (ms <= 40) return 'text-yellow-500';
+  return 'text-red-500';
+}
 
-export default function InfraRatingPage() {
+function getHospitalColor(min: number): string {
+  if (min <= 15) return 'text-green-500';
+  if (min <= 30) return 'text-yellow-500';
+  return 'text-red-500';
+}
+
+function getGridColor(pct: number): string {
+  if (pct >= 95) return 'text-green-500';
+  if (pct >= 90) return 'text-green-500';
+  if (pct >= 85) return 'text-yellow-500';
+  return 'text-red-500';
+}
+
+function getGradeBg(grade: string): string {
+  if (grade.startsWith('S')) return 'bg-green-100 text-green-700';
+  if (grade.startsWith('A')) return 'bg-yellow-100 text-yellow-700';
+  return 'bg-gray-100 text-gray-700';
+}
+
+function getRankDisplay(rank: number): string {
+  if (rank === 1) return '🥇 1';
+  if (rank === 2) return '🥈 2';
+  if (rank === 3) return '🥉 3';
+  return String(rank);
+}
+
+function getRankColor(rank: number): string {
+  if (rank === 1) return 'text-yellow-500';
+  if (rank === 2) return 'text-gray-400';
+  if (rank === 3) return 'text-orange-500';
+  return 'text-gray-400';
+}
+
+export default async function InfraRatingPage() {
+  const [ratings, config] = await Promise.all([
+    getInfraRatings().catch(() => []),
+    getHomepageConfig().catch(() => ({})),
+  ]);
+
   return (
     <>
       <Navbar />
@@ -38,27 +74,27 @@ export default function InfraRatingPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {RATINGS.map((r) => (
-                    <tr key={r.rank} className="hover:bg-gray-50/50 transition-colors">
+                  {ratings.length > 0 ? ratings.map((r, i) => (
+                    <tr key={r.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
-                        <span className={`font-bold ${r.rank <= 3 ? (r.rank === 1 ? 'text-yellow-500' : r.rank === 2 ? 'text-gray-400' : 'text-orange-500') : 'text-gray-400'}`}>
-                          {r.rank === 1 ? '🥇 1' : r.rank === 2 ? '🥈 2' : r.rank === 3 ? '🥉 3' : r.rank}
-                        </span>
+                        <span className={`font-bold ${getRankColor(i + 1)}`}>{getRankDisplay(i + 1)}</span>
                       </td>
                       <td className="px-6 py-4 font-medium text-gray-900">{r.region}</td>
-                      <td className="px-6 py-4"><span className={r.signalColor}>{r.signal}</span></td>
-                      <td className="px-6 py-4"><span className={r.hospitalColor}>{r.hospital}</span></td>
-                      <td className="px-6 py-4"><span className={r.gridColor}>{r.grid}</span></td>
-                      <td className="px-6 py-4"><span className={`${r.gradeBg} px-2 py-0.5 rounded text-xs font-bold`}>{r.grade}</span></td>
+                      <td className="px-6 py-4"><span className={getSignalColor(r.signal_5g_ms)}>{r.signal_5g_ms}ms</span></td>
+                      <td className="px-6 py-4"><span className={getHospitalColor(r.hospital_min)}>{r.hospital_min}分钟</span></td>
+                      <td className="px-6 py-4"><span className={getGridColor(r.grid_redundancy)}>{r.grid_redundancy}%</span></td>
+                      <td className="px-6 py-4"><span className={`${getGradeBg(r.overall_grade)} px-2 py-0.5 rounded text-xs font-bold`}>{r.overall_grade}</span></td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">暂无基建数据</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer config={config} />
     </>
   );
 }

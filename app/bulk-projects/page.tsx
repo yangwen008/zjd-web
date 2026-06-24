@@ -1,12 +1,13 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { getAssetsBySource, getHomepageConfig } from '@/lib/data';
 
-const PROJECTS = [
-  { title: '青城山康养综合体项目', location: '四川省 · 都江堰市', area: '280 亩', price: '¥180万', lease: '20年', badge: '🏛️ 村委直营', badgeColor: 'bg-yellow-500', gradient: 'from-brand-dark to-brand-green',承接: '康养文旅集团', views: 4210 },
-  { title: '苍洱片区古村落群整体活化', location: '云南省 · 大理市', area: '560 亩', price: '¥320万', lease: '30年', badge: '⚖️ 官方原矿', badgeColor: 'bg-blue-500', gradient: 'from-teal-800 to-teal-600', 承接: '云南省文旅投', views: 3890 },
-];
+export default async function BulkProjectsPage() {
+  const [projects, config] = await Promise.all([
+    getAssetsBySource('official', 10).catch(() => []),
+    getHomepageConfig().catch(() => ({})),
+  ]);
 
-export default function BulkProjectsPage() {
   return (
     <>
       <Navbar />
@@ -21,14 +22,14 @@ export default function BulkProjectsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {PROJECTS.map((p, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 overflow-hidden card-hover">
-                <div className={`h-48 bg-gradient-to-br ${p.gradient} relative`}>
-                  <div className={`absolute top-4 left-4 ${p.badge} text-white text-xs font-bold px-3 py-1 rounded-lg`}>
-                    {p.badge}
+            {projects.length > 0 ? projects.map((p) => (
+              <div key={p.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden card-hover">
+                <div className="h-48 bg-gradient-to-br from-brand-dark to-brand-green relative">
+                  <div className="absolute top-4 left-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-lg">
+                    {p.source_type === 'village' ? '🏛️ 村委直营' : '⚖️ 官方原矿'}
                   </div>
                   <div className="absolute bottom-4 left-4 text-white">
-                    <div className="text-xs opacity-80">{p.location}</div>
+                    <div className="text-xs opacity-80">{p.location || p.province}</div>
                     <div className="text-xl font-bold">{p.title}</div>
                   </div>
                 </div>
@@ -36,28 +37,34 @@ export default function BulkProjectsPage() {
                   <div className="grid grid-cols-3 gap-4 text-center mb-4">
                     <div>
                       <div className="text-xs text-gray-400">总面积</div>
-                      <div className="font-bold text-gray-900">{p.area}</div>
+                      <div className="font-bold text-gray-900">{p.area_mu ? `${p.area_mu} 亩` : '-'}</div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-400">年租金</div>
-                      <div className="font-bold text-brand-green">{p.price}</div>
+                      <div className="font-bold text-brand-green">{p.price_year ? `¥${p.price_year}万` : '-'}</div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-400">流转期限</div>
-                      <div className="font-bold text-gray-900">{p.lease}</div>
+                      <div className="font-bold text-gray-900">{p.lease_years ? `${p.lease_years}年` : '-'}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-50">
-                    <span>已承接: {p.承接}</span>
+                    <span>{p.description?.substring(0, 30) || '优质资产'}</span>
                     <span>{p.views.toLocaleString()} 次浏览</span>
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="col-span-2 text-center py-16 text-gray-400">
+                <div className="text-5xl mb-4">🏢</div>
+                <p className="text-lg">暂无大宗项目数据</p>
+                <p className="text-sm mt-2">请先执行 npm run db:seed 导入种子数据</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer config={config} />
     </>
   );
 }

@@ -1,10 +1,13 @@
-export default function Footer() {
-  const config = {
-    company_name: '绵阳网安科技有限公司',
-    company_phone: '13696266999',
-    company_email: 'contact@zjd.cn',
-    icp_number: '蜀ICP备16015085号-5',
-  };
+interface FooterProps {
+  config?: Record<string, string>;
+}
+
+export default function Footer({ config }: FooterProps) {
+  const companyName = config?.company_name || '绵阳网安科技有限公司';
+  const companyPhone = config?.company_phone || '13696266999';
+  const companyEmail = config?.company_email || 'contact@zjd.cn';
+  const icpNumber = config?.icp_number || '蜀ICP备16015085号-5';
+  const footerAbout = config?.footer_about || '乡村闲置资产数字交易所。全网多源产权低频提纯，让技术重归山川。';
 
   return (
     <footer className="bg-brand-dark text-gray-400">
@@ -20,14 +23,14 @@ export default function Footer() {
               </div>
               <span className="text-white font-bold text-lg">zjd.cn</span>
             </div>
-            <p className="text-sm leading-relaxed">乡村闲置资产数字交易所。全网多源产权低频提纯，让技术重归山川。</p>
+            <p className="text-sm leading-relaxed">{footerAbout}</p>
           </div>
 
           {/* Links */}
           <div>
             <h4 className="text-white font-bold text-sm mb-4">流转大厅</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#hot" className="hover:text-white transition-colors">🔥 热点寻源榜</a></li>
+              <li><a href="/regions" className="hover:text-white transition-colors">🔥 热点寻源榜</a></li>
               <li><a href="/market-index" className="hover:text-white transition-colors">📊 土地价格大盘</a></li>
               <li><a href="/search" className="hover:text-white transition-colors">🔍 官方原矿检索</a></li>
             </ul>
@@ -45,9 +48,9 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold text-sm mb-4">合作与法务通道</h4>
             <ul className="space-y-2 text-sm">
-              <li>合作热线：<strong className="text-white">{config.company_phone}</strong></li>
-              <li>企业邮箱：<strong className="text-white">{config.company_email}</strong></li>
-              <li>ICP备案：<strong className="text-white">{config.icp_number}</strong></li>
+              <li>合作热线：<strong className="text-white">{companyPhone}</strong></li>
+              <li>企业邮箱：<strong className="text-white">{companyEmail}</strong></li>
+              <li>ICP备案：<strong className="text-white">{icpNumber}</strong></li>
             </ul>
           </div>
         </div>

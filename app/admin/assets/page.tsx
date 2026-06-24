@@ -1,19 +1,70 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const MOCK_ASSETS = [
-  { id: 1, title: '杭州·安吉溪畔宅基地', region: '浙江', source: '官方', status: 'approved', views: 18420 },
-  { id: 2, title: '成都·都江堰青城山林地', region: '四川', source: '官方', status: 'approved', views: 17120 },
-  { id: 3, title: '大理·苍洱白族老宅', region: '云南', source: '村委', status: 'pending', views: 12480 },
-  { id: 4, title: '丽水·缙云石头房', region: '浙江', source: 'UGC', status: 'pending', views: 9430 },
-  { id: 5, title: '桂林·阳朔临江院落', region: '广西', source: '官方', status: 'rejected', views: 8940 },
-];
+interface Asset {
+  id: number;
+  title: string;
+  province: string | null;
+  source_type: string;
+  status: string;
+  views: number;
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  approved: '已上架',
+  pending: '待审核',
+  rejected: '已拒绝',
+  banned: '已封禁',
+};
+
+const STATUS_STYLES: Record<string, string> = {
+  approved: 'bg-green-100 text-green-700',
+  pending: 'bg-yellow-100 text-yellow-700',
+  rejected: 'bg-red-100 text-red-700',
+  banned: 'bg-red-100 text-red-700',
+};
+
+const SOURCE_LABELS: Record<string, string> = {
+  official: '官方',
+  village: '村委',
+  ugc: 'UGC',
+};
 
 export default function AdminAssetsPage() {
   const [filter, setFilter] = useState('all');
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = filter === 'all' ? MOCK_ASSETS : MOCK_ASSETS.filter((a) => a.status === filter);
+  const fetchAssets = async (status?: string) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (status && status !== 'all') params.set('status', status);
+      params.set('limit', '50');
+      const res = await fetch(`/api/admin/assets?${params.toString()}`);
+      const data = await res.json();
+      setAssets(data.data || []);
+    } catch {
+      setAssets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssets(filter);
+  }, [filter]);
+
+  const handleAction = async (id: number, action: 'approve' | 'reject') => {
+    try {
+      const res = await fetch(`/api/admin/assets/${id}/${action}`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        fetchAssets(filter);
+      }
+    } catch {}
+  };
 
   return (
     <div>
@@ -28,7 +79,7 @@ export default function AdminAssetsPage() {
                 filter === f ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              {f === 'all' ? '全部' : f === 'pending' ? '待审核' : f === 'approved' ? '已上架' : '已拒绝'}
+              {f === 'all' ? '全部' : STATUS_LABELS[f] || f}
             </button>
           ))}
         </div>
@@ -48,37 +99,37 @@ export default function AdminAssetsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {filtered.map((asset) => (
+            {loading ? (
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
+            ) : assets.length > 0 ? assets.map((asset) => (
               <tr key={asset.id} className="hover:bg-gray-50/50">
                 <td className="px-4 py-3 text-gray-400">#{asset.id}</td>
                 <td className="px-4 py-3 font-medium text-gray-900">{asset.title}</td>
-                <td className="px-4 py-3 text-gray-500">{asset.region}</td>
+                <td className="px-4 py-3 text-gray-500">{asset.province || '-'}</td>
                 <td className="px-4 py-3">
-                  <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{asset.source}</span>
+                  <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{SOURCE_LABELS[asset.source_type] || asset.source_type}</span>
                 </td>
                 <td className="px-4 py-3 text-gray-500">{asset.views.toLocaleString()}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    asset.status === 'approved' ? 'bg-green-100 text-green-700' :
-                    asset.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
-                    {asset.status === 'approved' ? '已上架' : asset.status === 'pending' ? '待审核' : '已拒绝'}
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[asset.status] || 'bg-gray-100 text-gray-600'}`}>
+                    {STATUS_LABELS[asset.status] || asset.status}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center space-x-2">
-                    <button className="text-xs text-brand-green hover:underline">编辑</button>
+                    <a href={`/asset/${asset.id}`} className="text-xs text-brand-green hover:underline">查看</a>
                     {asset.status === 'pending' && (
                       <>
-                        <button className="text-xs text-green-600 hover:underline">批准</button>
-                        <button className="text-xs text-red-500 hover:underline">拒绝</button>
+                        <button onClick={() => handleAction(asset.id, 'approve')} className="text-xs text-green-600 hover:underline">批准</button>
+                        <button onClick={() => handleAction(asset.id, 'reject')} className="text-xs text-red-500 hover:underline">拒绝</button>
                       </>
                     )}
                   </div>
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>
+            )}
           </tbody>
         </table>
       </div>

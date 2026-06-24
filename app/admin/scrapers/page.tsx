@@ -1,15 +1,71 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const MOCK_RECIPES = [
-  { id: 1, name: '浙江省农村产权交易中心', url: 'zjncq.cn', fields: 12, status: 'success', lastRun: '2026-06-23 03:00' },
-  { id: 2, name: '四川省产权交易所', url: 'cdpre.cn', fields: 10, status: 'running', lastRun: '2026-06-23 03:05' },
-  { id: 3, name: '云南省公共资源交易', url: 'ynpee.cn', fields: 8, status: 'failed', lastRun: '2026-06-22 03:00' },
-];
+interface Recipe {
+  id: number;
+  name: string;
+  base_url: string;
+  list_url: string;
+  enabled: number;
+  max_pages: number;
+  selectors: string;
+  last_run_at: string | null;
+  last_run_status: string;
+}
+
+const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  success: { label: '✅ 成功', className: 'bg-green-100 text-green-700' },
+  running: { label: '🔄 运行中', className: 'bg-blue-100 text-blue-700' },
+  failed: { label: '❌ 失败', className: 'bg-red-100 text-red-700' },
+  idle: { label: '⏸ 待机', className: 'bg-gray-100 text-gray-600' },
+};
 
 export default function AdminScrapersPage() {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '', base_url: '', list_url: '', max_pages: 10,
+    pagination_type: 'url', ai_prompt: '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const fetchRecipes = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/scrape/recipes');
+      const data = await res.json();
+      setRecipes(data.recipes || []);
+    } catch {
+      setRecipes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchRecipes(); }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/scrape/recipes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          selectors: { list: { container: '', fields: {} } },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShowForm(false);
+        setFormData({ name: '', base_url: '', list_url: '', max_pages: 10, pagination_type: 'url', ai_prompt: '' });
+        fetchRecipes();
+      }
+    } catch {}
+    finally { setSaving(false); }
+  };
 
   return (
     <div>
@@ -19,7 +75,7 @@ export default function AdminScrapersPage() {
           onClick={() => setShowForm(!showForm)}
           className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm"
         >
-          + 新增采集站
+          {showForm ? '取消' : '+ 新增采集站'}
         </button>
       </div>
 
@@ -30,84 +86,70 @@ export default function AdminScrapersPage() {
             <tr className="bg-gray-50 text-left">
               <th className="px-4 py-3 font-medium text-gray-500">站点名称</th>
               <th className="px-4 py-3 font-medium text-gray-500">采集URL</th>
-              <th className="px-4 py-3 font-medium text-gray-500">配方字段数</th>
+              <th className="px-4 py-3 font-medium text-gray-500">最大页数</th>
               <th className="px-4 py-3 font-medium text-gray-500">上次运行</th>
               <th className="px-4 py-3 font-medium text-gray-500">状态</th>
               <th className="px-4 py-3 font-medium text-gray-500">操作</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {MOCK_RECIPES.map((r) => (
-              <tr key={r.id} className="hover:bg-gray-50/50">
-                <td className="px-4 py-3 font-medium text-gray-900">{r.name}</td>
-                <td className="px-4 py-3 text-gray-500 font-mono text-xs">{r.url}</td>
-                <td className="px-4 py-3 text-gray-500">{r.fields} 个字段</td>
-                <td className="px-4 py-3 text-gray-400 text-xs">{r.lastRun}</td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    r.status === 'success' ? 'bg-green-100 text-green-700' :
-                    r.status === 'running' ? 'bg-blue-100 text-blue-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
-                    {r.status === 'success' ? '✅ 成功' : r.status === 'running' ? '🔄 运行中' : '❌ 失败'}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center space-x-2">
-                    <button className="text-xs text-brand-green hover:underline">测试</button>
-                    <button className="text-xs text-blue-500 hover:underline">编辑</button>
-                    <button className="text-xs text-red-500 hover:underline">删除</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {loading ? (
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
+            ) : recipes.length > 0 ? recipes.map((r) => {
+              const status = STATUS_LABELS[r.last_run_status] || STATUS_LABELS.idle;
+              return (
+                <tr key={r.id} className="hover:bg-gray-50/50">
+                  <td className="px-4 py-3 font-medium text-gray-900">{r.name}</td>
+                  <td className="px-4 py-3 text-gray-500 font-mono text-xs">{r.base_url}</td>
+                  <td className="px-4 py-3 text-gray-500">{r.max_pages} 页</td>
+                  <td className="px-4 py-3 text-gray-400 text-xs">{r.last_run_at || '从未运行'}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-2">
+                      <button className="text-xs text-brand-green hover:underline">测试</button>
+                      <button className="text-xs text-blue-500 hover:underline">编辑</button>
+                      <button className="text-xs text-red-500 hover:underline">删除</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            }) : (
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">暂无采集配方</td></tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Add/Edit form */}
+      {/* Add form */}
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <h2 className="font-bold text-gray-900 mb-4">新增采集站配置</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">站点名称</label>
-              <input type="text" placeholder="如：浙江省农村产权交易中心" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
+              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="如：浙江省农村产权交易中心" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">基础URL</label>
+              <input type="text" value={formData.base_url} onChange={(e) => setFormData({ ...formData, base_url: e.target.value })} placeholder="https://example.com" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">列表页URL</label>
-              <input type="text" placeholder="https://example.com/list?page={page}" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" />
+              <input type="text" value={formData.list_url} onChange={(e) => setFormData({ ...formData, list_url: e.target.value })} placeholder="https://example.com/list?page={page}" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">最大页数</label>
-              <input type="number" defaultValue={10} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">翻页方式</label>
-              <select className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green">
-                <option>URL参数</option>
-                <option>点击下一页</option>
-                <option>无限滚动</option>
-              </select>
+              <input type="number" value={formData.max_pages} onChange={(e) => setFormData({ ...formData, max_pages: Number(e.target.value) })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
             </div>
           </div>
 
           <div className="mb-4">
-            <label className="block text-xs font-medium text-gray-500 mb-2">📋 列表页字段映射</label>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              {['标题', '详情链接', '面积', '价格', '地点'].map((field) => (
-                <div key={field} className="flex items-center space-x-3">
-                  <span className="text-xs text-gray-500 w-16">{field}</span>
-                  <input type="text" placeholder="//xpath/selector" className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded font-mono" />
-                </div>
-              ))}
-            </div>
-            <button className="mt-2 text-xs text-brand-green hover:underline">+ 添加字段</button>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-xs font-medium text-gray-500 mb-2">🤖 AI清洗设置</label>
+            <label className="block text-xs font-medium text-gray-500 mb-2">🤖 AI清洗提示词 (可选)</label>
             <textarea
+              value={formData.ai_prompt}
+              onChange={(e) => setFormData({ ...formData, ai_prompt: e.target.value })}
               placeholder="自定义AI提取提示词，如：提取面积、价格、产权类型、交通配套..."
               rows={3}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green"
@@ -115,9 +157,10 @@ export default function AdminScrapersPage() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">🧪 测试抓取</button>
-            <button className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm">💾 保存配方</button>
-            <button className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm">取消</button>
+            <button onClick={handleSave} disabled={saving} className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50">
+              {saving ? '保存中...' : '💾 保存配方'}
+            </button>
+            <button onClick={() => setShowForm(false)} className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm">取消</button>
           </div>
         </div>
       )}

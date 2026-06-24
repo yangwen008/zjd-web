@@ -1,15 +1,42 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { getMarketData, getHomepageConfig } from '@/lib/data';
 
-const MARKET_DATA = [
-  { province: '浙江省', region: '江浙沪核心圈', emoji: '🌊', listings: 1420, price: '¥14.2 万', change: '+4.2%', bargain: '-5.4%', note: '流转速度极快' },
-  { province: '四川省', region: '成渝辐射圈', emoji: '🐼', listings: 892, price: '¥7.8 万', change: '+1.8%', bargain: '-12.4%', note: '空间充足' },
-  { province: '云南省', region: '滇西旅居带', emoji: '🏔️', listings: 415, price: '¥4.5 万', change: '→ 持平', bargain: '-18.2%', note: '建议抄底' },
-  { province: '贵州省', region: '黔东南圈', emoji: '🌄', listings: 286, price: '¥3.2 万', change: '-1.5%', bargain: '-22.1%', note: '深度价值' },
-  { province: '广西', region: '桂北旅居带', emoji: '🌿', listings: 198, price: '¥3.8 万', change: '+0.5%', bargain: '-19.5%', note: '潜力待挖' },
-];
+function getChangeStyle(pct: number): string {
+  if (pct > 0) return 'text-green-500';
+  if (pct < 0) return 'text-red-500';
+  return 'text-gray-400';
+}
 
-export default function MarketIndexPage() {
+function getChangeText(pct: number): string {
+  if (pct > 0) return `↑ +${pct}%`;
+  if (pct < 0) return `↓ ${pct}%`;
+  return '→ 持平';
+}
+
+function getBargainNote(space: number): string {
+  if (space > -10) return '流转速度极快';
+  if (space > -15) return '空间充足';
+  if (space > -20) return '建议抄底';
+  return '深度价值';
+}
+
+const REGION_EMOJIS: Record<string, string> = {
+  '浙江省': '🌊', '四川省': '🐼', '云南省': '🏔️',
+  '贵州省': '🌄', '广西壮族自治区': '🌿', '广西': '🌿',
+};
+
+const REGION_SUBNAMES: Record<string, string> = {
+  '浙江省': '江浙沪核心圈', '四川省': '成渝辐射圈', '云南省': '滇西旅居带',
+  '贵州省': '黔东南圈', '广西壮族自治区': '桂北旅居带', '广西': '桂北旅居带',
+};
+
+export default async function MarketIndexPage() {
+  const [marketData, config] = await Promise.all([
+    getMarketData().catch(() => []),
+    getHomepageConfig().catch(() => ({})),
+  ]);
+
   return (
     <>
       <Navbar />
@@ -23,23 +50,28 @@ export default function MarketIndexPage() {
             <p className="text-gray-500">由 zjd.cn 资产大脑对全国产权交易所存量底价进行全自动采集、AI 清洗和指数化提取。</p>
           </div>
 
-          {/* Metrics */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {[
-              { title: '浙江流转均价', value: '¥14.2万/年', change: '↑ +4.2%', color: 'text-green-500' },
-              { title: '四川流转均价', value: '¥7.8万/年', change: '↑ +1.8%', color: 'text-green-500' },
-              { title: '全网潜在买卖比', value: '1.48 : 1', change: '⚠ 供不应求', color: 'text-orange-500' },
-              { title: '散户溢价空间', value: '-12.4%', change: '💡 砍价空间大', color: 'text-blue-500' },
-            ].map((m, i) => (
-              <div key={i} className="bg-white rounded-xl p-5 border border-gray-100">
-                <div className="text-xl font-bold text-brand-green mb-1">{m.title}</div>
-                <div className="text-2xl font-bold text-gray-900">{m.value}</div>
-                <div className={`text-sm mt-1 ${m.color}`}>{m.change}</div>
+          {marketData.length > 0 && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {marketData.slice(0, 2).map((m) => (
+                <div key={m.province} className="bg-white rounded-xl p-5 border border-gray-100">
+                  <div className="text-xl font-bold text-brand-green mb-1">{m.province}流转均价</div>
+                  <div className="text-2xl font-bold text-gray-900">¥{m.median_price}万/年</div>
+                  <div className={`text-sm mt-1 ${getChangeStyle(m.change_pct)}`}>{getChangeText(m.change_pct)}</div>
+                </div>
+              ))}
+              <div className="bg-white rounded-xl p-5 border border-gray-100">
+                <div className="text-xl font-bold text-brand-green mb-1">全网潜在买卖比</div>
+                <div className="text-2xl font-bold text-gray-900">1.48 : 1</div>
+                <div className="text-sm mt-1 text-orange-500">⚠ 供不应求</div>
               </div>
-            ))}
-          </div>
+              <div className="bg-white rounded-xl p-5 border border-gray-100">
+                <div className="text-xl font-bold text-brand-green mb-1">散户溢价空间</div>
+                <div className="text-2xl font-bold text-gray-900">{marketData[0]?.bargain_space || '-12.4'}%</div>
+                <div className="text-sm mt-1 text-blue-500">💡 砍价空间大</div>
+              </div>
+            </div>
+          )}
 
-          {/* Full table */}
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
               <h2 className="font-bold text-gray-900">省级行政细分流速与交易深度</h2>
@@ -56,30 +88,32 @@ export default function MarketIndexPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {MARKET_DATA.map((row) => (
+                  {marketData.length > 0 ? marketData.map((row) => (
                     <tr key={row.province} className="hover:bg-gray-50/50">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg">{row.emoji}</span>
+                          <span className="text-lg">{REGION_EMOJIS[row.province] || '📍'}</span>
                           <div>
                             <div className="font-medium text-gray-900">{row.province}</div>
-                            <div className="text-xs text-gray-400">{row.region}</div>
+                            <div className="text-xs text-gray-400">{REGION_SUBNAMES[row.province] || ''}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-medium">{row.listings} 宗</td>
-                      <td className="px-6 py-4 font-bold">{row.price}</td>
-                      <td className="px-6 py-4 font-medium">{row.change}</td>
-                      <td className="px-6 py-4 text-gray-500">{row.bargain} ({row.note})</td>
+                      <td className="px-6 py-4 font-medium">{row.total_listings.toLocaleString()} 宗</td>
+                      <td className="px-6 py-4 font-bold">¥{row.median_price} 万</td>
+                      <td className="px-6 py-4"><span className={`font-medium ${getChangeStyle(row.change_pct)}`}>{getChangeText(row.change_pct)}</span></td>
+                      <td className="px-6 py-4 text-gray-500">{row.bargain_space}% ({getBargainNote(row.bargain_space)})</td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">暂无行情数据</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer config={config} />
     </>
   );
 }

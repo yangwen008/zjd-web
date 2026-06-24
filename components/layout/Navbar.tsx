@@ -6,7 +6,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '#hot', label: '🔥 热点寻源' },
+    { href: '/regions', label: '🔥 热点寻源' },
     { href: '/market-index', label: '📊 流转大盘' },
     { href: '/search', label: '🔍 资产搜索' },
     { href: '/bulk-projects', label: '🏢 大宗路演' },

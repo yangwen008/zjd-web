@@ -5,9 +5,10 @@ interface AssetCardProps {
   views: number;
   price: string;
   gradient: string;
+  href?: string;
 }
 
-export default function AssetCard({ rank, title, subtitle, views, price, gradient }: AssetCardProps) {
+export default function AssetCard({ rank, title, subtitle, views, price, gradient, href }: AssetCardProps) {
   const getBadge = () => {
     if (rank === 1) return { bg: 'bg-yellow-500', text: '🥇 TOP 1' };
     if (rank === 2) return { bg: 'bg-gray-400', text: '🥈 TOP 2' };
@@ -16,9 +17,14 @@ export default function AssetCard({ rank, title, subtitle, views, price, gradien
   };
 
   const badge = getBadge();
+  const Wrapper = href ? 'a' : 'div';
+  const wrapperProps = href ? { href } : {};
 
   return (
-    <div className="group relative h-52 rounded-2xl overflow-hidden card-hover cursor-pointer">
+    <Wrapper
+      {...wrapperProps}
+      className="group relative h-52 rounded-2xl overflow-hidden card-hover cursor-pointer block"
+    >
       <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`}></div>
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
 
@@ -38,6 +44,6 @@ export default function AssetCard({ rank, title, subtitle, views, price, gradien
           <span className="text-yellow-400 font-bold">{price}</span>
         </div>
       </div>
-    </div>
+    </Wrapper>
   );
 }

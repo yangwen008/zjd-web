@@ -1,26 +1,71 @@
-'use client';
-
-import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AssetCard from '@/components/shared/AssetCard';
-import WeChatModal from '@/components/shared/WeChatModal';
+import HeroSection from '@/components/shared/HeroSection';
+import { getHotAssets, getMarketData, getHomepageConfig, getAssetsBySource } from '@/lib/data';
+import type { Asset, MarketData } from '@/lib/data';
 
-// 模拟数据 - 实际从D1读取
-const HOT_ASSETS = [
-  { rank: 1, title: '杭州·安吉圈', subtitle: '溪畔宅基地原矿', views: 18420, price: '¥12.8万/年起', gradient: 'from-emerald-800 to-emerald-600' },
-  { rank: 2, title: '成都·都江堰', subtitle: '青城山林地茶场', views: 17120, price: '¥6.5万/年起', gradient: 'from-teal-800 to-teal-600' },
-  { rank: 3, title: '大理·苍洱圈', subtitle: '传统完好白族老宅', views: 12480, price: '¥3.2万/年起', gradient: 'from-cyan-800 to-cyan-600' },
-  { rank: 4, title: '丽水·缙云圈', subtitle: '景区旁极客石头房', views: 9430, price: '¥5.8万/年起', gradient: 'from-green-800 to-green-600' },
-  { rank: 5, title: '桂林·阳朔圈', subtitle: '临江峰林院落', views: 8940, price: '¥4.2万/年起', gradient: 'from-lime-800 to-lime-600' },
-  { rank: 6, title: '北京·延庆圈', subtitle: '长城脚下北方老院', views: 6510, price: '¥9.6万/年起', gradient: 'from-stone-800 to-stone-600' },
+// 格式化价格显示
+function formatPrice(price: number | null): string {
+  if (!price) return '价格面议';
+  return `¥${price}万/年起`;
+}
+
+// 资产卡片渐变色映射
+const GRADIENTS = [
+  'from-emerald-800 to-emerald-600',
+  'from-teal-800 to-teal-600',
+  'from-cyan-800 to-cyan-600',
+  'from-green-800 to-green-600',
+  'from-lime-800 to-lime-600',
+  'from-stone-800 to-stone-600',
+  'from-sky-800 to-sky-600',
+  'from-rose-800 to-rose-600',
 ];
 
-const MARKET_DATA = [
-  { province: '浙江省', region: '江浙沪核心圈', emoji: '🌊', listings: 1420, price: '¥14.2 万', change: '+4.2%', changeColor: 'text-green-500', bargain: '-5.4%', bargainColor: 'text-red-400', barWidth: '27%', barColor: 'bg-red-400', note: '流转速度极快' },
-  { province: '四川省', region: '成渝辐射圈', emoji: '🐼', listings: 892, price: '¥7.8 万', change: '+1.8%', changeColor: 'text-green-500', bargain: '-12.4%', bargainColor: 'text-orange-400', barWidth: '62%', barColor: 'bg-orange-400', note: '空间充足' },
-  { province: '云南省', region: '滇西旅居带', emoji: '🏔️', listings: 415, price: '¥4.5 万', change: '→ 持平', changeColor: 'text-gray-400', bargain: '-18.2%', bargainColor: 'text-blue-500', barWidth: '91%', barColor: 'bg-blue-400', note: '建议抄底' },
-];
+// 行情数据样式
+function getChangeStyle(pct: number): string {
+  if (pct > 0) return 'text-green-500';
+  if (pct < 0) return 'text-red-500';
+  return 'text-gray-400';
+}
+
+function getChangeText(pct: number): string {
+  if (pct > 0) return `↑ +${pct}%`;
+  if (pct < 0) return `↓ ${pct}%`;
+  return '→ 持平';
+}
+
+function getBargainColor(space: number): string {
+  if (space > -10) return 'text-red-400';
+  if (space > -15) return 'text-orange-400';
+  return 'text-blue-500';
+}
+
+function getBargainNote(space: number): string {
+  if (space > -10) return '流转速度极快';
+  if (space > -15) return '空间充足';
+  return '建议抄底';
+}
+
+function getBarWidth(space: number): string {
+  return `${Math.min(Math.abs(space) * 5, 100)}%`;
+}
+
+function getBarColor(space: number): string {
+  if (space > -10) return 'bg-red-400';
+  if (space > -15) return 'bg-orange-400';
+  return 'bg-blue-400';
+}
+
+const REGION_EMOJIS: Record<string, string> = {
+  '浙江省': '🌊',
+  '四川省': '🐼',
+  '云南省': '🏔️',
+  '贵州省': '🌄',
+  '广西壮族自治区': '🌿',
+  '广西': '🌿',
+};
 
 const FEATURES = [
   { emoji: '⚖️', badge: 'OFFICIAL', badgeColor: 'text-brand-green', bgColor: 'bg-brand-green/10', hoverBg: 'hover:bg-brand-green/20', title: '纯净一手官方原矿区', desc: '进入原矿搜索引擎', href: '/search?source=official' },
@@ -30,48 +75,28 @@ const FEATURES = [
   { emoji: '🌾', badge: 'BROKERS', badgeColor: 'text-green-600', bgColor: 'bg-green-50', hoverBg: 'hover:bg-green-100', title: '本地金牌合伙人联播网', desc: '查看全网合伙人名册', href: '/brokers' },
 ];
 
-export default function HomePage() {
-  const [wechatOpen, setWechatOpen] = useState(false);
+export default async function HomePage() {
+  // 并行查询所有数据
+  const [hotAssets, marketData, config] = await Promise.all([
+    getHotAssets(6).catch(() => [] as Asset[]),
+    getMarketData().catch(() => [] as MarketData[]),
+    getHomepageConfig().catch(() => ({} as Record<string, string>)),
+  ]);
+
+  const totalAssets = config.total_assets || '0';
+  const todayNew = config.today_new || '0';
 
   return (
     <>
       <Navbar />
-      <WeChatModal isOpen={wechatOpen} onClose={() => setWechatOpen(false)} />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16 bg-brand-dark">
-        <div className="absolute inset-0 hero-gradient"></div>
-        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center py-20">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight tracking-tight">
-            寻找被低估的<br />
-            <span className="text-brand-accent">低密度空间资产</span>
-          </h1>
-          <p className="text-gray-300 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
-            乡村资产数字化绿色流转中枢。全网多源产权低频提纯，一键交叉碰撞，让技术重归山川。
-          </p>
-
-          {/* Search */}
-          <div className="relative max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-2 flex items-center mb-6">
-            <div className="flex items-center pl-4 text-gray-400">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <input type="text" placeholder="搜索区域、资产类型、关键词..." className="flex-1 px-4 py-3 text-gray-700 text-base outline-none bg-transparent" />
-            <button className="bg-brand-green hover:bg-brand-light text-white px-6 py-3 rounded-xl font-medium transition-colors">
-              智能检索
-            </button>
-          </div>
-
-          <div className="flex items-center justify-center space-x-2 text-xs text-gray-400 font-mono">
-            <span className="inline-block w-2 h-2 bg-green-400 rounded-full pulse-dot"></span>
-            <span>全网合规收录: <strong className="text-white">104,281</strong> 宗</span>
-            <span className="text-gray-600">|</span>
-            <span>今日村委直营/官源提纯上新: <strong className="text-green-400">142</strong> 宗</span>
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
-      </section>
+      <HeroSection
+        title={config.hero_title || '寻找被低估的低密度空间资产'}
+        subtitle={config.hero_subtitle || '乡村资产数字化绿色流转中枢。全网多源产权低频提纯，一键交叉碰撞，让技术重归山川。'}
+        totalAssets={totalAssets}
+        todayNew={todayNew}
+      />
 
       {/* Hot Assets */}
       <section id="hot" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -89,9 +114,26 @@ export default function HomePage() {
           </a>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {HOT_ASSETS.map((asset) => (
-            <AssetCard key={asset.rank} {...asset} />
-          ))}
+          {hotAssets.length > 0 ? (
+            hotAssets.map((asset, i) => (
+              <AssetCard
+                key={asset.id}
+                rank={i + 1}
+                title={asset.title}
+                subtitle={asset.location || asset.asset_type || ''}
+                views={asset.views}
+                price={formatPrice(asset.price_year)}
+                gradient={GRADIENTS[i % GRADIENTS.length]}
+                href={`/asset/${asset.id}`}
+              />
+            ))
+          ) : (
+            // 无数据时的占位
+            <div className="col-span-3 text-center py-12 text-gray-400">
+              <div className="text-4xl mb-3">🌾</div>
+              <p>数据加载中...请先执行 npm run db:seed 导入种子数据</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -113,23 +155,32 @@ export default function HomePage() {
           </div>
 
           {/* Metric cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {[
-              { label: '2026 实时指数', title: '浙江流转均价', value: '¥14.2', unit: '万/年', change: '↑ +4.2%', changeColor: 'text-green-500' },
-              { label: '2026 实时指数', title: '四川流转均价', value: '¥7.8', unit: '万/年', change: '↑ +1.8%', changeColor: 'text-green-500' },
-              { label: '供需指标', title: '全网潜在买卖比', value: '1.48', unit: ': 1', change: '⚠ 供不应求', changeColor: 'text-orange-500' },
-              { label: '散户指标', title: '散户溢价空间', value: '-12.4', unit: '%', change: '💡 砍价空间大', changeColor: 'text-blue-500' },
-            ].map((m, i) => (
-              <div key={i} className="bg-white rounded-xl p-5 border border-gray-100 card-hover">
-                <div className="text-xs text-gray-500 mb-1">{m.label}</div>
-                <div className="text-xl font-bold text-brand-green">{m.title}</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
-                  {m.value}<span className="text-sm font-normal text-gray-500">{m.unit}</span>
+          {marketData.length > 0 && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {marketData.slice(0, 2).map((m) => (
+                <div key={m.province} className="bg-white rounded-xl p-5 border border-gray-100 card-hover">
+                  <div className="text-xs text-gray-500 mb-1">2026 实时指数</div>
+                  <div className="text-xl font-bold text-brand-green">{m.province}流转均价</div>
+                  <div className="text-2xl font-bold text-gray-900 mt-1">
+                    ¥{m.median_price}<span className="text-sm font-normal text-gray-500">万/年</span>
+                  </div>
+                  <div className={`text-sm mt-1 ${getChangeStyle(m.change_pct)}`}>{getChangeText(m.change_pct)}</div>
                 </div>
-                <div className={`text-sm mt-1 ${m.changeColor}`}>{m.change}</div>
+              ))}
+              <div className="bg-white rounded-xl p-5 border border-gray-100 card-hover">
+                <div className="text-xs text-gray-500 mb-1">供需指标</div>
+                <div className="text-xl font-bold text-brand-green">全网潜在买卖比</div>
+                <div className="text-2xl font-bold text-gray-900 mt-1">1.48<span className="text-sm font-normal text-gray-500">: 1</span></div>
+                <div className="text-sm mt-1 text-orange-500">⚠ 供不应求</div>
               </div>
-            ))}
-          </div>
+              <div className="bg-white rounded-xl p-5 border border-gray-100 card-hover">
+                <div className="text-xs text-gray-500 mb-1">散户指标</div>
+                <div className="text-xl font-bold text-brand-green">散户溢价空间</div>
+                <div className="text-2xl font-bold text-gray-900 mt-1">{marketData[0]?.bargain_space || '-12.4'}<span className="text-sm font-normal text-gray-500">%</span></div>
+                <div className="text-sm mt-1 text-blue-500">💡 砍价空间大</div>
+              </div>
+            </div>
+          )}
 
           {/* Market table */}
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -152,30 +203,31 @@ export default function HomePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {MARKET_DATA.map((row) => (
+                  {marketData.length > 0 ? marketData.map((row) => (
                     <tr key={row.province} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg">{row.emoji}</span>
+                          <span className="text-lg">{REGION_EMOJIS[row.province] || '📍'}</span>
                           <div>
                             <div className="font-medium text-gray-900">{row.province}</div>
-                            <div className="text-xs text-gray-400">{row.region}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-medium">{row.listings} 宗</td>
-                      <td className="px-6 py-4 font-bold text-gray-900">{row.price}</td>
-                      <td className="px-6 py-4"><span className={`font-medium ${row.changeColor}`}>{row.change}</span></td>
+                      <td className="px-6 py-4 font-medium">{row.total_listings.toLocaleString()} 宗</td>
+                      <td className="px-6 py-4 font-bold text-gray-900">¥{row.median_price} 万</td>
+                      <td className="px-6 py-4"><span className={`font-medium ${getChangeStyle(row.change_pct)}`}>{getChangeText(row.change_pct)}</span></td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
                           <div className="flex-1 bg-gray-100 rounded-full h-2 max-w-[100px]">
-                            <div className={`${row.barColor} h-2 rounded-full`} style={{ width: row.barWidth }}></div>
+                            <div className={`${getBarColor(row.bargain_space)} h-2 rounded-full`} style={{ width: getBarWidth(row.bargain_space) }}></div>
                           </div>
-                          <span className={`${row.bargainColor} text-xs font-medium`}>{row.bargain} ({row.note})</span>
+                          <span className={`${getBargainColor(row.bargain_space)} text-xs font-medium`}>{row.bargain_space}% ({getBargainNote(row.bargain_space)})</span>
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">暂无行情数据</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -215,7 +267,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <Footer />
+      <Footer config={config} />
     </>
   );
 }
