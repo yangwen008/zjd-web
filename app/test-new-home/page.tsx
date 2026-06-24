@@ -1,3 +1,4 @@
+import Link from "next/link";
 import HeroSection from "@/components/test-home/HeroSection";
 import RegionGrid from "@/components/test-home/RegionGrid";
 import MarketStats from "@/components/test-home/MarketStats";
@@ -41,7 +42,6 @@ function getFirstImage(images: string | null): string {
   }
 }
 
-// 转换资产数据为PropertyCard格式
 // 转换资产数据为PropertyCard格式
 function toPropertyFormat(asset: Asset) {
   return {
@@ -117,42 +117,42 @@ function Navigation() {
           {/* 左侧：Logo + 菜单 */}
           <div className="flex items-center gap-8">
             {/* Logo */}
-            <div className="flex items-center gap-3 flex-shrink-0">
+            <Link href="/" className="flex items-center gap-3 flex-shrink-0">
               <div className="text-2xl font-bold">
                 <span className="text-gray-900">zjd</span>
                 <span className="text-[#1a4731]">.cn</span>
               </div>
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">宅基地计划 v8.8.1</span>
-            </div>
+            </Link>
             
             {/* 导航菜单 */}
             <div className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+              <Link href="/regions" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
                 <span>🔥</span> 热点寻源
-              </a>
-              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+              </Link>
+              <Link href="/market-index" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
                 <span>📊</span> 流转大盘
-              </a>
-              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+              </Link>
+              <Link href="/search" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
                 <span>🔍</span> 资产搜索
-              </a>
-              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+              </Link>
+              <Link href="/bulk-projects" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
                 <span>🏢</span> 大宗路演
-              </a>
-              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+              </Link>
+              <Link href="/infra-rating" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
                 <span>🏘️</span> 隐居基建
-              </a>
-              <a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
+              </Link>
+              <Link href="/brokers" className="hover:text-[#1a4731] transition-colors flex items-center gap-1">
                 <span>🌾</span> 金牌合伙人
-              </a>
+              </Link>
             </div>
           </div>
 
           {/* 右侧：按钮 */}
           <div className="flex items-center gap-3">
-            <button className="text-sm text-gray-600 hover:text-[#1a4731] flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <Link href="/admin" className="text-sm text-gray-600 hover:text-[#1a4731] flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
               <span>⚙️</span> 后台管理
-            </button>
+            </Link>
             <button className="bg-[#1a4731] hover:bg-[#2d5a45] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
@@ -197,9 +197,9 @@ function Footer() {
           <div>
             <h4 className="font-semibold text-gray-900 mb-4">流转大厅</h4>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🔥</span> 热点寻源榜</a></li>
-              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>📊</span> 土地价格大盘</a></li>
-              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🔍</span> 官方原矿检索</a></li>
+              <li><Link href="/regions" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🔥</span> 热点寻源榜</Link></li>
+              <li><Link href="/market-index" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>📊</span> 土地价格大盘</Link></li>
+              <li><Link href="/search" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🔍</span> 官方原矿检索</Link></li>
             </ul>
           </div>
 
@@ -207,9 +207,9 @@ function Footer() {
           <div>
             <h4 className="font-semibold text-gray-900 mb-4">双边生态</h4>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🎪</span> 大宗项目路演</a></li>
-              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🏘️</span> 隐居新基建指标</a></li>
-              <li><a href="#" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🤝</span> 地陪合伙人名册</a></li>
+              <li><Link href="/bulk-projects" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🎪</span> 大宗项目路演</Link></li>
+              <li><Link href="/infra-rating" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🏘️</span> 隐居新基建指标</Link></li>
+              <li><Link href="/brokers" className="hover:text-[#1a4731] transition-colors flex items-center gap-2"><span>🤝</span> 地陪合伙人名册</Link></li>
             </ul>
           </div>
 
@@ -307,10 +307,14 @@ export default async function TestNewHomePage() {
                 <span className="text-2xl">🏛️</span>
                 <h2 className="text-2xl font-bold text-gray-900">纯净一手官方原矿区</h2>
               </div>
-              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">进入原矿搜寻引擎 →</a>
+              <Link href="/search?source=official" className="text-sm text-[#1a4731] hover:underline font-medium">进入原矿搜寻引擎 →</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {properties.map((p) => <PropertyCard key={p.id} property={p} />)}
+              {properties.map((p) => (
+                <Link key={p.id} href={`/asset/${p.id}`} className="block">
+                  <PropertyCard property={p} />
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -324,10 +328,14 @@ export default async function TestNewHomePage() {
                 <span className="text-2xl">🏛️</span>
                 <h2 className="text-2xl font-bold text-gray-900">村集体直发专区</h2>
               </div>
-              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">查看所有村委直发 →</a>
+              <Link href="/search?source=village" className="text-sm text-[#1a4731] hover:underline font-medium">查看所有村委直发 →</Link>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {villageProjects.map((p) => <VillageDirectCard key={p.id} project={p} />)}
+              {villageProjects.map((p) => (
+                <Link key={p.id} href={`/asset/${p.id}`} className="block">
+                  <VillageDirectCard project={p} />
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -341,10 +349,14 @@ export default async function TestNewHomePage() {
                 <span className="text-2xl">🎪</span>
                 <h2 className="text-2xl font-bold text-gray-900">文旅大宗产业路演带</h2>
               </div>
-              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">进入独立路演大厅 →</a>
+              <Link href="/bulk-projects" className="text-sm text-[#1a4731] hover:underline font-medium">进入独立路演大厅 →</Link>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {bulkProjects.map((p) => <BulkProjectCard key={p.id} project={p} />)}
+              {bulkProjects.map((p) => (
+                <Link key={p.id} href={`/asset/${p.id}`} className="block">
+                  <BulkProjectCard project={p} />
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -358,10 +370,14 @@ export default async function TestNewHomePage() {
                 <span className="text-2xl">📡</span>
                 <h2 className="text-2xl font-bold text-gray-900">数字化隐居基建硬指标</h2>
               </div>
-              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">查看全国基建指数表 →</a>
+              <Link href="/infra-rating" className="text-sm text-[#1a4731] hover:underline font-medium">查看全国基建指数表 →</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {infraRatingsFormatted.map((i) => <InfraRatingCard key={i.id} infra={i} />)}
+              {infraRatingsFormatted.map((i) => (
+                <Link key={i.id} href="/infra-rating" className="block">
+                  <InfraRatingCard infra={i} />
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -375,10 +391,14 @@ export default async function TestNewHomePage() {
                 <span className="text-2xl">🤝</span>
                 <h2 className="text-2xl font-bold text-gray-900">本地金牌"农房合伙人"联播网</h2>
               </div>
-              <a href="#" className="text-sm text-[#1a4731] hover:underline font-medium">查看全网合伙人名册 →</a>
+              <Link href="/brokers" className="text-sm text-[#1a4731] hover:underline font-medium">查看全网合伙人名册 →</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {brokersFormatted.map((b) => <BrokerCard key={b.id} broker={b} />)}
+              {brokersFormatted.map((b) => (
+                <Link key={b.id} href="/brokers" className="block">
+                  <BrokerCard broker={b} />
+                </Link>
+              ))}
             </div>
           </div>
         </section>
