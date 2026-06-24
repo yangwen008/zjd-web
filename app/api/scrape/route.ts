@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 // POST /api/scrape - 新增配方 / 更新状态 / 保存原始数据
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body: any = await request.json();
     const { action } = body;
 
     if (action === 'add-recipe') {

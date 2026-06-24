@@ -4,7 +4,7 @@ import { execute, queryOne } from '@/lib/db';
 // POST /api/unlock - 创建解锁任务
 export async function POST(request: Request) {
   try {
-    const { assetId, wechatOpenid } = await request.json();
+    const { assetId, wechatOpenid }: any = await request.json();
 
     const result = await execute(
       'INSERT INTO unlock_tasks (asset_id, wechat_openid, status) VALUES (?, ?, ?)',

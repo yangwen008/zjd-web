@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     // 加载配置
     fetch('/api/admin/config')
-      .then((r) => r.json())
+      .then((r) => r.json() as any)
       .then((data: any) => {
         if (data.success) setConfig((prev) => ({ ...prev, ...data.data }));
       })

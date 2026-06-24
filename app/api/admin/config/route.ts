@@ -18,7 +18,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body: any = await request.json();
     for (const [key, value] of Object.entries(body)) {
       if (typeof value === 'string') {
         await execute(
