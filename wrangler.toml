@@ -6,7 +6,7 @@ pages_build_output_dir = ".vercel/output/static"
 [[d1_databases]]
 binding = "DB"
 database_name = "zjd-main"
-database_id = "9b9ef435-bfeb-483a-a862-11608266e9a3"
+database_id = "6e551489-e5c7-4bf0-a7c4-53cab8dc608c"
 
 [[r2_buckets]]
 binding = "R2"
