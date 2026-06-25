@@ -2,7 +2,7 @@ export const runtime = 'edge';
 
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { getAssetById, getAssets, getHomepageConfig } from '@/lib/data';
+import { getAssetById, getAssets, getHomepageConfig, incrementViews } from '@/lib/data';
 import { notFound } from 'next/navigation';
 
 export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -15,6 +15,9 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
   if (!asset) {
     notFound();
   }
+
+  // 增加浏览量（异步，不阻塞渲染）
+  incrementViews(asset.id).catch(() => {});
 
   // 获取相似推荐
   const similar = await getAssets({

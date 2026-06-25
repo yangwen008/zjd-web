@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "clean": "rm -rf .next .vercel",
     "preview": "wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat",
     "deploy": "npx @cloudflare/next-on-pages && wrangler pages deploy .vercel/output/static",
     "db:init": "wrangler d1 execute zjd-main --file=./sql/schema.sql",

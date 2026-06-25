@@ -1,5 +1,7 @@
 // 工具函数
 
+import { query, queryOne, type D1Database } from './db';
+
 // 加密电话号码 (简单遮罩)
 export function maskPhone(phone: string): string {
   if (!phone || phone.length < 7) return '****';
@@ -39,17 +41,18 @@ export function formatPrice(price: number): string {
 
 // 生成随机ID
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 15);
+  return crypto.randomUUID();
 }
 
-// 简单加密 (用于电话号码)
+// AES-GCM 加密 (用于电话号码)
 export async function encryptData(data: string, key: string): Promise<string> {
   const encoder = new TextEncoder();
   const dataBuffer = encoder.encode(data);
-  const keyBuffer = encoder.encode(key);
   
+  // 将 key 转为固定 256-bit：先 hash 再截取
+  const keyHash = await crypto.subtle.digest('SHA-256', encoder.encode(key));
   const cryptoKey = await crypto.subtle.importKey(
-    'raw', keyBuffer, { name: 'AES-GCM' }, false, ['encrypt']
+    'raw', keyHash, { name: 'AES-GCM' }, false, ['encrypt']
   );
   
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -64,13 +67,13 @@ export async function encryptData(data: string, key: string): Promise<string> {
   return btoa(String.fromCharCode(...result));
 }
 
-// 解密
+// AES-GCM 解密
 export async function decryptData(encryptedStr: string, key: string): Promise<string> {
   const encoder = new TextEncoder();
-  const keyBuffer = encoder.encode(key);
   
+  const keyHash = await crypto.subtle.digest('SHA-256', encoder.encode(key));
   const cryptoKey = await crypto.subtle.importKey(
-    'raw', keyBuffer, { name: 'AES-GCM' }, false, ['decrypt']
+    'raw', keyHash, { name: 'AES-GCM' }, false, ['decrypt']
   );
   
   const data = Uint8Array.from(atob(encryptedStr), c => c.charCodeAt(0));
@@ -84,35 +87,76 @@ export async function decryptData(encryptedStr: string, key: string): Promise<st
   return new TextDecoder().decode(decrypted);
 }
 
-// 签名URL生成 (R2防盗链)
+// HMAC-SHA256 签名
+async function hmacSign(message: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false, ['sign']
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(message));
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+}
+
+// 验证 HMAC 签名
+async function hmacVerify(message: string, signature: string, secret: string): Promise<boolean> {
+  const expected = await hmacSign(message, secret);
+  return expected === signature;
+}
+
+// 签名URL生成 (R2防盗链) — 真正的 HMAC 签名
 export async function generateSignedUrl(
   objectKey: string,
+  signingSecret: string,
   expiresInMinutes: number = 10
 ): Promise<string> {
   const expires = Date.now() + expiresInMinutes * 60 * 1000;
   const payload = `${objectKey}:${expires}`;
-  // 简化版，实际需要用HMAC签名
-  const signature = btoa(payload);
-  return `/api/images/${objectKey}?expires=${expires}&sig=${signature}`;
+  const signature = await hmacSign(payload, signingSecret);
+  return `/api/images/${objectKey}?expires=${expires}&sig=${encodeURIComponent(signature)}`;
 }
 
-// 验证Referer
+// 验证签名URL
+export async function verifySignedUrl(
+  objectKey: string,
+  expires: string,
+  sig: string,
+  signingSecret: string
+): Promise<boolean> {
+  // 检查过期
+  if (Date.now() > parseInt(expires, 10)) return false;
+  
+  const payload = `${objectKey}:${expires}`;
+  return hmacVerify(payload, decodeURIComponent(sig), signingSecret);
+}
+
+// 验证Referer —— 严格匹配
 export function validateReferer(referer: string | null): boolean {
   if (!referer) return false;
-  return referer.includes('zjd.cn');
+  try {
+    const url = new URL(referer);
+    // 精确匹配主域名和 pages.dev 子域名
+    return (
+      url.hostname === 'zjd.cn' ||
+      url.hostname === 'www.zjd.cn' ||
+      url.hostname.endsWith('.zjd-web.pages.dev')
+    );
+  } catch {
+    return false;
+  }
 }
 
 // 每日发布配额检查
 export async function checkDailyQuota(
   userId: number,
-  maxQuota: number,
-  db: { prepare: (sql: string) => { bind: (...args: unknown[]) => { first: () => Promise<{ count: number }> } } }
+  maxQuota: number
 ): Promise<boolean> {
   const today = new Date().toISOString().split('T')[0];
-  const result = await db
-    .prepare('SELECT COUNT(*) as count FROM assets WHERE user_id = ? AND date(created_at) = ?')
-    .bind(userId, today)
-    .first();
+  const result = await queryOne<{ count: number }>(
+    'SELECT COUNT(*) as count FROM assets WHERE user_id = ? AND date(created_at) = ?',
+    userId, today
+  );
   return (result?.count || 0) < maxQuota;
 }
 
@@ -120,25 +164,22 @@ export async function checkDailyQuota(
 export async function checkGPSDuplicate(
   lat: number,
   lng: number,
-  radiusKm: number = 0.5,
-  db: { prepare: (sql: string) => { bind: (...args: unknown[]) => { all: () => Promise<{ results: Array<{ gps_lat: number; gps_lng: number }> }> } } }
+  radiusKm: number = 0.5
 ): Promise<boolean> {
   // 粗筛：矩形范围
   const latRange = radiusKm / 111;
   const lngRange = radiusKm / (111 * Math.cos((lat * Math.PI) / 180));
   
-  const results = await db
-    .prepare(
-      `SELECT gps_lat, gps_lng FROM assets 
-       WHERE gps_lat BETWEEN ? AND ? 
-       AND gps_lng BETWEEN ? AND ?
-       AND status != 'rejected'`
-    )
-    .bind(lat - latRange, lat + latRange, lng - lngRange, lng + lngRange)
-    .all();
+  const results = await query<{ gps_lat: number; gps_lng: number }>(
+    `SELECT gps_lat, gps_lng FROM assets 
+     WHERE gps_lat BETWEEN ? AND ? 
+     AND gps_lng BETWEEN ? AND ?
+     AND status != 'rejected'`,
+    lat - latRange, lat + latRange, lng - lngRange, lng + lngRange
+  );
   
   // 精筛：Haversine
-  for (const row of results.results) {
+  for (const row of results) {
     if (row.gps_lat && row.gps_lng) {
       const dist = haversineDistance(lat, lng, row.gps_lat, row.gps_lng);
       if (dist < radiusKm) return true;

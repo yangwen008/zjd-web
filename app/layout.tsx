@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { getHomepageConfig } from '@/lib/data';
 
@@ -11,6 +11,15 @@ export async function generateMetadata(): Promise<Metadata> {
       title: 'zjd.cn - 乡村闲置资产数字交易所',
       description: config.footer_about || '乡村资产数字化绿色流转中枢。全网多源产权低频提纯，一键交叉碰撞，让技术重归山川。',
       keywords: '乡村资产,闲置资产,宅基地,农房,流转,数字交易所',
+      icons: {
+        icon: '/favicon.ico',
+      },
+      openGraph: {
+        title: 'zjd.cn - 乡村闲置资产数字交易所',
+        description: config.footer_about || '乡村资产数字化绿色流转中枢。',
+        type: 'website',
+        locale: 'zh_CN',
+      },
     };
   } catch {
     return {
@@ -20,9 +29,17 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
       <body className="bg-white text-gray-800 font-sans antialiased">
         {children}
       </body>

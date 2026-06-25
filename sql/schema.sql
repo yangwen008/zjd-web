@@ -49,6 +49,24 @@ CREATE VIRTUAL TABLE IF NOT EXISTS assets_fts USING fts5(
   content='assets', content_rowid='id'
 );
 
+-- FTS5 同步触发器：确保新增/修改/删除资产时自动更新搜索索引
+CREATE TRIGGER IF NOT EXISTS assets_fts_insert AFTER INSERT ON assets BEGIN
+  INSERT INTO assets_fts(rowid, title, description, location, province, city)
+  VALUES (new.id, new.title, new.description, new.location, new.province, new.city);
+END;
+
+CREATE TRIGGER IF NOT EXISTS assets_fts_update AFTER UPDATE ON assets BEGIN
+  INSERT INTO assets_fts(assets_fts, rowid, title, description, location, province, city)
+  VALUES ('delete', old.id, old.title, old.description, old.location, old.province, old.city);
+  INSERT INTO assets_fts(rowid, title, description, location, province, city)
+  VALUES (new.id, new.title, new.description, new.location, new.province, new.city);
+END;
+
+CREATE TRIGGER IF NOT EXISTS assets_fts_delete AFTER DELETE ON assets BEGIN
+  INSERT INTO assets_fts(assets_fts, rowid, title, description, location, province, city)
+  VALUES ('delete', old.id, old.title, old.description, old.location, old.province, old.city);
+END;
+
 -- 2. 用户表
 CREATE TABLE IF NOT EXISTS users (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -189,3 +207,15 @@ CREATE TABLE IF NOT EXISTS infrastructure_ratings (
   overall_grade TEXT,
   updated_at    TEXT DEFAULT (datetime('now'))
 );
+
+-- 12. AI 用量追踪表 (用于预算熔断)
+CREATE TABLE IF NOT EXISTS ai_usage_log (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  tokens_in     INTEGER DEFAULT 0,
+  tokens_out    INTEGER DEFAULT 0,
+  cost          REAL DEFAULT 0,
+  model         TEXT,
+  created_at    TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_usage_date ON ai_usage_log(created_at);

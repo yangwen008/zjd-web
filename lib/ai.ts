@@ -1,4 +1,7 @@
 // Gemini AI 提纯引擎
+// 预算熔断状态持久化到 D1，防止 Workers 冷启动重置
+
+import { queryOne, execute } from './db';
 
 interface GeminiConfig {
   apiKey: string;
@@ -24,7 +27,6 @@ export class AIClient {
   private model: string;
   private maxTokens: number;
   private dailyBudget: number;
-  private dailySpent: number = 0;
 
   constructor(config: GeminiConfig) {
     this.apiKey = config.apiKey;
@@ -33,19 +35,43 @@ export class AIClient {
     this.dailyBudget = 10; // 默认每日10元上限
   }
 
-  // 检查预算熔断
-  private checkBudget(): boolean {
-    return this.dailySpent < this.dailyBudget;
-  }
-
   // 设置每日预算上限
   setDailyBudget(amount: number) {
     this.dailyBudget = amount;
   }
 
+  // 获取今日已消费金额（从 D1 读取）
+  private async getDailySpent(): Promise<number> {
+    const today = new Date().toISOString().split('T')[0];
+    const row = await queryOne<{ total_cost: number }>(
+      "SELECT COALESCE(SUM(cost), 0) as total_cost FROM ai_usage_log WHERE date(created_at) = ?",
+      today
+    );
+    return row?.total_cost || 0;
+  }
+
+  // 记录消费到 D1
+  private async logUsage(tokensIn: number, tokensOut: number, cost: number): Promise<void> {
+    try {
+      await execute(
+        'INSERT INTO ai_usage_log (tokens_in, tokens_out, cost, model, created_at) VALUES (?, ?, ?, ?, datetime("now"))',
+        tokensIn, tokensOut, cost, this.model
+      );
+    } catch {
+      // 表可能不存在，静默失败
+      console.warn('ai_usage_log table not found, skipping usage tracking');
+    }
+  }
+
+  // 检查预算熔断
+  private async checkBudget(): Promise<boolean> {
+    const spent = await this.getDailySpent();
+    return spent < this.dailyBudget;
+  }
+
   // 从原始HTML提取结构化数据
   async extractFromHTML(html: string, customPrompt?: string): Promise<ExtractResult> {
-    if (!this.checkBudget()) {
+    if (!(await this.checkBudget())) {
       throw new Error('BUDGET_KILLED: 今日AI消费已达上限，已自动熔断');
     }
 
@@ -87,6 +113,7 @@ ${html.substring(0, 8000)}`;
 
       const data = await response.json() as {
         candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+        usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
       };
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
       
@@ -94,7 +121,12 @@ ${html.substring(0, 8000)}`;
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error('AI返回格式异常');
       
-      this.dailySpent += 0.01; // 粗略计费
+      // 基于 token 用量计算费用
+      const tokensIn = data.usageMetadata?.promptTokenCount || 0;
+      const tokensOut = data.usageMetadata?.candidatesTokenCount || 0;
+      const cost = (tokensIn * 0.00001) + (tokensOut * 0.00003); // 粗略估算
+      await this.logUsage(tokensIn, tokensOut, cost);
+
       return JSON.parse(jsonMatch[0]) as ExtractResult;
     } catch (error) {
       console.error('AI extraction failed:', error);
@@ -115,12 +147,7 @@ ${text}`;
   }
 }
 
-// 单例
-let aiClient: AIClient | null = null;
-
+// 非单例 —— 每次调用传入最新 apiKey
 export function getAIClient(apiKey: string): AIClient {
-  if (!aiClient) {
-    aiClient = new AIClient({ apiKey });
-  }
-  return aiClient;
+  return new AIClient({ apiKey });
 }

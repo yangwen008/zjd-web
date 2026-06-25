@@ -54,7 +54,7 @@ INSERT OR IGNORE INTO brokers (user_id, name, region, bio, rating, show_count, g
   (6, '刘大牛', '桂林阳朔', '阳朔十里画廊片区负责人，精通农房租赁法规', 'bronze', 45, 94, 'active');
 
 -- 6. 20条测试资产数据
-INSERT INTO assets (title, description, location, province, city, district, area_mu, price_year, price_total, lease_years, asset_type, source_type, images, gps_lat, gps_lng, contact_phone, contact_name, views, status, featured, user_id) VALUES
+INSERT OR IGNORE INTO assets (title, description, location, province, city, district, area_mu, price_year, price_total, lease_years, asset_type, source_type, images, gps_lat, gps_lng, contact_phone, contact_name, views, status, featured, user_id) VALUES
 
 -- 官方原矿 (official) - 8条
 ('杭州·安吉溪龙乡溪畔宅基地', '安吉白茶核心产区，溪流环绕，竹林掩映。距杭州城区1.5小时车程，已通自来水、5G网络。适合精品民宿或隐居改造。', '浙江省湖州市安吉县溪龙乡', '浙江省', '湖州市', '安吉县', 3.2, 12.8, 256, 20, '宅基地', 'official', '["https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800"]', 30.63, 119.68, '13800001001', '安吉溪龙乡政府', 18420, 'approved', 1, 1),

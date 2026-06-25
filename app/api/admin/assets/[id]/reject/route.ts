@@ -10,6 +10,13 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       'UPDATE assets SET status = ?, updated_at = datetime("now") WHERE id = ?',
       'rejected', id
     );
+
+    // 审计日志
+    await execute(
+      'INSERT INTO admin_audit_logs (admin_id, action, target_type, target_id, detail, created_at) VALUES (?, ?, ?, ?, ?, datetime("now"))',
+      0, 'reject', 'asset', parseInt(id, 10), `Asset #${id} rejected`
+    );
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });

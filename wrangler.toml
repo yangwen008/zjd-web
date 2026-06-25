@@ -13,5 +13,7 @@ binding = "R2"
 bucket_name = "zjd-assets"
 
 [vars]
-GEMINI_API_KEY = ""
 SITE_URL = "https://zjd-web.pages.dev"
+# GEMINI_API_KEY — 通过 Cloudflare Dashboard 的 Environment Variables 或 wrangler secret 设置
+# ADMIN_PASSWORD — 通过 Cloudflare Dashboard 的 Environment Variables 或 wrangler secret 设置
+# SIGNING_SECRET — 通过 Cloudflare Dashboard 的 Environment Variables 或 wrangler secret 设置

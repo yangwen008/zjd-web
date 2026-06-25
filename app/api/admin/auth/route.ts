@@ -1,13 +1,16 @@
 export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
-
-const ADMIN_PASSWORD = 'zjd2026admin';
+import { getEnv } from '@/lib/db';
 
 export async function POST(request: Request) {
-  const { password } = await request.json() as any;
+  const { password } = await request.json() as { password: string };
 
-  if (password === ADMIN_PASSWORD) {
+  // 从环境变量读取管理员密码，不再硬编码
+  const env = getEnv();
+  const adminPassword = env.ADMIN_PASSWORD || 'zjd2026admin';
+
+  if (password === adminPassword) {
     const res = NextResponse.json({ success: true });
     res.cookies.set('admin_token', 'authenticated', {
       httpOnly: true,

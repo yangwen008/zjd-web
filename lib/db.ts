@@ -1,6 +1,16 @@
 // D1 数据库连接工具
 // 在 @cloudflare/next-on-pages 环境中，D1 通过 process.env.DB 绑定
 
+// Cloudflare 环境类型声明
+export interface CloudflareEnv {
+  DB: D1Database;
+  R2: R2Bucket;
+  GEMINI_API_KEY: string;
+  SITE_URL: string;
+  ADMIN_PASSWORD: string;
+  SIGNING_SECRET: string;
+}
+
 // D1 类型定义
 export interface D1Database {
   prepare(query: string): D1PreparedStatement;
@@ -20,9 +30,8 @@ export interface D1Result {
 }
 
 // 获取 D1 实例
-function getDB(): D1Database {
-  // @cloudflare/next-on-pages 将 wrangler.toml 中的 d1_databases 绑定注入到 process.env
-  const db = (process.env as unknown as { DB?: D1Database }).DB;
+export function getDB(): D1Database {
+  const db = (process.env as unknown as CloudflareEnv).DB;
   if (!db) {
     throw new Error(
       'D1 database binding "DB" not found. ' +
@@ -30,6 +39,11 @@ function getDB(): D1Database {
     );
   }
   return db;
+}
+
+// 获取环境变量
+export function getEnv(): CloudflareEnv {
+  return process.env as unknown as CloudflareEnv;
 }
 
 // 便捷查询方法 - 返回多行
@@ -52,4 +66,11 @@ export async function execute(sql: string, ...params: unknown[]): Promise<D1Resu
   const db = getDB();
   const stmt = db.prepare(sql).bind(...params);
   return await stmt.run();
+}
+
+// 批量执行
+export async function batch(statements: Array<{ sql: string; params: unknown[] }>): Promise<D1Result[]> {
+  const db = getDB();
+  const stmts = statements.map(({ sql, params }) => db.prepare(sql).bind(...params));
+  return await db.batch(stmts);
 }
