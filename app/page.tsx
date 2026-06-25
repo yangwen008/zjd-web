@@ -28,14 +28,13 @@ import {
 export const runtime = 'edge';
 
 // --- 原版辅助函数与字典（用于行情表格） ---
-const REGION_EMOJIS: Record<string, string> = {
-  '浙江省': '🌊',
-  '四川省': '🐼',
-  '云南省': '🏔️',
-  '贵州省': '🌄',
-  '广西壮族自治区': '🌿',
-  '广西': '🌿',
-};
+function getRegionEmojis(config: Record<string, string>): Record<string, string> {
+  try {
+    return JSON.parse(getConfigValue(config, 'region_emojis') || '{}');
+  } catch {
+    return {};
+  }
+}
 
 function getChangeStyle(pct: number): string {
   if (pct > 0) return 'text-green-500';
@@ -77,19 +76,19 @@ function formatPrice(price: number | null): string {
   return `${price}万`;
 }
 
-// 格式化图片URL
-function getFirstImage(images: string | null): string {
-  if (!images) return 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
+// 格式化图片URL（fallback 从 config 读取）
+function getFirstImage(images: string | null, defaultImage: string): string {
+  if (!images) return defaultImage;
   try {
     const arr = JSON.parse(images);
-    return Array.isArray(arr) && arr.length > 0 ? arr[0] : 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
+    return Array.isArray(arr) && arr.length > 0 ? arr[0] : defaultImage;
   } catch {
-    return 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop';
+    return defaultImage;
   }
 }
 
 // 转换资产数据为PropertyCard格式
-function toPropertyFormat(asset: Asset) {
+function toPropertyFormat(asset: Asset, defaultImage: string) {
   return {
     id: asset.id.toString(),
     title: asset.title,
@@ -97,26 +96,26 @@ function toPropertyFormat(asset: Asset) {
     priceUnit: '年',
     location: asset.province ? `${asset.province}·${asset.city || ''}` : '全国',
     type: `${asset.lease_years || 20}年期${asset.asset_type || '宅基地'}使用权`,
-    imageUrl: getFirstImage(asset.images),
+    imageUrl: getFirstImage(asset.images, defaultImage),
     badge: asset.source_type === 'official' ? '一手官方资源' : 
            asset.source_type === 'village' ? '村委直发' : '用户上传'
   };
 }
 
 // 转换资产数据为VillageDirectCard格式
-function toVillageFormat(asset: Asset) {
+function toVillageFormat(asset: Asset, defaultImage: string) {
   return {
     id: asset.id.toString(),
     title: asset.title,
     contact: asset.contact_name || '村委负责人',
     description: asset.description || '【村委官方直招】已完成林地及基本农田交叉排查。',
     price: formatPrice(asset.price_year) + '/年',
-    imageUrl: getFirstImage(asset.images)
+    imageUrl: getFirstImage(asset.images, defaultImage)
   };
 }
 
 // 转换资产数据为BulkProjectCard格式
-function toBulkFormat(asset: Asset) {
+function toBulkFormat(asset: Asset, _defaultImage: string) {
   return {
     id: asset.id.toString(),
     code: `ZJD-${asset.id.toString().padStart(3, '0')}`,
@@ -142,35 +141,36 @@ function toInfraFormat(infra: InfraRating) {
 }
 
 // 转换合伙人数据
-function toBrokerFormat(broker: Broker) {
+function toBrokerFormat(broker: Broker, defaultAvatar: string) {
   return {
     id: broker.id.toString(),
     name: broker.name,
     region: broker.region || '全国',
-    avatarUrl: broker.avatar_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+    avatarUrl: broker.avatar_url || defaultAvatar,
     successRate: `${Math.round(broker.good_rate * 100)}%`,
     leads: `${broker.show_count} 宗`,
     phone: broker.phone_encrypted || '138****0000'
   };
 }
 
-
-
 // --- 主页面（异步服务端组件） ---
 export default async function HomePage() {
-   // 1. 【修复Bug】：必须先单独获取 config，因为后面的请求参数依赖它
-  const config = await getHomepageConfig().catch(() => ({} as Record<string, string>));
-
-  // 2. 拿到 config 后，再并行查询其他所有数据（注意左侧解构去掉了 config）
-  const [hotAssets, marketData, officialAssets, villageAssets, bulkAssets, infraRatings, brokers] = await Promise.all([
-    getHotAssets(getConfigCount(config, 'section_regions_count', 6)).catch(() => [] as Asset[]),
+  // 并行查询所有数据
+  const [hotAssets, marketData, officialAssets, villageAssets, bulkAssets, infraRatings, brokers, config] = await Promise.all([
+    getHotAssets(6).catch(() => [] as Asset[]),
     getMarketData().catch(() => [] as MarketData[]),
-    getAssetsBySource('official', getConfigCount(config, 'section_official_count', 6)).catch(() => [] as Asset[]),
-    getAssetsBySource('village', getConfigCount(config, 'section_village_count', 2)).catch(() => [] as Asset[]),
-    getFeaturedAssets(getConfigCount(config, 'section_bulk_count', 2)).catch(() => [] as Asset[]),
+    getAssetsBySource('official', 6).catch(() => [] as Asset[]),
+    getAssetsBySource('village', 2).catch(() => [] as Asset[]),
+    getFeaturedAssets(2).catch(() => [] as Asset[]),
     getInfraRatings().catch(() => [] as InfraRating[]),
-    getBrokers(getConfigCount(config, 'section_brokers_count', 3)).catch(() => [] as Broker[]),
+    getBrokers(3).catch(() => [] as Broker[]),
+    getHomepageConfig().catch(() => ({} as Record<string, string>)),
   ]);
+
+  // 从 config 读取图片 fallback
+  const defaultImage = getConfigValue(config, 'default_image');
+  const defaultAvatar = getConfigValue(config, 'default_avatar');
+  const regionEmojis = getRegionEmojis(config);
 
   // 转换数据格式
   const regions = hotAssets.map((asset, i) => ({
@@ -179,20 +179,20 @@ export default async function HomePage() {
     name: asset.title.split('·')[0] || asset.title,
     subtitle: asset.asset_type || '宅基地',
     views: asset.views,
-    imageUrl: getFirstImage(asset.images)
+    imageUrl: getFirstImage(asset.images, defaultImage)
   }));
 
-  const properties = officialAssets.map(toPropertyFormat);
-  const villageProjects = villageAssets.map(toVillageFormat);
-  const bulkProjects = bulkAssets.map(toBulkFormat);
+  const properties = officialAssets.map(a => toPropertyFormat(a, defaultImage));
+  const villageProjects = villageAssets.map(a => toVillageFormat(a, defaultImage));
+  const bulkProjects = bulkAssets.map(a => toBulkFormat(a, defaultImage));
   const infraRatingsFormatted = infraRatings.map(toInfraFormat);
-  const brokersFormatted = brokers.map(toBrokerFormat);
+  const brokersFormatted = brokers.map(b => toBrokerFormat(b, defaultAvatar));
 
   const totalAssets = getConfigValue(config, 'total_assets');
   const todayNew = getConfigValue(config, 'today_new');
 
   return (
-   <div className="min-h-screen bg-[#F9F9F8]">
+    <div className="min-h-screen bg-gray-50">
       <style dangerouslySetInnerHTML={{ __html: `
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
@@ -200,15 +200,13 @@ export default async function HomePage() {
         .group:hover .image-zoom { transform: scale(1.1); }
       `}} />
 
-    
-      
       <main>
         <HeroSection totalAssets={totalAssets} todayNew={todayNew} />
         <RegionGrid regions={regions} title={getConfigValue(config, 'section_regions_title')} subtitle={getConfigValue(config, 'section_regions_subtitle')} />
         <MarketStats marketData={marketData} />
         
         {/* 行情数据详细表格（动态） */}
-        <section className="bg-[#F9F9F8] py-16">
+        <section className="bg-gray-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -221,7 +219,7 @@ export default async function HomePage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-[#F9F9F8] text-left">
+                    <tr className="bg-gray-50 text-left">
                       <th className="px-6 py-3 font-medium text-gray-500">省级行政区域</th>
                       <th className="px-6 py-3 font-medium text-gray-500">官方存量挂牌</th>
                       <th className="px-6 py-3 font-medium text-gray-500">租金中位数 (年)</th>
@@ -234,7 +232,7 @@ export default async function HomePage() {
                       <tr key={row.province} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-2">
-                            <span className="text-lg">{REGION_EMOJIS[row.province] || '📍'}</span>
+                            <span className="text-lg">{regionEmojis[row.province] || '📍'}</span>
                             <div>
                               <div className="font-medium text-gray-900">{row.province}</div>
                             </div>
@@ -278,11 +276,11 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-[#1E2022] text-white px-2 py-1 rounded text-xs font-bold">OFFICIAL</span>
+                <span className="bg-[#1a4731] text-white px-2 py-1 rounded text-xs font-bold">OFFICIAL</span>
                 <span className="text-2xl">🏛️</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_official_title')}</h2>
               </div>
-              <Link href="/search?source=official" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_official_subtitle')} →</Link>
+              <Link href="/search?source=official" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_official_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {properties.map((p) => (
@@ -295,15 +293,15 @@ export default async function HomePage() {
         </section>
 
         {/* 村集体直发专区 */}
-        <section className="py-16 bg-[#F9F9F8]">
+        <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-red-700 text-white px-2 py-1 rounded text-xs font-bold">VILLAGE DIRECT</span>
+                <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">VILLAGE DIRECT</span>
                 <span className="text-2xl">🏛️</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_village_title')}</h2>
               </div>
-              <Link href="/search?source=village" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_village_subtitle')} →</Link>
+              <Link href="/search?source=village" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_village_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {villageProjects.map((p) => (
@@ -320,11 +318,11 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-[#D4AF37] text-[#1E2022] px-2 py-1 rounded text-xs font-bold">BULK ROADSHOW</span>
+                <span className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">BULK ROADSHOW</span>
                 <span className="text-2xl">🎪</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_bulk_title')}</h2>
               </div>
-              <Link href="/bulk-projects" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_bulk_subtitle')} →</Link>
+              <Link href="/bulk-projects" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_bulk_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {bulkProjects.map((p) => (
@@ -337,15 +335,15 @@ export default async function HomePage() {
         </section>
 
         {/* 数字化隐居基建硬指标 */}
-        <section className="py-16 bg-[#F9F9F8]">
+        <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-[#2C4C3B] text-white px-2 py-1 rounded text-xs font-bold">INFRASTRUCTURE</span>
+                <span className="bg-[#1a4731] text-white px-2 py-1 rounded text-xs font-bold">INFRASTRUCTURE</span>
                 <span className="text-2xl">📡</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_infra_title')}</h2>
               </div>
-              <Link href="/infra-rating" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_infra_subtitle')} →</Link>
+              <Link href="/infra-rating" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_infra_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {infraRatingsFormatted.map((i) => (
@@ -362,11 +360,11 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-[#2C4C3B] text-white px-2 py-1 rounded text-xs font-bold">BROKERS</span>
+                <span className="bg-[#1a4731] text-white px-2 py-1 rounded text-xs font-bold">BROKERS</span>
                 <span className="text-2xl">🤝</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_brokers_title')}</h2>
               </div>
-              <Link href="/brokers" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_brokers_subtitle')} →</Link>
+              <Link href="/brokers" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_brokers_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {brokersFormatted.map((b) => (
@@ -380,8 +378,6 @@ export default async function HomePage() {
 
         <CTASection />
       </main>
-
-     
     </div>
   );
 }

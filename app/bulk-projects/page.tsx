@@ -1,8 +1,7 @@
 export const runtime = 'edge';
 
 import Link from 'next/link';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';import { getAssetsBySource, getHomepageConfig } from '@/lib/data';
+import { getAssetsBySource, getHomepageConfig } from '@/lib/data';
 
 export default async function BulkProjectsPage() {
   const [projects, config] = await Promise.all([

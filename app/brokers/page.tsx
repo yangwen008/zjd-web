@@ -1,8 +1,7 @@
 export const runtime = 'edge';
 
 import Link from 'next/link';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';import { getBrokers, getHomepageConfig } from '@/lib/data';
+import { getBrokers, getHomepageConfig } from '@/lib/data';
 
 const RATING_STYLES: Record<string, { label: string; className: string }> = {
   gold: { label: '⭐ 金牌合伙人', className: 'bg-yellow-100 text-yellow-700' },

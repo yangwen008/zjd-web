@@ -1,8 +1,7 @@
 export const runtime = 'edge';
 
 import Link from 'next/link';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';import { getMarketData, getHomepageConfig } from '@/lib/data';
+import { getMarketData, getHomepageConfig } from '@/lib/data';
 
 function getChangeStyle(pct: number): string {
   if (pct > 0) return 'text-green-500';
