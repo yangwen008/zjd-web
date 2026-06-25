@@ -1,6 +1,5 @@
 export const runtime = 'edge';
 
-import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { getMarketData, getHomepageConfig } from '@/lib/data';
 
@@ -41,7 +40,7 @@ export default async function MarketIndexPage() {
 
   return (
     <>
-      <Navbar />
+     
       <main className="pt-20 pb-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
