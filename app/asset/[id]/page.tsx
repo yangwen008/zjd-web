@@ -192,7 +192,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
           </div>
         </div>
       </main>
-      <Footer config={config} />
+      
     </>
   );
 }
