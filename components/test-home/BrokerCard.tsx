@@ -2,7 +2,7 @@ import { Broker } from "@/lib/test-home-data";
 
 export default function BrokerCard({ broker }: { broker: Broker }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 card-hover">
+    <div className="group bg-white rounded-2xl border border-gray-200 p-6 card-hover">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-gray-300 overflow-hidden">
@@ -20,7 +20,7 @@ export default function BrokerCard({ broker }: { broker: Broker }) {
         <div className="flex justify-between"><span className="text-gray-500">村集体直签线索数：</span><span className="font-medium">{broker.leads}</span></div>
         <div className="flex justify-between"><span className="text-gray-500">地推工作电话：</span><span className="font-medium text-gray-400">{broker.phone}</span></div>
       </div>
-      <button className="w-full border border-[#1a4731] text-[#1a4731] hover:bg-[#1a4731] hover:text-white py-2 rounded-lg text-sm font-medium transition-colors">查阅其管辖的样板资产 →</button>
+      <span className="w-full border border-[#1a4731] text-[#1a4731] group-hover:bg-[#1a4731] group-hover:text-white py-2 rounded-lg text-sm font-medium transition-colors inline-block text-center">查阅其管辖的样板资产 →</span>
     </div>
   );
 }

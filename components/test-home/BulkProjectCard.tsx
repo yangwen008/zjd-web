@@ -2,7 +2,7 @@ import { BulkProject } from "@/lib/test-home-data";
 
 export default function BulkProjectCard({ project }: { project: BulkProject }) {
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 p-6 card-hover">
+    <div className="group bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 p-6 card-hover">
       <div className="mb-4">
         <div className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium inline-block mb-2">{project.code}</div>
         <h3 className="text-xl font-bold text-gray-900 mb-2">{project.title}</h3>
@@ -24,7 +24,7 @@ export default function BulkProjectCard({ project }: { project: BulkProject }) {
       </div>
       <div className="flex items-center justify-between">
         <div className="text-2xl font-bold text-gray-900">{project.price}</div>
-        <button className="bg-[#1a4731] hover:bg-[#2d5a45] text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors">申请解密尽调案 →</button>
+        <span className="bg-[#1a4731] group-hover:bg-[#2d5a45] text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors inline-block">申请解密尽调案 →</span>
       </div>
     </div>
   );

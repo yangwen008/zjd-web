@@ -18,7 +18,7 @@ export default function VillageDirectCard({ project }: { project: VillageProject
             <div className="text-xs text-gray-400 mb-1">原来参考价</div>
             <div className="text-lg font-bold text-gray-900">{project.price}</div>
           </div>
-          <button className="bg-[#1a4731] hover:bg-[#2d5a45] text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors">一键源尽调 →</button>
+          <span className="bg-[#1a4731] group-hover:bg-[#2d5a45] text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors inline-block">一键源尽调 →</span>
         </div>
       </div>
     </div>

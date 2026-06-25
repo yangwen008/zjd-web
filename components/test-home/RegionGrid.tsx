@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 // components/test-home/RegionGrid.tsx
 
 interface Region {
@@ -42,7 +44,7 @@ export default function RegionGrid({ regions = [], title, subtitle }: RegionGrid
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayRegions.map((region) => (
-            <div key={region.id} className="group relative rounded-2xl overflow-hidden card-hover cursor-pointer">
+            <Link key={region.id} href={`/asset/${region.id}`} className="group relative rounded-2xl overflow-hidden card-hover cursor-pointer block">
               <img src={region.imageUrl} alt={region.name} className="w-full h-64 object-cover image-zoom" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
               <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
@@ -53,7 +55,7 @@ export default function RegionGrid({ regions = [], title, subtitle }: RegionGrid
                 <h3 className="text-lg font-semibold">{region.name}（{region.subtitle}）</h3>
               </div>
               <div className="absolute top-4 left-4 bg-[#1a4731] px-2 py-1 rounded text-xs font-bold text-white">#{region.rank} 热度</div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

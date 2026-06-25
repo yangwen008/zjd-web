@@ -13,7 +13,7 @@ export default function PropertyCard({ property }: { property: Property }) {
         <div className="text-xs text-gray-400 mb-4">基地基准挂牌单价</div>
         <div className="flex items-center justify-between">
           <div className="text-xl font-bold text-gray-900">{property.price}/{property.priceUnit}</div>
-          <button className="bg-[#1a4731] hover:bg-[#2d5a45] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">一键尽调大厅 →</button>
+          <span className="bg-[#1a4731] group-hover:bg-[#2d5a45] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-block">一键尽调大厅 →</span>
         </div>
       </div>
     </div>
