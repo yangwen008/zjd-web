@@ -1,7 +1,8 @@
 export const runtime = 'edge';
 
-
-import { getBrokers, getHomepageConfig } from '@/lib/data';
+import Link from 'next/link';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';import { getBrokers, getHomepageConfig } from '@/lib/data';
 
 const RATING_STYLES: Record<string, { label: string; className: string }> = {
   gold: { label: '⭐ 金牌合伙人', className: 'bg-yellow-100 text-yellow-700' },
@@ -32,7 +33,7 @@ export default async function BrokersPage() {
             {brokers.length > 0 ? brokers.map((b) => {
               const ratingStyle = RATING_STYLES[b.rating] || RATING_STYLES.bronze;
               return (
-                <div key={b.id} className="bg-white rounded-xl p-5 border border-gray-100 flex items-center space-x-5 card-hover">
+                <Link key={b.id} href={`/brokers/${b.id}`} className="block bg-white rounded-xl p-5 border border-gray-100 flex items-center space-x-5 card-hover">
                   <div className="w-14 h-14 rounded-full bg-brand-green/10 flex items-center justify-center text-2xl">
                     {b.avatar_url ? (
                       <img src={b.avatar_url} alt={b.name} className="w-14 h-14 rounded-full object-cover" />
@@ -54,7 +55,7 @@ export default async function BrokersPage() {
                     <div className="text-sm font-bold text-brand-green">扫码解锁</div>
                     <div className="text-xs text-gray-400">联系方式</div>
                   </div>
-                </div>
+                </Link>
               );
             }) : (
               <div className="text-center py-16 text-gray-400">

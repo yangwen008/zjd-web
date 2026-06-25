@@ -1,7 +1,8 @@
 export const runtime = 'edge';
 
-
-import { getMarketData, getHomepageConfig } from '@/lib/data';
+import Link from 'next/link';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';import { getMarketData, getHomepageConfig } from '@/lib/data';
 
 function getChangeStyle(pct: number): string {
   if (pct > 0) return 'text-green-500';
@@ -90,7 +91,7 @@ export default async function MarketIndexPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {marketData.length > 0 ? marketData.map((row) => (
-                    <tr key={row.province} className="hover:bg-gray-50/50">
+                    <tr key={row.province} className="hover:bg-gray-50/50 cursor-pointer" onClick={() => window.location.href=`/market-index/${encodeURIComponent(row.province)}`}>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">{REGION_EMOJIS[row.province] || '📍'}</span>

@@ -16,7 +16,7 @@ export async function getHomepageConfig(): Promise<Record<string, string>> {
   return config;
 }
 
-// 板块配置默认值
+// 板块配置默认值（deprecated — 优先从 homepage_config 表读取，仅作最终兜底）
 const SECTION_DEFAULTS: Record<string, string> = {
   hero_title: '寻找被低估的低密度空间资产',
   hero_subtitle: '乡村资产数字化绿色流转中枢。全网多源产权低频提纯，一键交叉碰撞，让技术重归山川。',
@@ -42,6 +42,9 @@ const SECTION_DEFAULTS: Record<string, string> = {
   section_brokers_title: '本地金牌"农房合伙人"联播网',
   section_brokers_subtitle: '查看全网合伙人名册',
   section_brokers_count: '3',
+  region_emojis: '{}',
+  default_image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&h=400&fit=crop',
+  default_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
 };
 
 export function getConfigValue(config: Record<string, string>, key: string): string {
@@ -186,6 +189,34 @@ export async function getAssetsBySource(sourceType: string, limit: number = 6): 
   return query<Asset>(
     'SELECT * FROM assets WHERE status = ? AND source_type = ? ORDER BY views DESC LIMIT ?',
     'approved', sourceType, limit
+  );
+}
+
+export async function getAssetsByProvince(province: string, limit: number = 20): Promise<Asset[]> {
+  return query<Asset>(
+    'SELECT * FROM assets WHERE status = ? AND province = ? ORDER BY views DESC LIMIT ?',
+    'approved', province, limit
+  );
+}
+
+export async function getMarketDataByProvince(province: string): Promise<MarketData | null> {
+  return queryOne<MarketData>(
+    'SELECT * FROM market_data WHERE province = ?',
+    province
+  );
+}
+
+export async function getBrokerById(id: number | string): Promise<Broker | null> {
+  return queryOne<Broker>(
+    'SELECT * FROM brokers WHERE id = ? AND status = ?',
+    id, 'active'
+  );
+}
+
+export async function getInfraRatingById(id: number | string): Promise<InfraRating | null> {
+  return queryOne<InfraRating>(
+    'SELECT * FROM infrastructure_ratings WHERE id = ?',
+    id
   );
 }
 

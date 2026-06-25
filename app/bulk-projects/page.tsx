@@ -1,7 +1,8 @@
 export const runtime = 'edge';
 
-
-import { getAssetsBySource, getHomepageConfig } from '@/lib/data';
+import Link from 'next/link';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';import { getAssetsBySource, getHomepageConfig } from '@/lib/data';
 
 export default async function BulkProjectsPage() {
   const [projects, config] = await Promise.all([
@@ -24,7 +25,7 @@ export default async function BulkProjectsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {projects.length > 0 ? projects.map((p) => (
-              <div key={p.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden card-hover">
+              <Link key={p.id} href={`/asset/${p.id}`} className="block bg-white rounded-xl border border-gray-100 overflow-hidden card-hover">
                 <div className="h-48 bg-gradient-to-br from-brand-dark to-brand-green relative">
                   <div className="absolute top-4 left-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-lg">
                     {p.source_type === 'village' ? '🏛️ 村委直营' : '⚖️ 官方原矿'}
@@ -54,7 +55,7 @@ export default async function BulkProjectsPage() {
                     <span>{p.views.toLocaleString()} 次浏览</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             )) : (
               <div className="col-span-2 text-center py-16 text-gray-400">
                 <div className="text-5xl mb-4">🏢</div>

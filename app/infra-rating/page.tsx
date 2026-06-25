@@ -1,7 +1,8 @@
 export const runtime = 'edge';
 
-
-import { getInfraRatings, getHomepageConfig } from '@/lib/data';
+import Link from 'next/link';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';import { getInfraRatings, getHomepageConfig } from '@/lib/data';
 
 function getSignalColor(ms: number): string {
   if (ms <= 20) return 'text-green-500';
@@ -76,7 +77,7 @@ export default async function InfraRatingPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {ratings.length > 0 ? ratings.map((r, i) => (
-                    <tr key={r.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={r.id} className="hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => window.location.href=`/infra-rating/${r.id}`}>
                       <td className="px-6 py-4">
                         <span className={`font-bold ${getRankColor(i + 1)}`}>{getRankDisplay(i + 1)}</span>
                       </td>
