@@ -65,7 +65,7 @@ export default async function RegionsPage() {
           </div>
         </div>
       </main>
-      <Footer config={config} />
+      
     </>
   );
 }
