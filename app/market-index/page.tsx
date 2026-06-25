@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 
-import Footer from '@/components/layout/Footer';
+
 import { getMarketData, getHomepageConfig } from '@/lib/data';
 
 function getChangeStyle(pct: number): string {
