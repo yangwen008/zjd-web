@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/test-home/HeroSection";
 import RegionGrid from "@/components/test-home/RegionGrid";
 import MarketStats from "@/components/test-home/MarketStats";
@@ -201,7 +200,7 @@ export default async function HomePage() {
         .group:hover .image-zoom { transform: scale(1.1); }
       `}} />
 
-      <Navbar />
+    
       
       <main>
         <HeroSection totalAssets={totalAssets} todayNew={todayNew} />
