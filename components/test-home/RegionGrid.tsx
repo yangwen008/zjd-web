@@ -11,9 +11,11 @@ interface Region {
 
 interface RegionGridProps {
   regions?: Region[];
+  title?: string;
+  subtitle?: string;
 }
 
-export default function RegionGrid({ regions = [] }: RegionGridProps) {
+export default function RegionGrid({ regions = [], title, subtitle }: RegionGridProps) {
   // 如果没有数据，显示默认占位
   const displayRegions = regions.length > 0 ? regions : [
     { id: "1", rank: 1, name: "杭州·安吉园", subtitle: "溪畔宅基地原矿", views: 11420, imageUrl: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&h=400&fit=crop" },
@@ -31,8 +33,8 @@ export default function RegionGrid({ regions = [] }: RegionGridProps) {
           <div className="flex items-center gap-2">
             <span className="text-2xl">🔥</span>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">核心地点寻源区</h2>
-              <p className="text-sm text-gray-500">默认按本站最热点击量、收藏量降序排列</p>
+              <h2 className="text-2xl font-bold text-gray-900">{title || '核心地点寻源区'}</h2>
+              <p className="text-sm text-gray-500">{subtitle || '默认按本站最热点击量、收藏量降序排列'}</p>
             </div>
           </div>
           <a href="#" className="text-sm text-[#1a4731] hover:underline">查看本站热度排行 →</a>

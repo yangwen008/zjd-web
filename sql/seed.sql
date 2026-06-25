@@ -13,6 +13,33 @@ INSERT OR IGNORE INTO homepage_config (key, value) VALUES
   ('company_phone', '13696266999'),
   ('company_email', 'contact@zjd.cn'),
   ('icp_number', '蜀ICP备16015085号-5'),
+  -- 板块配置：热点寻源
+  ('section_regions_title', '核心地点寻源区'),
+  ('section_regions_subtitle', '默认按本站最热点击量、收藏量降序排列'),
+  ('section_regions_count', '6'),
+  -- 板块配置：行情数据
+  ('section_market_title', '省级行政细分流速与交易深度'),
+  ('section_market_subtitle', 'CONNECTED'),
+  -- 板块配置：官方原矿
+  ('section_official_title', '纯净一手官方原矿区'),
+  ('section_official_subtitle', '进入原矿搜寻引擎'),
+  ('section_official_count', '6'),
+  -- 板块配置：村委直发
+  ('section_village_title', '村集体直发专区'),
+  ('section_village_subtitle', '查看所有村委直发'),
+  ('section_village_count', '2'),
+  -- 板块配置：大宗路演
+  ('section_bulk_title', '文旅大宗产业路演带'),
+  ('section_bulk_subtitle', '进入独立路演大厅'),
+  ('section_bulk_count', '2'),
+  -- 板块配置：基建指标
+  ('section_infra_title', '数字化隐居基建硬指标'),
+  ('section_infra_subtitle', '查看全国基建指数表'),
+  ('section_infra_count', '6'),
+  -- 板块配置：合伙人
+  ('section_brokers_title', '本地金牌"农房合伙人"联播网'),
+  ('section_brokers_subtitle', '查看全网合伙人名册'),
+  ('section_brokers_count', '3'),
   ('police_record', ''),
   ('footer_about', '乡村闲置资产数字交易所。全网多源产权低频提纯，让技术重归山川。'),
   ('featured_slots', '["1","2","3","4","5","6"]');
