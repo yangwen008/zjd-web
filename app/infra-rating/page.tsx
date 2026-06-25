@@ -95,7 +95,7 @@ export default async function InfraRatingPage() {
           </div>
         </div>
       </main>
-      <Footer config={config} />
+      
     </>
   );
 }
