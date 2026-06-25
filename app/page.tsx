@@ -342,7 +342,7 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className=bg-[#2C4C3B] text-white px-2 py-1 rounded text-xs font-bold">INFRASTRUCTURE</span>
+                <span className="bg-[#2C4C3B] text-white px-2 py-1 rounded text-xs font-bold">INFRASTRUCTURE</span>
                 <span className="text-2xl">📡</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_infra_title')}</h2>
               </div>
