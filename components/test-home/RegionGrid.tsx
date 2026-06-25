@@ -39,7 +39,11 @@ export default function RegionGrid({ regions = [], title, subtitle }: RegionGrid
               <p className="text-sm text-gray-500">{subtitle || '默认按本站最热点击量、收藏量降序排列'}</p>
             </div>
           </div>
-          <a href="#" className="text-sm text-[#1a4731] hover:underline">查看本站热度排行 →</a>
+          
+          {/* 【修复点】：将 <a href="#"> 改为 Next.js 的 <Link href="/regions">，并统一品牌绿色 */}
+          <Link href="/regions" className="text-sm text-[#2C4C3B] font-bold hover:underline">
+            查看本站热度排行 →
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -54,7 +58,8 @@ export default function RegionGrid({ regions = [], title, subtitle }: RegionGrid
                 </div>
                 <h3 className="text-lg font-semibold">{region.name}（{region.subtitle}）</h3>
               </div>
-              <div className="absolute top-4 left-4 bg-[#1a4731] px-2 py-1 rounded text-xs font-bold text-white pointer-events-none">#{region.rank} 热度</div>
+              {/* 顺便把这里的颜色也统一为品牌绿 */}
+              <div className="absolute top-4 left-4 bg-[#2C4C3B] px-2 py-1 rounded text-xs font-bold text-white pointer-events-none">#{region.rank} 热度</div>
             </Link>
           ))}
         </div>
