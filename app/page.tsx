@@ -193,7 +193,7 @@ export default async function HomePage() {
   const todayNew = getConfigValue(config, 'today_new');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+   <div className="min-h-screen bg-[#F9F9F8]">
       <style dangerouslySetInnerHTML={{ __html: `
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
@@ -209,7 +209,7 @@ export default async function HomePage() {
         <MarketStats marketData={marketData} />
         
         {/* 行情数据详细表格（动态） */}
-        <section className="bg-gray-50 py-16">
+        <section className="bg-[#F9F9F8] py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -222,7 +222,7 @@ export default async function HomePage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 text-left">
+                    <tr className="bg-[#F9F9F8] text-left">
                       <th className="px-6 py-3 font-medium text-gray-500">省级行政区域</th>
                       <th className="px-6 py-3 font-medium text-gray-500">官方存量挂牌</th>
                       <th className="px-6 py-3 font-medium text-gray-500">租金中位数 (年)</th>
@@ -279,11 +279,11 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-[#1a4731] text-white px-2 py-1 rounded text-xs font-bold">OFFICIAL</span>
+                <span className="bg-[#1E2022] text-white px-2 py-1 rounded text-xs font-bold">OFFICIAL</span>
                 <span className="text-2xl">🏛️</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_official_title')}</h2>
               </div>
-              <Link href="/search?source=official" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_official_subtitle')} →</Link>
+              <Link href="/search?source=official" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_official_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {properties.map((p) => (
@@ -296,15 +296,15 @@ export default async function HomePage() {
         </section>
 
         {/* 村集体直发专区 */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-[#F9F9F8]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">VILLAGE DIRECT</span>
+                <span className="bg-red-700 text-white px-2 py-1 rounded text-xs font-bold">VILLAGE DIRECT</span>
                 <span className="text-2xl">🏛️</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_village_title')}</h2>
               </div>
-              <Link href="/search?source=village" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_village_subtitle')} →</Link>
+              <Link href="/search?source=village" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_village_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {villageProjects.map((p) => (
@@ -321,11 +321,11 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">BULK ROADSHOW</span>
+                <span className="bg-[#D4AF37] text-[#1E2022] px-2 py-1 rounded text-xs font-bold">BULK ROADSHOW</span>
                 <span className="text-2xl">🎪</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_bulk_title')}</h2>
               </div>
-              <Link href="/bulk-projects" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_bulk_subtitle')} →</Link>
+              <Link href="/bulk-projects" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_bulk_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {bulkProjects.map((p) => (
@@ -338,15 +338,15 @@ export default async function HomePage() {
         </section>
 
         {/* 数字化隐居基建硬指标 */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-[#F9F9F8]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-[#1a4731] text-white px-2 py-1 rounded text-xs font-bold">INFRASTRUCTURE</span>
+                <span className=bg-[#2C4C3B] text-white px-2 py-1 rounded text-xs font-bold">INFRASTRUCTURE</span>
                 <span className="text-2xl">📡</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_infra_title')}</h2>
               </div>
-              <Link href="/infra-rating" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_infra_subtitle')} →</Link>
+              <Link href="/infra-rating" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_infra_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {infraRatingsFormatted.map((i) => (
@@ -363,11 +363,11 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="bg-[#1a4731] text-white px-2 py-1 rounded text-xs font-bold">BROKERS</span>
+                <span className="bg-[#2C4C3B] text-white px-2 py-1 rounded text-xs font-bold">BROKERS</span>
                 <span className="text-2xl">🤝</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_brokers_title')}</h2>
               </div>
-              <Link href="/brokers" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_brokers_subtitle')} →</Link>
+              <Link href="/brokers" className="text-sm text-[#2C4C3B] hover:underline font-medium">{getConfigValue(config, 'section_brokers_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {brokersFormatted.map((b) => (
