@@ -65,7 +65,7 @@ export default async function BulkProjectsPage() {
           </div>
         </div>
       </main>
-      <Footer config={config} />
+    
     </>
   );
 }
