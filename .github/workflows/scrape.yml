@@ -13,9 +13,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: 'lts/*'
           cache: 'npm'
 
       - name: Install dependencies
@@ -27,5 +27,5 @@ jobs:
       - name: Run scraper
         env:
           CF_API_URL: ${{ secrets.CF_API_URL }}
-          CF_API_TOKEN: *** secrets.CF_API_TOKEN }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: node scrapers/catcher.js
