@@ -229,8 +229,11 @@ function Footer() {
 
 // --- 主页面（异步服务端组件） ---
 export default async function HomePage() {
-  // 并行查询所有数据
-  const [hotAssets, marketData, officialAssets, villageAssets, bulkAssets, infraRatings, brokers, config] = await Promise.all([
+   // 1. 【修复Bug】：必须先单独获取 config，因为后面的请求参数依赖它
+  const config = await getHomepageConfig().catch(() => ({} as Record<string, string>));
+
+  // 2. 拿到 config 后，再并行查询其他所有数据（注意左侧解构去掉了 config）
+  const [hotAssets, marketData, officialAssets, villageAssets, bulkAssets, infraRatings, brokers] = await Promise.all([
     getHotAssets(getConfigCount(config, 'section_regions_count', 6)).catch(() => [] as Asset[]),
     getMarketData().catch(() => [] as MarketData[]),
     getAssetsBySource('official', getConfigCount(config, 'section_official_count', 6)).catch(() => [] as Asset[]),
@@ -238,7 +241,6 @@ export default async function HomePage() {
     getFeaturedAssets(getConfigCount(config, 'section_bulk_count', 2)).catch(() => [] as Asset[]),
     getInfraRatings().catch(() => [] as InfraRating[]),
     getBrokers(getConfigCount(config, 'section_brokers_count', 3)).catch(() => [] as Broker[]),
-    getHomepageConfig().catch(() => ({} as Record<string, string>)),
   ]);
 
   // 转换数据格式
