@@ -1,7 +1,6 @@
 export const runtime = 'edge';
 
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+
 import { getAssetById, getAssets, getHomepageConfig, incrementViews } from '@/lib/data';
 import { notFound } from 'next/navigation';
 
@@ -53,7 +52,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
 
   return (
     <>
-      <Navbar />
+     
       <main className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
