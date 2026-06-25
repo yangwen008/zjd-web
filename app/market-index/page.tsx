@@ -114,7 +114,7 @@ export default async function MarketIndexPage() {
           </div>
         </div>
       </main>
-      <Footer config={config} />
+     
     </>
   );
 }
