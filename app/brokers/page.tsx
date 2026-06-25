@@ -66,7 +66,7 @@ export default async function BrokersPage() {
           </div>
         </div>
       </main>
-      <Footer config={config} />
+      
     </>
   );
 }
