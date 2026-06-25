@@ -76,11 +76,11 @@ export default async function InfraRatingPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {ratings.length > 0 ? ratings.map((r, i) => (
-                    <tr key={r.id} className="hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => window.location.href=`/infra-rating/${r.id}`}>
+                    <tr key={r.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <span className={`font-bold ${getRankColor(i + 1)}`}>{getRankDisplay(i + 1)}</span>
                       </td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{r.region}</td>
+                      <td className="px-6 py-4"><Link href={`/infra-rating/${r.id}`} className="font-medium text-gray-900 hover:text-brand-green transition-colors">{r.region}</Link></td>
                       <td className="px-6 py-4"><span className={getSignalColor(r.signal_5g_ms)}>{r.signal_5g_ms}ms</span></td>
                       <td className="px-6 py-4"><span className={getHospitalColor(r.hospital_min)}>{r.hospital_min}分钟</span></td>
                       <td className="px-6 py-4"><span className={getGridColor(r.grid_redundancy)}>{r.grid_redundancy}%</span></td>

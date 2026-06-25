@@ -90,12 +90,12 @@ export default async function MarketIndexPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {marketData.length > 0 ? marketData.map((row) => (
-                    <tr key={row.province} className="hover:bg-gray-50/50 cursor-pointer" onClick={() => window.location.href=`/market-index/${encodeURIComponent(row.province)}`}>
+                    <tr key={row.province} className="hover:bg-gray-50/50">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">{REGION_EMOJIS[row.province] || '📍'}</span>
                           <div>
-                            <div className="font-medium text-gray-900">{row.province}</div>
+                            <Link href={`/market-index/${encodeURIComponent(row.province)}`} className="font-medium text-gray-900 hover:text-brand-green transition-colors">{row.province}</Link>
                             <div className="text-xs text-gray-400">{REGION_SUBNAMES[row.province] || ''}</div>
                           </div>
                         </div>
