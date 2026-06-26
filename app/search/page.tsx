@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import AssetCard from '@/components/shared/AssetCard';
-import RegionSelector from '@/components/shared/RegionSelector';
 
 interface Asset {
   id: number;
@@ -35,6 +34,26 @@ export default function SearchPage() {
   const [province, setProvince] = useState('');
   const [city, setCity] = useState('');
   const [district, setDistrict] = useState('');
+  const [provinceList, setProvinceList] = useState<{ name: string; emoji: string | null }[]>([]);
+  const [cityList, setCityList] = useState<string[]>([]);
+
+  // 加载省份
+  useEffect(() => {
+    fetch('/api/regions?level=province')
+      .then((r) => r.json())
+      .then((d: any) => setProvinceList(d.data || []))
+      .catch(() => {});
+  }, []);
+
+  // 省份变化 → 加载城市
+  useEffect(() => {
+    if (!province) { setCityList([]); setCity(''); return; }
+    fetch(`/api/regions?level=city&province=${encodeURIComponent(province)}`)
+      .then((r) => r.json())
+      .then((d: any) => setCityList(d.data?.map((c: any) => c.name) || []))
+      .catch(() => {});
+    setCity('');
+  }, [province]);
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(false);
@@ -108,18 +127,29 @@ export default function SearchPage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-2">
+              <div>
                 <label className="block text-xs font-medium text-gray-500 mb-2">目标区域</label>
-                <RegionSelector
-                  province={province}
-                  city={city}
-                  district={district}
-                  onProvinceChange={setProvince}
-                  onCityChange={setCity}
-                  onDistrictChange={setDistrict}
-                  showDistrict={false}
-                  compact
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={province}
+                    onChange={(e) => { setProvince(e.target.value); setCity(''); }}
+                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green"
+                  >
+                    <option value="">全部省份</option>
+                    {provinceList.map((p) => (
+                      <option key={p.name} value={p.name}>{p.emoji ? `${p.emoji} ` : ''}{p.name}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    disabled={!province}
+                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green disabled:opacity-50"
+                  >
+                    <option value="">{province ? '全部城市' : '城市'}</option>
+                    {cityList.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
               </div>
 
               <div>
