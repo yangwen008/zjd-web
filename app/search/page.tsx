@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import AssetCard from '@/components/shared/AssetCard';
+import RegionSelector from '@/components/shared/RegionSelector';
 
 interface Asset {
   id: number;
@@ -32,6 +33,8 @@ function formatPrice(price: number | null): string {
 export default function SearchPage() {
   const [source, setSource] = useState('official');
   const [province, setProvince] = useState('');
+  const [city, setCity] = useState('');
+  const [district, setDistrict] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(false);
@@ -105,20 +108,18 @@ export default function SearchPage() {
                 </div>
               </div>
 
-              <div>
+              <div className="lg:col-span-2">
                 <label className="block text-xs font-medium text-gray-500 mb-2">目标区域</label>
-                <select
-                  value={province}
-                  onChange={(e) => setProvince(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green"
-                >
-                  <option value="">不限区域</option>
-                  <option value="浙江省">浙江省</option>
-                  <option value="四川省">四川省</option>
-                  <option value="云南省">云南省</option>
-                  <option value="贵州省">贵州省</option>
-                  <option value="广西壮族自治区">广西壮族自治区</option>
-                </select>
+                <RegionSelector
+                  province={province}
+                  city={city}
+                  district={district}
+                  onProvinceChange={setProvince}
+                  onCityChange={setCity}
+                  onDistrictChange={setDistrict}
+                  showDistrict={false}
+                  compact
+                />
               </div>
 
               <div>

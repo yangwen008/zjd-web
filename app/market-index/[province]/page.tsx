@@ -3,7 +3,7 @@ export const runtime = 'edge';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import AssetCard from '@/components/shared/AssetCard';
-import { getMarketDataByProvince, getAssetsByProvince, getHomepageConfig } from '@/lib/data';
+import { getMarketDataByProvince, getAssetsByProvince, getHomepageConfig, getProvinceEmoji } from '@/lib/data';
 
 const GRADIENTS = [
   'from-emerald-800 to-emerald-600',
@@ -13,11 +13,6 @@ const GRADIENTS = [
   'from-lime-800 to-lime-600',
   'from-stone-800 to-stone-600',
 ];
-
-const REGION_EMOJIS: Record<string, string> = {
-  '浙江省': '🌊', '四川省': '🐼', '云南省': '🏔️',
-  '贵州省': '🌄', '广西壮族自治区': '🌿', '北京市': '🏛️', '湖北省': '🌸',
-};
 
 function formatPrice(price: number | null): string {
   if (!price) return '价格面议';
@@ -40,17 +35,18 @@ export default async function ProvinceMarketPage({ params }: { params: Promise<{
   const { province } = await params;
   const decodedProvince = decodeURIComponent(province);
 
-  const [marketData, assets, config] = await Promise.all([
+  const [marketData, assets, config, emoji] = await Promise.all([
     getMarketDataByProvince(decodedProvince).catch(() => null),
     getAssetsByProvince(decodedProvince, 12).catch(() => []),
     getHomepageConfig().catch(() => ({})),
+    getProvinceEmoji(decodedProvince).catch(() => '📍'),
   ]);
 
   if (!marketData) {
     notFound();
   }
 
-  const emoji = REGION_EMOJIS[decodedProvince] || '📍';
+  const emojiStr = emoji;
 
   return (
     <>
@@ -68,7 +64,7 @@ export default async function ProvinceMarketPage({ params }: { params: Promise<{
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-3 mb-2">
-              <span className="text-3xl">{emoji}</span>
+              <span className="text-3xl">{emojiStr}</span>
               <h1 className="text-3xl font-bold text-gray-900">{decodedProvince} · 流转行情详情</h1>
             </div>
             <p className="text-gray-500">基于全网产权交易所实时采集数据，AI 清洗后指数化呈现。</p>

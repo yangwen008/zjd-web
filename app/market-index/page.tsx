@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 
 import Link from 'next/link';
-import { getMarketData, getHomepageConfig } from '@/lib/data';
+import { getMarketData, getHomepageConfig, getAllProvinceEmojis } from '@/lib/data';
 
 function getChangeStyle(pct: number): string {
   if (pct > 0) return 'text-green-500';
@@ -22,20 +22,16 @@ function getBargainNote(space: number): string {
   return '深度价值';
 }
 
-const REGION_EMOJIS: Record<string, string> = {
-  '浙江省': '🌊', '四川省': '🐼', '云南省': '🏔️',
-  '贵州省': '🌄', '广西壮族自治区': '🌿', '广西': '🌿',
-};
-
 const REGION_SUBNAMES: Record<string, string> = {
   '浙江省': '江浙沪核心圈', '四川省': '成渝辐射圈', '云南省': '滇西旅居带',
-  '贵州省': '黔东南圈', '广西壮族自治区': '桂北旅居带', '广西': '桂北旅居带',
+  '贵州省': '黔东南圈', '广西壮族自治区': '桂北旅居带',
 };
 
 export default async function MarketIndexPage() {
-  const [marketData, config] = await Promise.all([
+  const [marketData, config, regionEmojis] = await Promise.all([
     getMarketData().catch(() => []),
     getHomepageConfig().catch(() => ({})),
+    getAllProvinceEmojis().catch(() => ({})),
   ]);
 
   return (
@@ -93,7 +89,7 @@ export default async function MarketIndexPage() {
                     <tr key={row.province} className="hover:bg-gray-50/50">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg">{REGION_EMOJIS[row.province] || '📍'}</span>
+                          <span className="text-lg">{regionEmojis[row.province] || '📍'}</span>
                           <div>
                             <Link href={`/market-index/${encodeURIComponent(row.province)}`} className="font-medium text-gray-900 hover:text-brand-green transition-colors">{row.province}</Link>
                             <div className="text-xs text-gray-400">{REGION_SUBNAMES[row.province] || ''}</div>
