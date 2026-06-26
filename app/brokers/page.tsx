@@ -45,7 +45,7 @@ export default function BrokersPage() {
   const [page, setPage] = useState(1);
 
   // 省份/城市列表
-  const [provinces, setProvinces] = useState<string[]>([]);
+  const [provinces, setProvinces] = useState<{ name: string; emoji: string | null; broker_count: number }[]>([]);
   const [cities, setCities] = useState<string[]>([]);
 
   // 加载省份列表
@@ -124,7 +124,11 @@ export default function BrokersPage() {
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green"
             >
               <option value="">全部省份</option>
-              {provinces.map((p) => <option key={p} value={p}>{p}</option>)}
+              {provinces.map((p) => (
+                <option key={p.name} value={p.name}>
+                  {p.emoji ? `${p.emoji} ` : ''}{p.name}{p.broker_count > 0 ? ` (${p.broker_count})` : ''}
+                </option>
+              ))}
             </select>
           </div>
 

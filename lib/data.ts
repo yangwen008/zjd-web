@@ -397,14 +397,30 @@ export async function getBrokersCount(params: BrokerFilters = {}): Promise<numbe
   return row?.count || 0;
 }
 
-export async function getBrokerProvinces(): Promise<string[]> {
-  const rows = await query<{ province: string }>(
-    "SELECT DISTINCT province FROM brokers WHERE status = 'active' AND province IS NOT NULL ORDER BY province"
+export async function getBrokerProvinces(): Promise<{ name: string; emoji: string | null; broker_count: number }[]> {
+  const regions = await query<{ name: string; emoji: string }>(
+    "SELECT name, emoji FROM regions WHERE level = 'province' AND active = 1 ORDER BY sort_order"
   );
-  return rows.map((r) => r.province);
+  const counts = await query<{ province: string; cnt: number }>(
+    "SELECT province, COUNT(*) as cnt FROM brokers WHERE status = 'active' AND province IS NOT NULL GROUP BY province"
+  );
+  const countMap: Record<string, number> = {};
+  for (const c of counts) countMap[c.province] = c.cnt;
+  return regions.map((r) => ({
+    name: r.name,
+    emoji: r.emoji,
+    broker_count: countMap[r.name] || 0,
+  }));
 }
 
 export async function getBrokerCities(province: string): Promise<string[]> {
+  // 优先从 regions 表读取
+  const regionCities = await query<{ name: string }>(
+    "SELECT name FROM regions WHERE level = 'city' AND province = ? AND active = 1 ORDER BY sort_order",
+    province
+  );
+  if (regionCities.length > 0) return regionCities.map((r) => r.name);
+  // fallback: 从 brokers 表去重
   const rows = await query<{ city: string }>(
     "SELECT DISTINCT city FROM brokers WHERE status = 'active' AND province = ? AND city IS NOT NULL ORDER BY city",
     province
