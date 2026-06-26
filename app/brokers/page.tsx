@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import FilterPanel from '@/components/shared/FilterPanel';
 
 interface Broker {
   id: number;
