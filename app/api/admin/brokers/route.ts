@@ -21,28 +21,32 @@ export async function POST(request: Request) {
     const { action } = body as { action: string };
 
     if (action === 'add') {
-      const { name, region, bio, rating, show_count, good_rate, phone, avatar_url } = body as {
-        name: string; region: string; bio: string; rating: string;
+      const { name, region, province, city, bio, specialties, rating, show_count, good_rate, phone, avatar_url } = body as {
+        name: string; region: string; province: string; city: string;
+        bio: string; specialties: string; rating: string;
         show_count: number; good_rate: number; phone: string; avatar_url: string;
       };
       const result = await execute(
-        `INSERT INTO brokers (name, region, bio, rating, show_count, good_rate, phone_encrypted, avatar_url, status, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'))`,
-        name, region || '', bio || '', rating || 'bronze',
+        `INSERT INTO brokers (name, region, province, city, bio, specialties, rating, show_count, good_rate, phone_encrypted, avatar_url, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'))`,
+        name, region || '', province || '', city || '', bio || '',
+        specialties || '[]', rating || 'bronze',
         show_count || 0, good_rate || 0, phone || '', avatar_url || ''
       );
       return NextResponse.json({ success: true, id: result.meta.last_row_id });
     }
 
     if (action === 'update') {
-      const { id, name, region, bio, rating, show_count, good_rate, phone, avatar_url } = body as {
-        id: number; name: string; region: string; bio: string; rating: string;
+      const { id, name, region, province, city, bio, specialties, rating, show_count, good_rate, phone, avatar_url } = body as {
+        id: number; name: string; region: string; province: string; city: string;
+        bio: string; specialties: string; rating: string;
         show_count: number; good_rate: number; phone: string; avatar_url: string;
       };
       await execute(
-        `UPDATE brokers SET name = ?, region = ?, bio = ?, rating = ?, show_count = ?, good_rate = ?, phone_encrypted = ?, avatar_url = ?
+        `UPDATE brokers SET name = ?, region = ?, province = ?, city = ?, bio = ?, specialties = ?, rating = ?, show_count = ?, good_rate = ?, phone_encrypted = ?, avatar_url = ?
          WHERE id = ?`,
-        name, region, bio, rating, show_count, good_rate, phone, avatar_url, id
+        name, region, province || '', city || '', bio, specialties || '[]',
+        rating, show_count, good_rate, phone, avatar_url, id
       );
       return NextResponse.json({ success: true });
     }

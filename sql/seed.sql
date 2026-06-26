@@ -73,12 +73,12 @@ INSERT OR IGNORE INTO users (openid, nickname, role, status, verified, phone) VA
   ('broker_zhao', '赵翠花', 'broker', 'active', 1, '13800004444'),
   ('broker_liu', '刘大牛', 'broker', 'active', 1, '13800005555');
 
-INSERT OR IGNORE INTO brokers (user_id, name, region, bio, rating, show_count, good_rate, status) VALUES
-  (2, '张大山', '浙江安吉', '安吉本地人，深耕乡村房产10年，熟悉每一块宅基地', 'gold', 128, 98, 'active'),
-  (3, '李秀英', '四川都江堰', '都江堰文旅协会成员，专注青城山周边林地流转', 'silver', 86, 95, 'active'),
-  (4, '王铁柱', '云南大理', '大理古城老房东，白族老宅改造专家', 'silver', 64, 97, 'active'),
-  (5, '赵翠花', '丽水缙云', '缙云仙都景区金牌地陪，石头房民宿运营顾问', 'bronze', 52, 96, 'active'),
-  (6, '刘大牛', '桂林阳朔', '阳朔十里画廊片区负责人，精通农房租赁法规', 'bronze', 45, 94, 'active');
+INSERT OR IGNORE INTO brokers (user_id, name, region, province, city, bio, specialties, rating, show_count, good_rate, status) VALUES
+  (2, '张大山', '浙江安吉', '浙江省', '湖州市', '安吉本地人，深耕乡村房产10年，熟悉每一块宅基地', '["宅基地","茶园","民宿改造"]', 'gold', 128, 98, 'active'),
+  (3, '李秀英', '四川都江堰', '四川省', '成都市', '都江堰文旅协会成员，专注青城山周边林地流转', '["林地","茶园","康养项目"]', 'silver', 86, 95, 'active'),
+  (4, '王铁柱', '云南大理', '云南省', '大理州', '大理古城老房东，白族老宅改造专家', '["古宅","民宿改造","文旅项目"]', 'silver', 64, 97, 'active'),
+  (5, '赵翠花', '丽水缙云', '浙江省', '丽水市', '缙云仙都景区金牌地陪，石头房民宿运营顾问', '["宅基地","石头房","景区民宿"]', 'bronze', 52, 96, 'active'),
+  (6, '刘大牛', '桂林阳朔', '广西壮族自治区', '桂林市', '阳朔十里画廊片区负责人，精通农房租赁法规', '["宅基地","院落","法规咨询"]', 'bronze', 45, 94, 'active');
 
 -- 6. 20条测试资产数据
 INSERT OR IGNORE INTO assets (title, description, location, province, city, district, area_mu, price_year, price_total, lease_years, asset_type, source_type, images, gps_lat, gps_lng, contact_phone, contact_name, views, status, featured, user_id) VALUES

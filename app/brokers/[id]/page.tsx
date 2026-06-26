@@ -147,17 +147,23 @@ export default async function BrokerDetailPage({ params }: { params: Promise<{ i
             )}
           </div>
 
-          {/* Service Tags */}
-          <div className="bg-white rounded-xl border border-gray-100 p-6 mb-8">
-            <h2 className="font-bold text-gray-900 mb-4">🏷️ 服务标签</h2>
-            <div className="flex flex-wrap gap-2">
-              {['陪同看房', '法务鉴证', '产权核实', '村委对接', '民宿规划', '改造方案'].map((tag) => (
-                <span key={tag} className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full text-sm">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
+          {/* Specialties */}
+          {(() => {
+            let specs: string[] = [];
+            try { if (broker.specialties) specs = JSON.parse(broker.specialties); } catch {}
+            return specs.length > 0 ? (
+              <div className="bg-white rounded-xl border border-gray-100 p-6 mb-8">
+                <h2 className="font-bold text-gray-900 mb-4">🏷️ 擅长领域</h2>
+                <div className="flex flex-wrap gap-2">
+                  {specs.map((tag) => (
+                    <span key={tag} className="bg-brand-green/10 text-brand-green px-3 py-1.5 rounded-full text-sm font-medium">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null;
+          })()}
 
           {/* Peer Comparison */}
           {peers.length > 0 && (

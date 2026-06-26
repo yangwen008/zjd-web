@@ -108,7 +108,10 @@ CREATE TABLE IF NOT EXISTS brokers (
   user_id       INTEGER NOT NULL,
   name          TEXT NOT NULL,
   region        TEXT,
+  province      TEXT,              -- 省份（结构化筛选）
+  city          TEXT,              -- 城市（结构化筛选）
   bio           TEXT,
+  specialties   TEXT,              -- JSON数组: 擅长领域
   rating        TEXT DEFAULT 'bronze', -- gold/silver/bronze
   show_count    INTEGER DEFAULT 0,
   good_rate     REAL DEFAULT 0,
@@ -118,6 +121,10 @@ CREATE TABLE IF NOT EXISTS brokers (
   created_at    TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_brokers_province ON brokers(province);
+CREATE INDEX IF NOT EXISTS idx_brokers_city ON brokers(city);
+CREATE INDEX IF NOT EXISTS idx_brokers_rating ON brokers(rating);
 
 -- 5. 首页配置表
 CREATE TABLE IF NOT EXISTS homepage_config (
