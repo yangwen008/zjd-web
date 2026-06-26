@@ -38,13 +38,29 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  // 从 URL 参数读取初始搜索词
+  // 从 URL 参数读取初始搜索词并自动搜索
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
     const s = params.get('source');
-    if (q) setSearchQuery(q);
     if (s) setSource(s);
+    if (q) {
+      setSearchQuery(q);
+      // 延迟触发搜索，等 state 更新
+      setTimeout(() => {
+        const p = new URLSearchParams();
+        if (s) p.set('source', s);
+        p.set('search', q);
+        p.set('limit', '20');
+        setSearched(true);
+        setLoading(true);
+        fetch(`/api/assets?${p.toString()}`)
+          .then((r) => r.json())
+          .then((d: any) => setResults(d.data || []))
+          .catch(() => setResults([]))
+          .finally(() => setLoading(false));
+      }, 0);
+    }
   }, []);
 
   const handleSearch = async (query?: string) => {
