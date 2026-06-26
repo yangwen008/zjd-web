@@ -303,7 +303,6 @@ export default function BrokersPage() {
         </div>
       )}
       </div>
-      </div>
     </main>
   );
 }
