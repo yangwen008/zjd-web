@@ -31,7 +31,7 @@ export default async function MarketIndexPage() {
   const [marketData, config, regionEmojis] = await Promise.all([
     getMarketData().catch(() => []),
     getHomepageConfig().catch(() => ({})),
-    getAllProvinceEmojis().catch(() => ({})),
+    getAllProvinceEmojis().catch(() => ({} as Record<string, string>)),
   ]);
 
   return (
