@@ -101,7 +101,8 @@ export default function BrokersPage() {
   }, [searchInput]);
 
   return (
-    <div>
+    <main className="pt-20 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <div className="flex items-center space-x-2 mb-2">
           <span className="text-2xl">🌾</span>
@@ -301,6 +302,8 @@ export default function BrokersPage() {
           </button>
         </div>
       )}
-    </div>
+      </div>
+      </div>
+    </main>
   );
 }
