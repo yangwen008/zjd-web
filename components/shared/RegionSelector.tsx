@@ -35,7 +35,7 @@ export default function RegionSelector({
   useEffect(() => {
     fetch('/api/regions?level=province')
       .then((r) => r.json())
-      .then((d) => setProvinces(d.data || []))
+      .then((d: any) => setProvinces(d.data || []))
       .catch(() => {});
   }, []);
 
@@ -44,7 +44,7 @@ export default function RegionSelector({
     if (!province) { setCities([]); return; }
     fetch(`/api/regions?level=city&province=${encodeURIComponent(province)}`)
       .then((r) => r.json())
-      .then((d) => setCities(d.data || []))
+      .then((d: any) => setCities(d.data || []))
       .catch(() => {});
   }, [province]);
 
@@ -53,7 +53,7 @@ export default function RegionSelector({
     if (!showDistrict || !city || !province) { setDistricts([]); return; }
     fetch(`/api/regions?level=district&province=${encodeURIComponent(province)}&city=${encodeURIComponent(city)}`)
       .then((r) => r.json())
-      .then((d) => setDistricts(d.data || []))
+      .then((d: any) => setDistricts(d.data || []))
       .catch(() => {});
   }, [city, province, showDistrict]);
 
