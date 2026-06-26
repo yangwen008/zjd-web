@@ -52,7 +52,7 @@ export default function BrokersPage() {
   useEffect(() => {
     fetch('/api/brokers?action=provinces')
       .then((r) => r.json())
-      .then((d) => setProvinces(d.data || []))
+      .then((d: any) => setProvinces(d.data || []))
       .catch(() => {});
   }, []);
 
@@ -61,7 +61,7 @@ export default function BrokersPage() {
     if (!province) { setCities([]); setCity(''); return; }
     fetch(`/api/brokers?action=cities&province=${encodeURIComponent(province)}`)
       .then((r) => r.json())
-      .then((d) => setCities(d.data || []))
+      .then((d: any) => setCities(d.data || []))
       .catch(() => {});
     setCity('');
   }, [province]);
@@ -80,7 +80,7 @@ export default function BrokersPage() {
       params.set('limit', '20');
 
       const res = await fetch(`/api/brokers?${params.toString()}`);
-      const data = await res.json();
+      const data = await res.json() as any;
       setBrokers(data.data || []);
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
