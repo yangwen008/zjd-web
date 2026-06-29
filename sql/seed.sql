@@ -179,6 +179,114 @@ INSERT OR IGNORE INTO bulk_projects (title, code, description, location, provinc
   ('莫干山辐射圈 · 闲置集体村办小学校舍整栋流转招商', 'ZJD-001', '包含完整苏式红砖多功能空间、宽敞院落。权属已归属乡村经济合作社，AI测算黄金投资回报周期约5.8年。', '浙江省湖州市德清县莫干山镇', '浙江省', '湖州市', '德清县', 15.0, 1220, 15.0, 6.80, 30, 'certified', '文旅', '["https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800"]', 30.55, 119.92, '13800004001', '莫干山镇合作社', 8920, 'approved', 1, 1),
   ('都江堰青城山旁 · 45亩传统梯田茶园配3栋闲置库房', 'ZJD-0055', '首期已由村委办协调完成林地林权排他性测绘，提供小溪及微水电野奢级配接入方案。适合品牌文旅民宿带开发。', '四川省成都市都江堰市青城山镇', '四川省', '成都市', '都江堰市', 45.0, 1300, 18.5, 6.80, 30, 'certified', '康养', '["https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800"]', 30.90, 103.58, '13800004002', '青城山镇合作社', 7650, 'approved', 1, 1);
 
--- 10. 同步 FTS5 全文搜索索引
+-- 10. 角色定义
+INSERT OR IGNORE INTO roles (code, name, description, level, is_system) VALUES
+  ('user', '普通用户', '浏览、收藏、发布UGC资产', 10, 1),
+  ('broker', '合伙人', '发布房源、查看线索', 20, 1),
+  ('village_org', '村集体', '发布村委直发资产、查看线索', 20, 1),
+  ('data_editor', '数据录入员', '录入基建/行情等数据', 15, 1),
+  ('project_publisher', '项目发布者', '发布大宗路演项目', 25, 1),
+  ('admin', '平台运营', '资产审核、内容维护、数据管理', 50, 1),
+  ('superadmin', '超级管理员', '系统管理、用户管理、全局配置', 100, 1);
+
+-- 11. 权限定义
+INSERT OR IGNORE INTO permissions (code, name, module, description) VALUES
+  ('asset:create', '发布资产', 'asset', '创建新资产记录'),
+  ('asset:create:official', '发布官方原矿', 'asset', '创建source_type=official的资产'),
+  ('asset:create:village', '发布村委直发', 'asset', '创建source_type=village的资产'),
+  ('asset:create:ugc', '发布UGC资产', 'asset', '创建source_type=ugc的资产'),
+  ('asset:read', '查看所有资产', 'asset', '查看所有用户的资产'),
+  ('asset:read:own', '查看自己的资产', 'asset', '仅查看自己发布的资产'),
+  ('asset:update', '编辑所有资产', 'asset', '编辑任何资产'),
+  ('asset:update:own', '编辑自己的资产', 'asset', '仅编辑自己发布的资产'),
+  ('asset:delete', '删除所有资产', 'asset', '删除任何资产'),
+  ('asset:delete:own', '删除自己的资产', 'asset', '仅删除自己发布的资产'),
+  ('asset:audit', '审核资产', 'asset', '批准/拒绝待审核资产'),
+  ('asset:feature', '橱窗推荐', 'asset', '设置featured推荐标记'),
+  ('bulk:create', '发布大宗项目', 'bulk', '创建大宗路演项目'),
+  ('bulk:read', '查看所有大宗项目', 'bulk', '查看所有大宗项目'),
+  ('bulk:read:own', '查看自己的大宗项目', 'bulk', '仅查看自己发布的大宗项目'),
+  ('bulk:update', '编辑所有大宗项目', 'bulk', '编辑任何大宗项目'),
+  ('bulk:update:own', '编辑自己的大宗项目', 'bulk', '仅编辑自己发布的大宗项目'),
+  ('bulk:delete', '删除大宗项目', 'bulk', '删除大宗项目'),
+  ('bulk:audit', '审核大宗项目', 'bulk', '审核待发布的大宗项目'),
+  ('infra:create', '录入基建数据', 'infra', '创建基建评分记录'),
+  ('infra:read', '查看所有基建数据', 'infra', '查看所有基建评分'),
+  ('infra:read:own', '查看负责区域基建', 'infra', '仅查看自己负责区域的基建数据'),
+  ('infra:update', '编辑所有基建数据', 'infra', '编辑任何基建评分'),
+  ('infra:update:own', '编辑负责区域基建', 'infra', '仅编辑自己负责区域的基建数据'),
+  ('infra:audit', '审核基建数据', 'infra', '审核待发布的基建数据'),
+  ('market:create', '录入行情数据', 'market', '创建行情数据记录'),
+  ('market:read', '查看行情数据', 'market', '查看行情数据'),
+  ('market:update', '编辑行情数据', 'market', '编辑行情数据'),
+  ('market:delete', '删除行情数据', 'market', '删除行情数据'),
+  ('partner:create', '新增合伙人', 'partner', '创建合伙人记录'),
+  ('partner:read', '查看所有合伙人', 'partner', '查看所有合伙人'),
+  ('partner:update', '编辑合伙人', 'partner', '编辑合伙人信息'),
+  ('partner:delete', '删除合伙人', 'partner', '删除合伙人'),
+  ('partner:audit', '审核合伙人', 'partner', '审核合伙人申请'),
+  ('user:read', '查看所有用户', 'user', '查看用户列表'),
+  ('user:update', '编辑用户', 'user', '编辑用户信息'),
+  ('user:assign_role', '分配角色', 'user', '修改用户角色'),
+  ('user:ban', '封禁用户', 'user', '封禁/解封用户'),
+  ('user:audit', '审核用户注册', 'user', '审核角色申请'),
+  ('lead:read:own', '查看自己的线索', 'lead', '仅查看与自己资产相关的线索'),
+  ('lead:read', '查看所有线索', 'lead', '查看所有线索'),
+  ('lead:assign', '分配线索', 'lead', '将线索分配给合伙人'),
+  ('favorite:manage', '管理收藏', 'favorite', '添加/取消收藏'),
+  ('scraper:manage', '管理爬虫配方', 'scraper', '增删改查爬虫配方'),
+  ('scraper:execute', '执行爬虫', 'scraper', '手动触发爬虫'),
+  ('staging:manage', '管理暂存数据', 'staging', '清洗/导入/删除暂存数据'),
+  ('config:read', '查看配置', 'config', '查看系统配置'),
+  ('config:update', '修改配置', 'config', '修改系统配置'),
+  ('audit:read', '查看审计日志', 'audit', '查看审计日志'),
+  ('ai:read', '查看AI用量', 'ai', '查看AI用量统计'),
+  ('ai:config', '配置AI参数', 'ai', '配置AI预算和参数');
+
+-- 12. 角色-权限映射
+-- user（普通用户）
+INSERT OR IGNORE INTO role_permissions (role, permission) VALUES
+  ('user', 'asset:create:ugc'), ('user', 'asset:read:own'), ('user', 'asset:update:own'), ('user', 'asset:delete:own'),
+  ('user', 'favorite:manage'), ('user', 'lead:read:own');
+
+-- broker（合伙人）
+INSERT OR IGNORE INTO role_permissions (role, permission) VALUES
+  ('broker', 'asset:create:ugc'), ('broker', 'asset:read:own'), ('broker', 'asset:update:own'), ('broker', 'asset:delete:own'),
+  ('broker', 'lead:read:own'), ('broker', 'favorite:manage');
+
+-- village_org（村集体）
+INSERT OR IGNORE INTO role_permissions (role, permission) VALUES
+  ('village_org', 'asset:create:village'), ('village_org', 'asset:create:ugc'),
+  ('village_org', 'asset:read:own'), ('village_org', 'asset:update:own'), ('village_org', 'asset:delete:own'),
+  ('village_org', 'lead:read:own'), ('village_org', 'favorite:manage');
+
+-- data_editor（数据录入员）
+INSERT OR IGNORE INTO role_permissions (role, permission) VALUES
+  ('data_editor', 'infra:create'), ('data_editor', 'infra:read:own'), ('data_editor', 'infra:update:own'),
+  ('data_editor', 'market:create'), ('data_editor', 'market:read');
+
+-- project_publisher（项目发布者）
+INSERT OR IGNORE INTO role_permissions (role, permission) VALUES
+  ('project_publisher', 'bulk:create'), ('project_publisher', 'bulk:read:own'),
+  ('project_publisher', 'bulk:update:own'), ('project_publisher', 'bulk:delete');
+
+-- admin（平台运营）
+INSERT OR IGNORE INTO role_permissions (role, permission) VALUES
+  ('admin', 'asset:create'), ('admin', 'asset:create:official'), ('admin', 'asset:create:village'), ('admin', 'asset:create:ugc'),
+  ('admin', 'asset:read'), ('admin', 'asset:update'), ('admin', 'asset:delete'), ('admin', 'asset:audit'), ('admin', 'asset:feature'),
+  ('admin', 'bulk:create'), ('admin', 'bulk:read'), ('admin', 'bulk:update'), ('admin', 'bulk:audit'),
+  ('admin', 'infra:create'), ('admin', 'infra:read'), ('admin', 'infra:update'), ('admin', 'infra:audit'),
+  ('admin', 'market:create'), ('admin', 'market:read'), ('admin', 'market:update'), ('admin', 'market:delete'),
+  ('admin', 'partner:create'), ('admin', 'partner:read'), ('admin', 'partner:update'), ('admin', 'partner:audit'),
+  ('admin', 'user:read'), ('admin', 'user:audit'), ('admin', 'user:ban'),
+  ('admin', 'lead:read'), ('admin', 'lead:assign'),
+  ('admin', 'scraper:manage'), ('admin', 'scraper:execute'), ('admin', 'staging:manage'),
+  ('admin', 'config:read'), ('admin', 'config:update'), ('admin', 'audit:read'), ('admin', 'ai:read');
+
+-- superadmin（超级管理员）拥有所有权限
+INSERT OR IGNORE INTO role_permissions (role, permission)
+  SELECT 'superadmin', code FROM permissions;
+
+-- 13. 同步 FTS5 全文搜索索引
 INSERT INTO assets_fts(rowid, title, description, location, province, city)
   SELECT id, title, description, location, province, city FROM assets;

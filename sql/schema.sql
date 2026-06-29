@@ -81,6 +81,14 @@ CREATE TABLE IF NOT EXISTS users (
   org_license   TEXT,              -- 营业执照/登记证URL
   verified      INTEGER DEFAULT 0,
   daily_quota   INTEGER DEFAULT 3, -- 每日发布上限
+  password_hash TEXT,
+  phone_verified INTEGER DEFAULT 0,
+  last_login_at TEXT,
+  role_apply    TEXT,              -- 申请的角色（注册时填）
+  apply_reason  TEXT,              -- 申请理由
+  broker_region TEXT,              -- 合伙人负责区域
+  broker_specialties TEXT,         -- 合伙人擅长领域（JSON）
+  broker_bio    TEXT,              -- 合伙人简介
   created_at    TEXT DEFAULT (datetime('now')),
   updated_at    TEXT DEFAULT (datetime('now'))
 );
@@ -305,3 +313,106 @@ CREATE INDEX IF NOT EXISTS idx_bulk_province ON bulk_projects(province);
 CREATE INDEX IF NOT EXISTS idx_bulk_status ON bulk_projects(status);
 CREATE INDEX IF NOT EXISTS idx_bulk_featured ON bulk_projects(featured, status);
 CREATE INDEX IF NOT EXISTS idx_bulk_views ON bulk_projects(views DESC);
+
+-- 16. 角色定义表
+CREATE TABLE IF NOT EXISTS roles (
+  code          TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
+  description   TEXT,
+  level         INTEGER DEFAULT 0,
+  is_system     INTEGER DEFAULT 0,
+  created_at    TEXT DEFAULT (datetime('now'))
+);
+
+-- 17. 权限定义表
+CREATE TABLE IF NOT EXISTS permissions (
+  code          TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
+  module        TEXT NOT NULL,
+  description   TEXT
+);
+
+-- 18. 角色-权限映射表
+CREATE TABLE IF NOT EXISTS role_permissions (
+  role          TEXT NOT NULL,
+  permission    TEXT NOT NULL,
+  PRIMARY KEY (role, permission),
+  FOREIGN KEY (role) REFERENCES roles(code),
+  FOREIGN KEY (permission) REFERENCES permissions(code)
+);
+
+CREATE INDEX IF NOT EXISTS idx_rp_role ON role_permissions(role);
+CREATE INDEX IF NOT EXISTS idx_rp_permission ON role_permissions(permission);
+
+-- 19. 用户会话表
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id            TEXT PRIMARY KEY,
+  user_id       INTEGER NOT NULL,
+  expires_at    TEXT NOT NULL,
+  created_at    TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON user_sessions(expires_at);
+
+-- 20. 登录尝试记录表
+CREATE TABLE IF NOT EXISTS login_attempts (
+  phone         TEXT PRIMARY KEY,
+  attempts      INTEGER DEFAULT 0,
+  locked_until  TEXT,
+  updated_at    TEXT DEFAULT (datetime('now'))
+);
+
+-- 21. 频率限制表
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key           TEXT NOT NULL,
+  ip            TEXT NOT NULL,
+  count         INTEGER DEFAULT 1,
+  window_start  TEXT DEFAULT (datetime('now')),
+  PRIMARY KEY (key, ip)
+);
+
+-- 22. 审核记录表
+CREATE TABLE IF NOT EXISTS audit_reviews (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  target_type   TEXT NOT NULL,
+  target_id     INTEGER NOT NULL,
+  action        TEXT NOT NULL,
+  from_status   TEXT,
+  to_status     TEXT NOT NULL,
+  reviewer_id   INTEGER,
+  reason        TEXT,
+  created_at    TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (reviewer_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_target ON audit_reviews(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON audit_reviews(reviewer_id);
+
+-- 23. 告警记录表
+CREATE TABLE IF NOT EXISTS alerts (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  rule          TEXT NOT NULL,
+  context       TEXT,
+  acknowledged  INTEGER DEFAULT 0,
+  created_at    TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_alerts_rule ON alerts(rule);
+CREATE INDEX IF NOT EXISTS idx_alerts_created ON alerts(created_at);
+
+-- 24. 登录日志表
+CREATE TABLE IF NOT EXISTS login_logs (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  phone         TEXT,
+  user_id       INTEGER,
+  success       INTEGER NOT NULL,
+  ip_address    TEXT,
+  user_agent    TEXT,
+  reason        TEXT,
+  created_at    TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_logs_phone ON login_logs(phone);
+CREATE INDEX IF NOT EXISTS idx_login_logs_user ON login_logs(user_id);
