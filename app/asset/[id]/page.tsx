@@ -1,8 +1,9 @@
 export const runtime = 'edge';
 
-
 import { getAssetById, getAssets, getHomepageConfig, incrementViews } from '@/lib/data';
 import { notFound } from 'next/navigation';
+// ✅ 新增：导入我们刚才创建的轮播图客户端组件
+import MediaGallery from './media-gallery';
 
 export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -67,18 +68,9 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Image gallery */}
-              <div className="bg-gray-100 rounded-2xl h-80 flex items-center justify-center overflow-hidden">
-                {imageUrls.length > 0 ? (
-                  <img src={imageUrls[0]} alt={asset.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-center text-gray-400">
-                    <div className="text-5xl mb-2">🏔️</div>
-                    <div>4K 航拍模拟器</div>
-                    <div className="text-xs mt-1">实际部署后展示实景图片</div>
-                  </div>
-                )}
-              </div>
+              
+              {/* ✅ 修改点：使用新的 MediaGallery 组件替换原来的单图展示 */}
+              <MediaGallery images={imageUrls} video={asset.video_url} />
 
               {/* Title */}
               <div>
