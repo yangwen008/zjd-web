@@ -25,13 +25,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '不支持的文件类型' }, { status: 400 });
     }
 
-    // 验证文件大小
+    // 验证文件大小 (图片10M，视频50M)
     const maxSize = file.type.startsWith('image/') ? 10 * 1024 * 1024 : 50 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json({ success: false, error: '文件大小超过限制' }, { status: 400 });
     }
 
-    // 上传到R2
+    // 上传到 R2
     const arrayBuffer = await file.arrayBuffer();
     await env.R2.put(key, arrayBuffer, {
       httpMetadata: {
@@ -42,16 +42,12 @@ export async function POST(request: Request) {
       },
     });
 
-    // 生成公开访问URL（需要R2 bucket配置公开访问）
-    // 方式1：使用Cloudflare R2公开域名
-    const publicUrl = `https://pub-06897a6ef43f4781b04108ec471e77af.r2.dev/${key}`; // 替换为你的R2公开域名
-    
-    // 方式2：使用自定义域名（如果配置了）
-    // const publicUrl = `https://assets.zjd.cn/${key}`;
+    // 【核心区别】：不返回 R2 公开域名，而是返回我们自己的代理 API 路径
+    const proxyUrl = `/api/images/${key}`;
 
     return NextResponse.json({ 
       success: true, 
-      url: publicUrl,
+      url: proxyUrl,
       key
     });
   } catch (error) {
