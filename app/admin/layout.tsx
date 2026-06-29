@@ -6,8 +6,13 @@ const NAV_ITEMS = [
   { icon: '📊', label: '运营控制台', href: '/admin' },
   { icon: '🏠', label: '资产审核', href: '/admin/assets' },
   { icon: '🏢', label: '大宗路演', href: '/admin/bulk-projects' },
+  { icon: '💰', label: '行情数据', href: '/admin/market-data' },
+  { icon: '📡', label: '基建评分', href: '/admin/infra-ratings' },
+  { icon: '🗺️', label: '行政区划', href: '/admin/regions' },
+  { icon: '🏷️', label: '资产类型', href: '/admin/asset-types' },
   { icon: '🤝', label: '合伙人管理', href: '/admin/brokers' },
-  { icon: '🛰️', label: '爬虫管理', href: '/admin/scrapers' },
+  { icon: '🕷️', label: '爬虫管理', href: '/admin/scrapers' },
+  { icon: '📥', label: '暂存数据', href: '/admin/staging' },
   { icon: '⚙️', label: '全局配置', href: '/admin/config' },
 ];
 
