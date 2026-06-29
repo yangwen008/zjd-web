@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { icon: '🤝', label: '合伙人管理', href: '/admin/brokers' },
   { icon: '🕷️', label: '爬虫管理', href: '/admin/scrapers' },
   { icon: '📥', label: '暂存数据', href: '/admin/staging' },
+  { icon: '👥', label: '用户管理', href: '/admin/users' },
   { icon: '⚙️', label: '全局配置', href: '/admin/config' },
 ];
 
