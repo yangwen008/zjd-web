@@ -10,7 +10,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '未登录' }, { status: 401 });
     }
 
-    const body = await request.json();
+    // ✅ 修复点：加上 : any，解决 TypeScript 类型报错
+    const body: any = await request.json();
     const { target } = body as { target: string };
 
     // ==========================================
