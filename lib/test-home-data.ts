@@ -186,29 +186,6 @@ export const mockVillageProjects: VillageProject[] = [
   }
 ];
 
-export const mockBulkProjects: BulkProject[] = [
-  {
-    id: "b1",
-    code: "230-990: 021",
-    title: "莫干山辐射圈 · 闲置集体村办小学校舍整栋流转招商",
-    description: "包含完整苏式红砖多功能空间、宽敞院落。权属已归属乡村经济合作社，AI测算黄金投资回报周期约5.8年。",
-    area: "约1220㎡",
-    yieldRate: "6.80%",
-    price: "15.0万/年起打包",
-    hasCertificate: true
-  },
-  {
-    id: "b2",
-    code: "230-990: 055",
-    title: "都江堰青城山旁 · 45亩传统梯田茶园配3栋闲置库房",
-    description: "首期已由村委办协调完成林地林权排他性测绘，提供小溪及微水电野奢级配接入方案。适合品牌文旅民宿带开发。",
-    area: "约1300㎡",
-    yieldRate: "6.80%",
-    price: "18.5万/年起流转",
-    hasCertificate: true
-  }
-];
-
 export const mockInfraRatings: InfraRating[] = [
   {
     id: "i1",
