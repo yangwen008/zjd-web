@@ -50,7 +50,8 @@ export async function POST(request: Request) {
     }
 
     if (action === 'delete') {
-      await execute('DELETE FROM infrastructure_ratings WHERE id = ?', body.id);
+      const { id: delId } = body as { id: number };
+      await execute('DELETE FROM infrastructure_ratings WHERE id = ?', delId);
       return NextResponse.json({ success: true });
     }
 

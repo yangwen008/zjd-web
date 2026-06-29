@@ -63,12 +63,12 @@ export async function POST(request: Request) {
     }
 
     if (action === 'delete') {
-      // Check for children
-      const children = await queryOne<{ c: number }>('SELECT COUNT(*) as c FROM regions WHERE parent_code = (SELECT code FROM regions WHERE id = ?)', body.id);
+      const { id: delId } = body as { id: number };
+      const children = await queryOne<{ c: number }>('SELECT COUNT(*) as c FROM regions WHERE parent_code = (SELECT code FROM regions WHERE id = ?)', delId);
       if (children && children.c > 0) {
         return NextResponse.json({ success: false, error: `该区域下有 ${children.c} 个子区域，请先删除子区域` }, { status: 400 });
       }
-      await execute('DELETE FROM regions WHERE id = ?', body.id);
+      await execute('DELETE FROM regions WHERE id = ?', delId);
       return NextResponse.json({ success: true });
     }
 
