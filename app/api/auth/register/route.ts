@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       org_name || null
     );
 
-    const userId = result.meta.last_row_id;
+    const userId = result.meta.last_row_id || 0;
 
     await logLoginEvent({ phone, userId, success: true, ip, userAgent, reason: '注册成功' });
 
