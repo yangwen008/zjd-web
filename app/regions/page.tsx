@@ -2,7 +2,8 @@ export const runtime = 'edge';
 
 
 import AssetCard from '@/components/shared/AssetCard';
-import { getHotAssets, getHomepageConfig } from '@/lib/data';
+import { getHotAssets, getAssets, getHomepageConfig } from '@/lib/data';
+import type { Asset } from '@/lib/data';
 
 const GRADIENTS = [
   'from-emerald-800 to-emerald-600',
@@ -21,11 +22,23 @@ function formatPrice(price: number | null): string {
   return `¥${price}万/年起`;
 }
 
-export default async function RegionsPage() {
-  const [hotAssets, config] = await Promise.all([
-    getHotAssets(20).catch(() => []),
+export default async function RegionsPage({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
+  const { sort } = await searchParams;
+  const isPriceSort = sort === 'price';
+
+  const [hotAssets, allAssets, config] = await Promise.all([
+    getHotAssets(20).catch(() => [] as Asset[]),
+    isPriceSort ? getAssets({ limit: 50 }).catch(() => [] as Asset[]) : Promise.resolve([] as Asset[]),
     getHomepageConfig().catch(() => ({})),
   ]);
+
+  // 按起价排序：过滤有价格的资产，按 price_year 升序
+  const displayAssets = isPriceSort
+    ? allAssets
+        .filter((a) => a.price_year != null && a.price_year > 0)
+        .sort((a, b) => (a.price_year || 0) - (b.price_year || 0))
+        .slice(0, 20)
+    : hotAssets;
 
   const totalViews = hotAssets.reduce((sum, a) => sum + a.views, 0);
 
@@ -39,12 +52,12 @@ export default async function RegionsPage() {
             <p className="text-gray-500">实时观测全网投资商、买家的点击行为，按访问量自动加权降序推荐。</p>
             <div className="mt-4 flex items-center space-x-4 text-sm">
               <span className="text-gray-400">今日总累积浏览: <strong className="text-gray-900">{totalViews.toLocaleString()}</strong> Clicks</span>
-              <span className="px-3 py-1 rounded-full bg-brand-green text-white text-xs">🔥 按点击量 ⬇️</span>
-              <a href="/search?sort=price" className="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs hover:bg-gray-200">💰 按起价 ⬆️</a>
+              <a href="/regions" className={`px-3 py-1 rounded-full text-xs transition-colors ${!isPriceSort ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>🔥 按点击量 ⬇️</a>
+              <a href="/regions?sort=price" className={`px-3 py-1 rounded-full text-xs transition-colors ${isPriceSort ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>💰 按起价 ⬆️</a>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {hotAssets.length > 0 ? hotAssets.map((asset, i) => (
+            {displayAssets.length > 0 ? displayAssets.map((asset, i) => (
               <AssetCard
                 key={asset.id}
                 rank={i + 1}
@@ -58,7 +71,7 @@ export default async function RegionsPage() {
             )) : (
               <div className="col-span-3 text-center py-16 text-gray-400">
                 <div className="text-5xl mb-4">🔥</div>
-                <p className="text-lg">暂无热度数据</p>
+                <p className="text-lg">暂无{isPriceSort ? '价格' : '热度'}数据</p>
                 <p className="text-sm mt-2">请先执行 npm run db:seed 导入种子数据</p>
               </div>
             )}
