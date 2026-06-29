@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import RegionSelector from '@/components/shared/RegionSelector';
 
 const ROLES = [
   { key: 'user', label: '普通用户', icon: '👤', desc: '浏览、收藏、发布闲置资产', needReview: false },
@@ -20,7 +21,8 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
 
   // 合伙人专属字段
-  const [brokerRegion, setBrokerRegion] = useState('');
+  const [brokerProvince, setBrokerProvince] = useState('');
+  const [brokerCity, setBrokerCity] = useState('');
   const [brokerSpecialties, setBrokerSpecialties] = useState('');
   const [brokerBio, setBrokerBio] = useState('');
 
@@ -46,8 +48,8 @@ export default function RegisterPage() {
       const body: any = { phone, password, nickname, role_apply: roleApply };
 
       if (roleApply === 'broker') {
-        if (!brokerRegion) { setError('请填写负责区域'); setLoading(false); return; }
-        body.broker_region = brokerRegion;
+        if (!brokerProvince) { setError('请选择负责区域'); setLoading(false); return; }
+        body.broker_region = brokerProvince + (brokerCity ? `·${brokerCity}` : '');
         body.broker_specialties = brokerSpecialties;
         body.broker_bio = brokerBio;
       }
@@ -169,8 +171,15 @@ export default function RegisterPage() {
                 <div className="space-y-3 pt-2">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">负责区域 *</label>
-                    <input type="text" value={brokerRegion} onChange={(e) => setBrokerRegion(e.target.value)} placeholder="如：浙江安吉"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#2C4C3B]" />
+                    <RegionSelector
+                      province={brokerProvince}
+                      city={brokerCity}
+                      district=""
+                      onProvinceChange={setBrokerProvince}
+                      onCityChange={setBrokerCity}
+                      onDistrictChange={() => {}}
+                      showDistrict={false}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">擅长领域</label>
