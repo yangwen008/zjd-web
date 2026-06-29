@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ success: false, error: '未登录或登录已过期' }, { status: 401 });
 
-    const body = await request.json();
+    const body: any = await request.json();
     const { target } = body as { target: string };
 
     // ==========================================
