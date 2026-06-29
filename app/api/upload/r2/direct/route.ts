@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
     // 生成公开访问URL（需要R2 bucket配置公开访问）
     // 方式1：使用Cloudflare R2公开域名
-    const publicUrl = `https://pub-xxxx.r2.dev/${key}`; // 替换为你的R2公开域名
+    const publicUrl = `https://zjd-web.r2.dev/${key}`; // 替换为你的R2公开域名
     
     // 方式2：使用自定义域名（如果配置了）
     // const publicUrl = `https://assets.zjd.cn/${key}`;
