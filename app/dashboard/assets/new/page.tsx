@@ -32,7 +32,7 @@ export default function PublishAssetPage() {
   });
 
   useEffect(() => {
-    fetch('/api/auth/me').then(r => r.json()).then(d => {
+    fetch('/api/auth/me').then(r => r.json()).then((d: any)=> {
       if (d.success) setUser(d.user);
       else router.push('/login');
     }).finally(() => setLoading(false));
