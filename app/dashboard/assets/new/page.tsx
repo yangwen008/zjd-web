@@ -7,7 +7,9 @@ export default function PublishAssetPage() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [user, setUser] = useState<any>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadedVideos, setUploadedVideos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -21,7 +23,6 @@ export default function PublishAssetPage() {
     asset_type: '宅基地',
     contact_name: '',
     contact_phone: '',
-    images: '',
     gps_lat: '',
     gps_lng: '',
   });
@@ -56,7 +57,7 @@ export default function PublishAssetPage() {
           gps_lat: latitude.toFixed(6),
           gps_lng: longitude.toFixed(6)
         });
-        show(`✅ 定位成功：${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        show(`✅ 定位成功`);
       },
       (error) => {
         show('❌ 获取位置失败');
@@ -64,13 +65,14 @@ export default function PublishAssetPage() {
     );
   };
 
-  // 处理文件上传
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 处理图片上传
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const currentUrls = formData.images ? formData.images.split(',').filter(Boolean) : [];
-    
+    setUploading(true);
+    const newImages = [...uploadedImages];
+
     for (const file of files) {
       if (!file.type.startsWith('image/')) {
         show(`❌ ${file.name} 不是图片文件`);
@@ -82,7 +84,12 @@ export default function PublishAssetPage() {
       }
 
       try {
-        // 获取上传 URL
+        // 创建预览 URL
+        const previewUrl = URL.createObjectURL(file);
+        newImages.push(previewUrl);
+        setUploadedImages(newImages);
+
+        // 上传到 R2
         const res = await fetch('/api/upload/r2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -94,11 +101,10 @@ export default function PublishAssetPage() {
 
         const data: any = await res.json();
         if (!data.success) {
-          show(`❌ ${file.name} 上传失败`);
+          show(`❌ ${file.name} 获取上传URL失败`);
           continue;
         }
 
-        // 直接上传到 R2
         const formDataUpload = new FormData();
         formDataUpload.append('file', file);
         
@@ -113,40 +119,140 @@ export default function PublishAssetPage() {
           continue;
         }
 
-        currentUrls.push(uploadData.url);
-        setFormData({ ...formData, images: currentUrls.join(',') });
         show(`✅ ${file.name} 上传成功`);
-      } catch {
+      } catch (err) {
         show(`❌ ${file.name} 上传出错`);
       }
     }
+    setUploading(false);
+  };
+
+  // 处理视频上传
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const newVideos = [...uploadedVideos];
+
+    for (const file of files) {
+      if (!file.type.startsWith('video/')) {
+        show(`❌ ${file.name} 不是视频文件`);
+        continue;
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        show(`❌ ${file.name} 超过50MB限制`);
+        continue;
+      }
+
+      try {
+        const previewUrl = URL.createObjectURL(file);
+        newVideos.push(previewUrl);
+        setUploadedVideos(newVideos);
+
+        const res = await fetch('/api/upload/r2', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type
+          }),
+        });
+
+        const data: any = await res.json();
+        if (!data.success) {
+          show(`❌ ${file.name} 获取上传URL失败`);
+          continue;
+        }
+
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        
+        const uploadRes = await fetch(data.uploadUrl, {
+          method: 'POST',
+          body: formDataUpload,
+        });
+
+        const uploadData: any = await uploadRes.json();
+        if (!uploadData.success) {
+          show(`❌ ${file.name} 上传失败`);
+          continue;
+        }
+
+        show(`✅ ${file.name} 上传成功`);
+      } catch (err) {
+        show(`❌ ${file.name} 上传出错`);
+      }
+    }
+    setUploading(false);
+  };
+
+  // 删除图片
+  const removeImage = (index: number) => {
+    const newImages = [...uploadedImages];
+    URL.revokeObjectURL(newImages[index]);
+    newImages.splice(index, 1);
+    setUploadedImages(newImages);
+  };
+
+  // 删除视频
+  const removeVideo = (index: number) => {
+    const newVideos = [...uploadedVideos];
+    URL.revokeObjectURL(newVideos[index]);
+    newVideos.splice(index, 1);
+    setUploadedVideos(newVideos);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-    
+    if (!user) {
+      show('❌ 请先登录');
+      return;
+    }
+
+    // 验证必填字段
+    if (!formData.title.trim()) {
+      show('❌ 请输入资产标题');
+      return;
+    }
+    if (!formData.province.trim()) {
+      show('❌ 请选择省份');
+      return;
+    }
+    if (!formData.area_mu || parseFloat(formData.area_mu) <= 0) {
+      show('❌ 请输入有效的面积');
+      return;
+    }
+
     setLoading(true);
     setMsg('');
 
     try {
+      // 提取 R2 的公开 URL（去掉预览 URL）
+      const imageUrls = uploadedImages.filter(url => url.startsWith('http'));
+      const videoUrls = uploadedVideos.filter(url => url.startsWith('http'));
+
       const res = await fetch('/api/dashboard/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           target: 'asset',
           ...formData,
+          images: imageUrls.join(','),
+          videos: videoUrls.join(','),
         }),
       });
+      
       const d = await res.json() as any;
       if (d.success) {
         show('✅ 发布成功，等待管理员审核！');
         setTimeout(() => router.push('/dashboard/assets'), 1500);
       } else {
-        show(`❌ ${d.error}`);
+        show(`❌ ${d.error || '发布失败'}`);
       }
-    } catch {
-      show('❌ 网络错误');
+    } catch (err) {
+      console.error('Publish error:', err);
+      show('❌ 网络错误，请检查网络连接');
     } finally {
       setLoading(false);
     }
@@ -155,14 +261,14 @@ export default function PublishAssetPage() {
   if (!user) return <div className="text-center py-16 text-gray-400">加载中...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto pb-20">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">🏠 发布闲置资产</h1>
         <p className="text-sm text-gray-500 mt-1">个人/合伙人发布，将展示在"纯净一手官方原矿区"</p>
       </div>
 
       {msg && (
-        <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${
+        <div className={`mb-4 px-4 py-3 rounded-lg text-sm sticky top-20 z-50 ${
           msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
         }`}>
           {msg}
@@ -300,18 +406,20 @@ export default function PublishAssetPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">联系电话 *</label>
               <input
+                type="tel"
                 name="contact_phone"
                 value={formData.contact_phone}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
+                placeholder="请输入手机号"
               />
             </div>
           </div>
 
           {/* GPS 定位 */}
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <h4 className="text-sm font-bold text-blue-800 mb-2">📍 精确定位 (用于展示在地图上)</h4>
+            <h4 className="text-sm font-bold text-blue-800 mb-2">📍 精确定位</h4>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-gray-600 mb-1">纬度</label>
@@ -350,25 +458,56 @@ export default function PublishAssetPage() {
             <div className="space-y-2">
               <input
                 type="file"
-                ref={fileInputRef}
                 accept="image/*"
                 multiple
-                onChange={handleFileUpload}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-green file:text-white hover:file:bg-brand-light"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-green file:text-white hover:file:bg-brand-light disabled:opacity-50"
               />
               <p className="text-xs text-gray-500">支持 JPG、PNG、GIF 格式，单张不超过 10MB</p>
-              {formData.images && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.images.split(',').map((url: string, i: number) => (
-                    <div key={i} className="relative">
-                      <img src={url} alt="" className="w-20 h-20 object-cover rounded border border-gray-200" />
+              
+              {uploadedImages.length > 0 && (
+                <div className="grid grid-cols-4 gap-2 mt-3">
+                  {uploadedImages.map((url, i) => (
+                    <div key={i} className="relative aspect-square">
+                      <img src={url} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
                       <button
                         type="button"
-                        onClick={() => {
-                          const urls = formData.images.split(',').filter((_, idx) => idx !== i);
-                          setFormData({ ...formData, images: urls.join(',') });
-                        }}
-                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                        onClick={() => removeImage(i)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 视频上传 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">🎥 视频上传 (可选)</label>
+            <div className="space-y-2">
+              <input
+                type="file"
+                accept="video/*"
+                multiple
+                onChange={handleVideoUpload}
+                disabled={uploading}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-green file:text-white hover:file:bg-brand-light disabled:opacity-50"
+              />
+              <p className="text-xs text-gray-500">支持 MP4、WebM 格式，单个不超过 50MB</p>
+              
+              {uploadedVideos.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  {uploadedVideos.map((url, i) => (
+                    <div key={i} className="relative">
+                      <video src={url} controls className="w-full h-32 object-cover rounded border border-gray-200" />
+                      <button
+                        type="button"
+                        onClick={() => removeVideo(i)}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow"
                       >
                         ×
                       </button>
@@ -382,10 +521,10 @@ export default function PublishAssetPage() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || uploading}
           className="w-full bg-brand-green text-white py-3 rounded-xl font-medium hover:bg-brand-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? '提交中...' : '✅ 确认发布'}
+          {loading ? '提交中...' : uploading ? '上传中...' : '✅ 确认发布'}
         </button>
       </form>
     </div>
