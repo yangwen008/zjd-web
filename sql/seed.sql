@@ -174,6 +174,11 @@ INSERT OR IGNORE INTO asset_types (name, icon, description, sort_order) VALUES
   ('古村落', '🏚️', '整村保护性开发流转', 8),
   ('民宿群', '🏡', '已建成民宿群整体流转', 9);
 
--- 9. 同步 FTS5 全文搜索索引
+-- 9. 大宗路演项目
+INSERT OR IGNORE INTO bulk_projects (title, code, description, location, province, city, district, area_mu, area_sqm, price_start, yield_rate, lease_years, certification, planning_use, images, gps_lat, gps_lng, contact_phone, contact_name, views, status, featured, user_id) VALUES
+  ('莫干山辐射圈 · 闲置集体村办小学校舍整栋流转招商', 'ZJD-001', '包含完整苏式红砖多功能空间、宽敞院落。权属已归属乡村经济合作社，AI测算黄金投资回报周期约5.8年。', '浙江省湖州市德清县莫干山镇', '浙江省', '湖州市', '德清县', 15.0, 1220, 15.0, 6.80, 30, 'certified', '文旅', '["https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800"]', 30.55, 119.92, '13800004001', '莫干山镇合作社', 8920, 'approved', 1, 1),
+  ('都江堰青城山旁 · 45亩传统梯田茶园配3栋闲置库房', 'ZJD-0055', '首期已由村委办协调完成林地林权排他性测绘，提供小溪及微水电野奢级配接入方案。适合品牌文旅民宿带开发。', '四川省成都市都江堰市青城山镇', '四川省', '成都市', '都江堰市', 45.0, 1300, 18.5, 6.80, 30, 'certified', '康养', '["https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800"]', 30.90, 103.58, '13800004002', '青城山镇合作社', 7650, 'approved', 1, 1);
+
+-- 10. 同步 FTS5 全文搜索索引
 INSERT INTO assets_fts(rowid, title, description, location, province, city)
   SELECT id, title, description, location, province, city FROM assets;

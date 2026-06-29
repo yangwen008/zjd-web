@@ -262,3 +262,43 @@ CREATE TABLE IF NOT EXISTS ai_usage_log (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ai_usage_date ON ai_usage_log(created_at);
+
+-- 15. 大宗路演项目表
+CREATE TABLE IF NOT EXISTS bulk_projects (
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  title             TEXT NOT NULL,
+  code              TEXT,
+  description       TEXT,
+  location          TEXT,
+  province          TEXT,
+  city              TEXT,
+  district          TEXT,
+  area_mu           REAL,
+  area_sqm          REAL,
+  price_total       REAL,
+  price_start       REAL,
+  yield_rate        REAL,
+  lease_years       INTEGER,
+  certification     TEXT DEFAULT 'uncertified',
+  planning_use      TEXT,
+  images            TEXT,
+  video_url         TEXT,
+  commercial_plan   TEXT,
+  cert_doc_url      TEXT,
+  gps_lat           REAL,
+  gps_lng           REAL,
+  contact_name      TEXT,
+  contact_phone     TEXT,
+  views             INTEGER DEFAULT 0,
+  status            TEXT DEFAULT 'pending',
+  featured          INTEGER DEFAULT 0,
+  user_id           INTEGER,
+  created_at        TEXT DEFAULT (datetime('now')),
+  updated_at        TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bulk_province ON bulk_projects(province);
+CREATE INDEX IF NOT EXISTS idx_bulk_status ON bulk_projects(status);
+CREATE INDEX IF NOT EXISTS idx_bulk_featured ON bulk_projects(featured, status);
+CREATE INDEX IF NOT EXISTS idx_bulk_views ON bulk_projects(views DESC);

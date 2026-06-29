@@ -31,16 +31,7 @@ export interface VillageProject {
   imageUrl: string;
 }
 
-export interface BulkProject {
-  id: string;
-  code: string;
-  title: string;
-  description: string;
-  area: string;
-  yieldRate: string;
-  price: string;
-  hasCertificate: boolean;
-}
+// BulkProject interface moved to lib/data.ts
 
 export interface InfraRating {
   id: string;

@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 const NAV_ITEMS = [
   { icon: '📊', label: '运营控制台', href: '/admin' },
   { icon: '🏠', label: '资产审核', href: '/admin/assets' },
+  { icon: '🏢', label: '大宗路演', href: '/admin/bulk-projects' },
+  { icon: '🤝', label: '合伙人管理', href: '/admin/brokers' },
   { icon: '🛰️', label: '爬虫管理', href: '/admin/scrapers' },
   { icon: '⚙️', label: '全局配置', href: '/admin/config' },
 ];

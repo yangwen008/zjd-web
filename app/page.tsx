@@ -13,7 +13,7 @@ import {
   getHotAssets, 
   getMarketData, 
   getAssetsBySource, 
-  getFeaturedAssets,
+  getFeaturedBulkProjects,
   getInfraRatings,
   getBrokers,
   getHomepageConfig,
@@ -22,7 +22,8 @@ import {
   type Asset,
   type MarketData,
   type InfraRating,
-  type Broker
+  type Broker,
+  type BulkProject
 } from "@/lib/data";
 
 export const runtime = 'edge';
@@ -114,17 +115,17 @@ function toVillageFormat(asset: Asset, defaultImage: string) {
   };
 }
 
-// 转换资产数据为BulkProjectCard格式
-function toBulkFormat(asset: Asset, _defaultImage: string) {
+// 转换 BulkProject 数据为 BulkProjectCard 格式
+function toBulkFormat(bp: BulkProject) {
   return {
-    id: asset.id.toString(),
-    code: `ZJD-${asset.id.toString().padStart(3, '0')}`,
-    title: asset.title,
-    description: asset.description || '包含完整空间、宽敞院落。权属已归属乡村经济合作社。',
-    area: asset.area_mu ? `约${Math.round(asset.area_mu * 666.7)}㎡` : '约1000㎡',
-    yieldRate: '6.80%',
-    price: formatPrice(asset.price_year) + '/年起',
-    hasCertificate: true
+    id: bp.id.toString(),
+    code: bp.code || `ZJD-${bp.id.toString().padStart(3, '0')}`,
+    title: bp.title,
+    description: bp.description || '包含完整空间、宽敞院落。权属已归属乡村经济合作社。',
+    area: bp.area_sqm ? `约${bp.area_sqm}㎡` : (bp.area_mu ? `约${Math.round(bp.area_mu * 666.7)}㎡` : '-'),
+    yieldRate: bp.yield_rate ? `${bp.yield_rate}%` : '-',
+    price: bp.price_start ? `¥${bp.price_start}万/年起` : '价格面议',
+    hasCertificate: bp.certification === 'certified',
   };
 }
 
@@ -156,12 +157,12 @@ function toBrokerFormat(broker: Broker, defaultAvatar: string) {
 // --- 主页面（异步服务端组件） ---
 export default async function HomePage() {
   // 并行查询所有数据
-  const [hotAssets, marketData, officialAssets, villageAssets, bulkAssets, infraRatings, brokers, config] = await Promise.all([
+  const [hotAssets, marketData, officialAssets, villageAssets, bulkProjectsData, infraRatings, brokers, config] = await Promise.all([
     getHotAssets(6).catch(() => [] as Asset[]),
     getMarketData().catch(() => [] as MarketData[]),
     getAssetsBySource('official', 6).catch(() => [] as Asset[]),
     getAssetsBySource('village', 2).catch(() => [] as Asset[]),
-    getFeaturedAssets(2).catch(() => [] as Asset[]),
+    getFeaturedBulkProjects(2).catch(() => [] as BulkProject[]),
     getInfraRatings().catch(() => [] as InfraRating[]),
     getBrokers(3).catch(() => [] as Broker[]),
     getHomepageConfig().catch(() => ({} as Record<string, string>)),
@@ -184,7 +185,7 @@ export default async function HomePage() {
 
   const properties = officialAssets.map(a => toPropertyFormat(a, defaultImage));
   const villageProjects = villageAssets.map(a => toVillageFormat(a, defaultImage));
-  const bulkProjects = bulkAssets.map(a => toBulkFormat(a, defaultImage));
+  const bulkProjects = bulkProjectsData.map(bp => toBulkFormat(bp));
   const infraRatingsFormatted = infraRatings.map(toInfraFormat);
   const brokersFormatted = brokers.map(b => toBrokerFormat(b, defaultAvatar));
 
