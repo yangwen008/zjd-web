@@ -1,40 +1,36 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 
 interface Asset {
   id: number;
   title: string;
+  description: string | null;
   province: string | null;
+  city: string | null;
+  district: string | null;
+  area_mu: number | null;
+  price_year: number | null;
+  price_total: number | null;
+  lease_years: number | null;
+  asset_type: string | null;
   source_type: string;
+  contact_phone: string | null;
+  contact_name: string | null;
   status: string;
   views: number;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  approved: '已上架',
-  pending: '待审核',
-  rejected: '已拒绝',
-  banned: '已封禁',
-};
-
-const STATUS_STYLES: Record<string, string> = {
-  approved: 'bg-green-100 text-green-700',
-  pending: 'bg-yellow-100 text-yellow-700',
-  rejected: 'bg-red-100 text-red-700',
-  banned: 'bg-red-100 text-red-700',
-};
-
-const SOURCE_LABELS: Record<string, string> = {
-  official: '官方',
-  village: '村委',
-  ugc: 'UGC',
-};
+const STATUS_LABELS: Record<string, string> = { approved: '已上架', pending: '待审核', rejected: '已拒绝', banned: '已封禁' };
+const STATUS_STYLES: Record<string, string> = { approved: 'bg-green-100 text-green-700', pending: 'bg-yellow-100 text-yellow-700', rejected: 'bg-red-100 text-red-700', banned: 'bg-red-100 text-red-700' };
+const SOURCE_LABELS: Record<string, string> = { official: '官方', village: '村委', ugc: 'UGC' };
 
 export default function AdminAssetsPage() {
   const [filter, setFilter] = useState('all');
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [formData, setFormData] = useState<Partial<Asset>>({});
+  const [msg, setMsg] = useState('');
 
   const fetchAssets = async (status?: string) => {
     setLoading(true);
@@ -45,25 +41,33 @@ export default function AdminAssetsPage() {
       const res = await fetch(`/api/admin/assets?${params.toString()}`);
       const data: any = await res.json();
       setAssets(data.data || []);
-    } catch {
-      setAssets([]);
-    } finally {
-      setLoading(false);
-    }
+    } catch { setAssets([]); } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchAssets(filter);
-  }, [filter]);
+  useEffect(() => { fetchAssets(filter); }, [filter]);
+  const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3000); };
 
   const handleAction = async (id: number, action: 'approve' | 'reject') => {
     try {
       const res = await fetch(`/api/admin/assets/${id}/${action}`, { method: 'POST' });
       const data: any = await res.json();
-      if (data.success) {
-        fetchAssets(filter);
-      }
-    } catch {}
+      if (data.success) { show(`✅ 已${action === 'approve' ? '批准' : '拒绝'}`); fetchAssets(filter); } 
+      else { show(`❌ ${data.error}`); }
+    } catch { show('❌ 操作失败'); }
+  };
+
+  const openEdit = (asset: Asset) => { setEditingAsset(asset); setFormData(asset); };
+
+  const handleSaveEdit = async () => {
+    if (!editingAsset) return;
+    try {
+      const res = await fetch(`/api/admin/assets/${editingAsset.id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData),
+      });
+      const data: any = await res.json();
+      if (data.success) { show('✅ 修改已保存'); setEditingAsset(null); fetchAssets(filter); } 
+      else { show(`❌ ${data.error}`); }
+    } catch { show('❌ 保存失败'); }
   };
 
   return (
@@ -72,52 +76,40 @@ export default function AdminAssetsPage() {
         <h1 className="text-2xl font-bold text-gray-900">🏠 资产审核管理</h1>
         <div className="flex items-center space-x-2">
           {['all', 'pending', 'approved', 'rejected'].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
-                filter === f ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
+            <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-xs rounded-full transition-colors ${filter === f ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
               {f === 'all' ? '全部' : STATUS_LABELS[f] || f}
             </button>
           ))}
         </div>
       </div>
 
+      {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
+
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 text-left">
-              <th className="px-4 py-3 font-medium text-gray-500">ID</th>
-              <th className="px-4 py-3 font-medium text-gray-500">标题</th>
-              <th className="px-4 py-3 font-medium text-gray-500">区域</th>
-              <th className="px-4 py-3 font-medium text-gray-500">来源</th>
-              <th className="px-4 py-3 font-medium text-gray-500">浏览量</th>
-              <th className="px-4 py-3 font-medium text-gray-500">状态</th>
-              <th className="px-4 py-3 font-medium text-gray-500">操作</th>
-            </tr>
-          </thead>
+          <thead><tr className="bg-gray-50 text-left">
+            <th className="px-4 py-3 font-medium text-gray-500">ID</th>
+            <th className="px-4 py-3 font-medium text-gray-500">标题</th>
+            <th className="px-4 py-3 font-medium text-gray-500">区域</th>
+            <th className="px-4 py-3 font-medium text-gray-500">来源</th>
+            <th className="px-4 py-3 font-medium text-gray-500">浏览量</th>
+            <th className="px-4 py-3 font-medium text-gray-500">状态</th>
+            <th className="px-4 py-3 font-medium text-gray-500">操作</th>
+          </tr></thead>
           <tbody className="divide-y divide-gray-50">
-            {loading ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
-            ) : assets.length > 0 ? assets.map((asset) => (
+            {loading ? <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
+            : assets.length > 0 ? assets.map((asset) => (
               <tr key={asset.id} className="hover:bg-gray-50/50">
                 <td className="px-4 py-3 text-gray-400">#{asset.id}</td>
-                <td className="px-4 py-3 font-medium text-gray-900">{asset.title}</td>
+                <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate">{asset.title}</td>
                 <td className="px-4 py-3 text-gray-500">{asset.province || '-'}</td>
-                <td className="px-4 py-3">
-                  <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{SOURCE_LABELS[asset.source_type] || asset.source_type}</span>
-                </td>
+                <td className="px-4 py-3"><span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{SOURCE_LABELS[asset.source_type] || asset.source_type}</span></td>
                 <td className="px-4 py-3 text-gray-500">{asset.views.toLocaleString()}</td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[asset.status] || 'bg-gray-100 text-gray-600'}`}>
-                    {STATUS_LABELS[asset.status] || asset.status}
-                  </span>
-                </td>
+                <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[asset.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_LABELS[asset.status] || asset.status}</span></td>
                 <td className="px-4 py-3">
                   <div className="flex items-center space-x-2">
-                    <a href={`/asset/${asset.id}`} className="text-xs text-brand-green hover:underline">查看</a>
+                    <a href={`/asset/${asset.id}`} target="_blank" className="text-xs text-brand-green hover:underline">查看</a>
+                    <button onClick={() => openEdit(asset)} className="text-xs text-blue-600 hover:underline">编辑</button>
                     {asset.status === 'pending' && (
                       <>
                         <button onClick={() => handleAction(asset.id, 'approve')} className="text-xs text-green-600 hover:underline">批准</button>
@@ -127,12 +119,45 @@ export default function AdminAssetsPage() {
                   </div>
                 </td>
               </tr>
-            )) : (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>
-            )}
+            )) : <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>}
           </tbody>
         </table>
       </div>
+
+      {/* 编辑 Modal */}
+      {editingAsset && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">✏️ 编辑资产 #{editingAsset.id}</h2>
+              <button onClick={() => setEditingAsset(null)} className="text-gray-400 hover:text-gray-600"></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">标题</label><input type="text" value={formData.title || ''} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">省份</label><input type="text" value={formData.province || ''} onChange={(e) => setFormData({...formData, province: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">城市</label><input type="text" value={formData.city || ''} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">面积(亩)</label><input type="number" step="0.1" value={formData.area_mu || ''} onChange={(e) => setFormData({...formData, area_mu: parseFloat(e.target.value)})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">年租金(万)</label><input type="number" step="0.1" value={formData.price_year || ''} onChange={(e) => setFormData({...formData, price_year: parseFloat(e.target.value)})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">流转年限</label><input type="number" value={formData.lease_years || ''} onChange={(e) => setFormData({...formData, lease_years: parseInt(e.target.value)})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+              </div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">资产类型</label><input type="text" value={formData.asset_type || ''} onChange={(e) => setFormData({...formData, asset_type: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">描述</label><textarea value={formData.description || ''} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                <select value={formData.status || 'pending'} onChange={(e) => setFormData({...formData, status: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green">
+                  <option value="pending">待审核</option><option value="approved">已上架</option><option value="rejected">已拒绝</option><option value="banned">已封禁</option>
+                </select>
+              </div>
+            </div>
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-100 px-6 py-4 flex justify-end space-x-3">
+              <button onClick={() => setEditingAsset(null)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">取消</button>
+              <button onClick={handleSaveEdit} className="px-4 py-2 text-sm bg-brand-green text-white rounded-lg hover:bg-brand-light font-medium">保存修改</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
