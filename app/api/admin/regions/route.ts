@@ -40,9 +40,9 @@ export async function POST(request: Request) {
       let finalPath = path || null;
       if (!finalPath && parent_code) {
         const parent = await queryOne<{ path: string }>('SELECT path FROM regions WHERE code = ?', parent_code);
-        if (parent?.path) finalPath = parent.path + (code || '').substring(0, 3).toUpperCase() + '/';
+        if (parent?.path) finalPath = parent.path + String(code || '').substring(0, 3).toUpperCase() + '/';
       } else if (!finalPath && level === 'province') {
-        finalPath = 'CN/' + (code || '').substring(0, 2).toUpperCase() + '/';
+        finalPath = 'CN/' + String(code || '').substring(0, 2).toUpperCase() + '/';
       }
       const result = await execute(
         `INSERT INTO regions (code, name, level, parent_code, path, province, city, emoji, lat, lng, sort_order, active, created_at)
