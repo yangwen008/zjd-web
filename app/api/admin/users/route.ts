@@ -37,7 +37,6 @@ export async function POST(request: Request) {
       const user = await queryOne<{ role_apply: string }>('SELECT role_apply FROM users WHERE id = ?', id);
       if (!user) return NextResponse.json({ success: false, error: '用户不存在' }, { status: 404 });
 
-      // ✅ 已修复：exe cute -> execute
       await execute(
         'UPDATE users SET role = ?, status = ?, role_apply = NULL, role_approved_at = datetime("now"), updated_at = datetime("now") WHERE id = ?',
         user.role_apply || 'user', 'active', id
@@ -46,7 +45,6 @@ export async function POST(request: Request) {
     }
 
     if (action === 'reject') {
-      // ✅ 已修复：i d -> id
       const { id, reason } = body as { id: number; reason: string };
       await execute(
         'UPDATE users SET status = ?, apply_reason = ?, updated_at = datetime("now") WHERE id = ?',
@@ -57,7 +55,6 @@ export async function POST(request: Request) {
 
     if (action === 'ban') {
       const { id } = body as { id: number };
-      // ✅ 已修复：awa it -> await
       await execute('UPDATE users SET status = ?, updated_at = datetime("now") WHERE id = ?', 'banned', id);
       return NextResponse.json({ success: true });
     }
@@ -70,7 +67,6 @@ export async function POST(request: Request) {
 
     if (action === 'update-role') {
       const { id, role } = body as { id: number; role: string };
-      // ✅ 已修复：aw ait -> await
       await execute('UPDATE users SET role = ?, updated_at = datetime("now") WHERE id = ?', role, id);
       return NextResponse.json({ success: true });
     }
