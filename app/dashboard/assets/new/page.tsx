@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function PublishAssetPage() {
@@ -84,12 +84,10 @@ export default function PublishAssetPage() {
       }
 
       try {
-        // 创建预览 URL
         const previewUrl = URL.createObjectURL(file);
         newImages.push(previewUrl);
         setUploadedImages(newImages);
 
-        // 上传到 R2
         const res = await fetch('/api/upload/r2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
