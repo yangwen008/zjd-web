@@ -227,6 +227,7 @@ CREATE TABLE IF NOT EXISTS regions (
   name          TEXT NOT NULL,
   level         TEXT NOT NULL,          -- province/city/district
   parent_code   TEXT,
+  path          TEXT,                   -- Materialized Path: e.g. 'CN/ZJ/HZ/AJ/'
   province      TEXT,
   city          TEXT,
   emoji         TEXT,
@@ -236,6 +237,8 @@ CREATE TABLE IF NOT EXISTS regions (
   active        INTEGER DEFAULT 1,
   created_at    TEXT DEFAULT (datetime('now'))
 );
+
+CREATE INDEX IF NOT EXISTS idx_regions_path ON regions(path);
 
 CREATE INDEX IF NOT EXISTS idx_regions_level ON regions(level);
 CREATE INDEX IF NOT EXISTS idx_regions_parent ON regions(parent_code);

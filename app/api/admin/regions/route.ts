@@ -8,11 +8,13 @@ export async function GET(request: Request) {
   const level = searchParams.get('level');
   const province = searchParams.get('province');
   const search = searchParams.get('search');
+  const pathPrefix = searchParams.get('path'); // Materialized Path query: e.g. 'CN/ZJ/' returns all under Zhejiang
 
   let sql = 'SELECT * FROM regions';
   const args: unknown[] = [];
   const conditions: string[] = [];
 
+  if (pathPrefix) { conditions.push('path LIKE ?'); args.push(`${pathPrefix}%`); }
   if (level && level !== 'all') { conditions.push('level = ?'); args.push(level); }
   if (province) { conditions.push('province = ?'); args.push(province); }
   if (search) { conditions.push('(name LIKE ? OR code LIKE ?)'); args.push(`%${search}%`, `%${search}%`); }
@@ -33,21 +35,29 @@ export async function POST(request: Request) {
     const { action } = body as { action: string };
 
     if (action === 'add') {
-      const { code, name, level, parent_code, province, city, emoji, lat, lng, sort_order, active } = body as Record<string, unknown>;
+      const { code, name, level, parent_code, path, province, city, emoji, lat, lng, sort_order, active } = body as Record<string, unknown>;
+      // Auto-generate path if not provided: use parent path + code
+      let finalPath = path || null;
+      if (!finalPath && parent_code) {
+        const parent = await queryOne<{ path: string }>('SELECT path FROM regions WHERE code = ?', parent_code);
+        if (parent?.path) finalPath = parent.path + (code || '').substring(0, 3).toUpperCase() + '/';
+      } else if (!finalPath && level === 'province') {
+        finalPath = 'CN/' + (code || '').substring(0, 2).toUpperCase() + '/';
+      }
       const result = await execute(
-        `INSERT INTO regions (code, name, level, parent_code, province, city, emoji, lat, lng, sort_order, active, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-        code, name, level, parent_code || null, province || null, city || null,
+        `INSERT INTO regions (code, name, level, parent_code, path, province, city, emoji, lat, lng, sort_order, active, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+        code, name, level, parent_code || null, finalPath, province || null, city || null,
         emoji || null, lat || null, lng || null, sort_order || 0, active ?? 1
       );
       return NextResponse.json({ success: true, id: result.meta.last_row_id });
     }
 
     if (action === 'update') {
-      const { id, code, name, level, parent_code, province, city, emoji, lat, lng, sort_order, active } = body as Record<string, unknown>;
+      const { id, code, name, level, parent_code, path, province, city, emoji, lat, lng, sort_order, active } = body as Record<string, unknown>;
       await execute(
-        `UPDATE regions SET code=?, name=?, level=?, parent_code=?, province=?, city=?, emoji=?, lat=?, lng=?, sort_order=?, active=? WHERE id=?`,
-        code, name, level, parent_code, province, city, emoji, lat, lng, sort_order, active, id
+        `UPDATE regions SET code=?, name=?, level=?, parent_code=?, path=?, province=?, city=?, emoji=?, lat=?, lng=?, sort_order=?, active=? WHERE id=?`,
+        code, name, level, parent_code, path || null, province, city, emoji, lat, lng, sort_order, active, id
       );
       return NextResponse.json({ success: true });
     }
