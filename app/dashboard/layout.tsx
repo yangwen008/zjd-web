@@ -115,7 +115,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href!}
                 className={`flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors ${
                   isActive
                     ? 'bg-brand-green/10 text-brand-green font-medium border-r-2 border-brand-green'
