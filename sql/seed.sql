@@ -57,13 +57,13 @@ INSERT OR IGNORE INTO market_data (province, median_price, change_pct, bargain_s
   ('广西壮族自治区', 3.8, 0.5, -19.5, 198);
 
 -- 4. 基建评分
-INSERT OR IGNORE INTO infrastructure_ratings (region, signal_5g_ms, hospital_min, grid_redundancy, overall_grade) VALUES
-  ('杭州·安吉', 12, 8, 98, 'S+'),
-  ('成都·都江堰', 18, 12, 95, 'S'),
-  ('大理·苍洱', 35, 25, 92, 'A+'),
-  ('丽水·缙云', 42, 30, 88, 'A'),
-  ('桂林·阳朔', 48, 35, 85, 'A-'),
-  ('北京·延庆', 15, 10, 96, 'S');
+INSERT OR IGNORE INTO infrastructure_ratings (region, signal_5g_ms, hospital_min, grid_redundancy, overall_grade, province, city) VALUES
+  ('杭州·安吉', 12, 8, 98, 'S+', '浙江省', '湖州市'),
+  ('成都·都江堰', 18, 12, 95, 'S', '四川省', '成都市'),
+  ('大理·苍洱', 35, 25, 92, 'A+', '云南省', '大理州'),
+  ('丽水·缙云', 42, 30, 88, 'A', '浙江省', '丽水市'),
+  ('桂林·阳朔', 48, 35, 85, 'A-', '广西壮族自治区', '桂林市'),
+  ('北京·延庆', 15, 10, 96, 'S', '北京市', '延庆区');
 
 -- 5. 合伙人
 INSERT OR IGNORE INTO users (openid, nickname, role, status, verified, phone) VALUES
@@ -126,6 +126,54 @@ INSERT OR IGNORE INTO assets (title, description, location, province, city, dist
 
 ('利川·苏马荡森林木屋群', '苏马荡核心避暑区，10栋独立森林木屋已建成。含停车场、公共厨房、观景平台。', '湖北省恩施州利川市苏马荡', '湖北省', '恩施州', '利川市', 8.0, 5.2, 104, 20, '民宿群', 'ugc', '["https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800"]', 30.45, 108.90, '13800003006', '张大山', 3500, 'approved', 0, 2);
 
--- 7. 同步 FTS5 全文搜索索引
+-- 7. 行政区划
+INSERT OR IGNORE INTO regions (code, name, level, parent_code, province, city, emoji, lat, lng, sort_order) VALUES
+  -- 省级
+  ('330000', '浙江省', 'province', NULL, NULL, NULL, '🌊', 30.27, 120.15, 1),
+  ('510000', '四川省', 'province', NULL, NULL, NULL, '🐼', 30.57, 104.07, 2),
+  ('530000', '云南省', 'province', NULL, NULL, NULL, '🌸', 25.04, 102.68, 3),
+  ('520000', '贵州省', 'province', NULL, NULL, NULL, '🌄', 26.65, 106.63, 4),
+  ('450000', '广西壮族自治区', 'province', NULL, NULL, NULL, '🏞️', 22.82, 108.32, 5),
+  ('110000', '北京市', 'province', NULL, NULL, NULL, '🏛️', 39.90, 116.40, 6),
+  ('420000', '湖北省', 'province', NULL, NULL, NULL, '🌾', 30.59, 114.30, 7),
+  ('350000', '福建省', 'province', NULL, NULL, NULL, '🍵', 26.07, 119.30, 8),
+  ('320000', '江苏省', 'province', NULL, NULL, NULL, '🏯', 32.06, 118.80, 9),
+  ('310000', '上海市', 'province', NULL, NULL, NULL, '🏙️', 31.23, 121.47, 10),
+  -- 浙江省城市
+  ('330100', '杭州市', 'city', '330000', '浙江省', NULL, NULL, 30.27, 120.15, 1),
+  ('330500', '湖州市', 'city', '330000', '浙江省', NULL, NULL, 30.89, 120.09, 2),
+  ('331100', '丽水市', 'city', '330000', '浙江省', NULL, NULL, 28.47, 119.92, 3),
+  ('330600', '绍兴市', 'city', '330000', '浙江省', NULL, NULL, 30.00, 120.58, 4),
+  -- 四川省城市
+  ('510100', '成都市', 'city', '510000', '四川省', NULL, NULL, 30.57, 104.07, 1),
+  ('511100', '乐山市', 'city', '510000', '四川省', NULL, NULL, 29.55, 103.77, 2),
+  -- 云南省城市
+  ('532900', '大理州', 'city', '530000', '云南省', NULL, NULL, 25.59, 100.23, 1),
+  ('530700', '丽江市', 'city', '530000', '云南省', NULL, NULL, 26.87, 100.23, 2),
+  -- 贵州省城市
+  ('552600', '黔东南州', 'city', '520000', '贵州省', NULL, NULL, 26.58, 107.98, 1),
+  -- 广西城市
+  ('450300', '桂林市', 'city', '450000', '广西壮族自治区', NULL, NULL, 25.27, 110.29, 1),
+  ('450500', '北海市', 'city', '450000', '广西壮族自治区', NULL, NULL, 21.48, 109.12, 2),
+  -- 北京市区
+  ('110119', '延庆区', 'city', '110000', '北京市', NULL, NULL, 40.45, 115.97, 1),
+  -- 湖北省城市
+  ('422800', '恩施州', 'city', '420000', '湖北省', NULL, NULL, 30.27, 109.49, 1),
+  -- 福建省城市
+  ('350800', '龙岩市', 'city', '350000', '福建省', NULL, NULL, 25.08, 117.02, 1);
+
+-- 8. 资产类型
+INSERT OR IGNORE INTO asset_types (name, icon, description, sort_order) VALUES
+  ('宅基地', '🏠', '农村宅基地使用权流转', 1),
+  ('林地', '🌲', '林地承包经营权流转', 2),
+  ('茶园', '🍵', '茶园经营权流转', 3),
+  ('古宅', '🏘️', '传统古建筑保护性流转', 4),
+  ('厂房', '🏭', '集体建设用地厂房流转', 5),
+  ('商铺', '🏪', '沿街商铺经营权流转', 6),
+  ('林盘', '🌿', '川西林盘保护性开发', 7),
+  ('古村落', '🏚️', '整村保护性开发流转', 8),
+  ('民宿群', '🏡', '已建成民宿群整体流转', 9);
+
+-- 9. 同步 FTS5 全文搜索索引
 INSERT INTO assets_fts(rowid, title, description, location, province, city)
   SELECT id, title, description, location, province, city FROM assets;

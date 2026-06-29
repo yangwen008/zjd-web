@@ -94,6 +94,9 @@ CREATE TABLE IF NOT EXISTS leads (
   asset_id      INTEGER NOT NULL,
   user_id       INTEGER NOT NULL,
   unlock_type   TEXT DEFAULT 'phone', -- phone/gps/contact
+  broker_id     INTEGER,
+  status        TEXT DEFAULT 'new',
+  notes         TEXT,
   created_at    TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (asset_id) REFERENCES assets(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
@@ -212,10 +215,43 @@ CREATE TABLE IF NOT EXISTS infrastructure_ratings (
   hospital_min  INTEGER,
   grid_redundancy INTEGER,
   overall_grade TEXT,
+  province      TEXT,
+  city          TEXT,
   updated_at    TEXT DEFAULT (datetime('now'))
 );
 
--- 12. AI 用量追踪表 (用于预算熔断)
+-- 12. 行政区划表
+CREATE TABLE IF NOT EXISTS regions (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  code          TEXT,
+  name          TEXT NOT NULL,
+  level         TEXT NOT NULL,          -- province/city/district
+  parent_code   TEXT,
+  province      TEXT,
+  city          TEXT,
+  emoji         TEXT,
+  lat           REAL,
+  lng           REAL,
+  sort_order    INTEGER DEFAULT 0,
+  active        INTEGER DEFAULT 1,
+  created_at    TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_regions_level ON regions(level);
+CREATE INDEX IF NOT EXISTS idx_regions_parent ON regions(parent_code);
+CREATE INDEX IF NOT EXISTS idx_regions_province ON regions(province);
+
+-- 13. 资产类型表
+CREATE TABLE IF NOT EXISTS asset_types (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  name          TEXT NOT NULL UNIQUE,
+  icon          TEXT,
+  description   TEXT,
+  sort_order    INTEGER DEFAULT 0,
+  active        INTEGER DEFAULT 1
+);
+
+-- 14. AI 用量追踪表 (用于预算熔断)
 CREATE TABLE IF NOT EXISTS ai_usage_log (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   tokens_in     INTEGER DEFAULT 0,
