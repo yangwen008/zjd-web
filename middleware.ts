@@ -4,13 +4,11 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 保护 /admin 路由（页面路由，非 API）
+  // 保护 /admin 路由（管理员后台）
   if (pathname.startsWith('/admin') && !pathname.startsWith('/api/admin')) {
     const token = request.cookies.get('admin_token')?.value;
     if (token !== 'authenticated') {
-      // 未登录时，admin layout.tsx 中的客户端组件会处理登录 UI
-      // 这里不做强制跳转，因为 admin 是 SPA 式的客户端认证
-      // 但可以在 header 中传递认证状态
+      // admin layout.tsx 中的客户端组件会处理登录 UI
     }
   }
 
@@ -18,10 +16,23 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/api/admin') && !pathname.startsWith('/api/admin/auth')) {
     const token = request.cookies.get('admin_token')?.value;
     if (token !== 'authenticated') {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+  }
+
+  // 保护 /dashboard 路由（用户后台）
+  if (pathname.startsWith('/dashboard')) {
+    const session = request.cookies.get('user_session')?.value;
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+  }
+
+  // 保护 /api/dashboard 路由
+  if (pathname.startsWith('/api/dashboard')) {
+    const session = request.cookies.get('user_session')?.value;
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
   }
 
@@ -29,5 +40,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: ['/admin/:path*', '/api/admin/:path*', '/dashboard/:path*', '/api/dashboard/:path*'],
 };
