@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
     const { phone, password } = await request.json() as { phone: string; password: string };
     const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '';
-    const ua = request.headers.get('user-agent') || '';
+    const userAgent = request.headers.get('user-agent') || '';
 
     if (!phone || !password) {
       return NextResponse.json({ success: false, error: '手机号和密码不能为空' }, { status: 400 });
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     // 检查登录锁定
     const attemptCheck = await checkLoginAttempts(phone);
     if (!attemptCheck.allowed) {
-      await logLoginEvent({ phone, success: false, ip, ua, reason: '账号已锁定' });
+      await logLoginEvent({ phone, success: false, ip, userAgent, reason: '账号已锁定' });
       return NextResponse.json({ success: false, error: '登录失败次数过多，账号已锁定30分钟' }, { status: 429 });
     }
 
@@ -28,39 +28,39 @@ export async function POST(request: Request) {
     const user = await queryOne<User>('SELECT * FROM users WHERE phone = ?', phone);
     if (!user) {
       await recordLoginAttempt(phone, false);
-      await logLoginEvent({ phone, success: false, ip, ua, reason: '用户不存在' });
+      await logLoginEvent({ phone, success: false, ip, userAgent, reason: '用户不存在' });
       return NextResponse.json({ success: false, error: '手机号或密码错误' }, { status: 401 });
     }
 
     // 验证密码
     if (!user.password_hash) {
       await recordLoginAttempt(phone, false);
-      await logLoginEvent({ phone, userId: user.id, success: false, ip, ua, reason: '未设置密码' });
+      await logLoginEvent({ phone, userId: user.id, success: false, ip, userAgent, reason: '未设置密码' });
       return NextResponse.json({ success: false, error: '该账号未设置密码，请使用微信登录' }, { status: 401 });
     }
 
     const valid = await verifyPassword(password, user.password_hash);
     if (!valid) {
       await recordLoginAttempt(phone, false);
-      await logLoginEvent({ phone, userId: user.id, success: false, ip, ua, reason: '密码错误' });
+      await logLoginEvent({ phone, userId: user.id, success: false, ip, userAgent, reason: '密码错误' });
       return NextResponse.json({ success: false, error: `手机号或密码错误（剩余${attemptCheck.remaining - 1}次机会）` }, { status: 401 });
     }
 
     // 检查用户状态
     if (user.status === 'banned') {
-      await logLoginEvent({ phone, userId: user.id, success: false, ip, ua, reason: '账号已封禁' });
+      await logLoginEvent({ phone, userId: user.id, success: false, ip, userAgent, reason: '账号已封禁' });
       return NextResponse.json({ success: false, error: '账号已被封禁，请联系管理员' }, { status: 403 });
     }
 
     if (user.status === 'pending') {
-      await logLoginEvent({ phone, userId: user.id, success: false, ip, ua, reason: '账号待审核' });
+      await logLoginEvent({ phone, userId: user.id, success: false, ip, userAgent, reason: '账号待审核' });
       return NextResponse.json({ success: false, error: '账号正在审核中，请耐心等待', pending: true }, { status: 403 });
     }
 
     // 登录成功
     await recordLoginAttempt(phone, true);
     const sessionId = await createSession(user.id);
-    await logLoginEvent({ phone, userId: user.id, success: true, ip, ua });
+    await logLoginEvent({ phone, userId: user.id, success: true, ip, userAgent });
 
     const res = NextResponse.json({
       success: true,
