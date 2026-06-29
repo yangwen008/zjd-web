@@ -39,11 +39,12 @@ export async function POST(request: Request) {
     }
 
     if (action === 'delete') {
-      const count = await queryOne<{ c: number }>('SELECT COUNT(*) as c FROM assets WHERE asset_type = (SELECT name FROM asset_types WHERE id = ?)', body.id);
+      const { id: deleteId } = body as { id: number };
+      const count = await queryOne<{ c: number }>('SELECT COUNT(*) as c FROM assets WHERE asset_type = (SELECT name FROM asset_types WHERE id = ?)', deleteId);
       if (count && count.c > 0) {
         return NextResponse.json({ success: false, error: `该类型下有 ${count.c} 宗资产，无法删除` }, { status: 400 });
       }
-      await execute('DELETE FROM asset_types WHERE id = ?', body.id);
+      await execute('DELETE FROM asset_types WHERE id = ?', deleteId);
       return NextResponse.json({ success: true });
     }
 
