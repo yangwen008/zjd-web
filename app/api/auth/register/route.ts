@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
     const { phone, password, nickname, role_apply, apply_reason, broker_region, broker_specialties, broker_bio, org_name } = body;
     const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '';
-    const ua = request.headers.get('user-agent') || '';
+    const userAgent = request.headers.get('user-agent') || '';
 
     // 校验
     if (!phone || !password || !nickname) {
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
     const userId = result.meta.last_row_id;
 
-    await logLoginEvent({ phone, userId, success: true, ip, ua, reason: '注册成功' });
+    await logLoginEvent({ phone, userId, success: true, ip, userAgent, reason: '注册成功' });
 
     if (needsReview) {
       // 需要审核：返回提示，不自动登录
