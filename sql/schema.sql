@@ -1,6 +1,6 @@
 -- =============================================
 -- zjd.cn 数据库 Schema (Cloudflare D1)
--- 金禾计划 v8.8.1
+-- 金禾计划 v8.8.2 (架构师完善版)
 -- =============================================
 
 -- 1. 资产主表
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS assets (
   ai_extracted  TEXT,              -- AI提取的JSON
   created_at    TEXT DEFAULT (datetime('now')),
   updated_at    TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_assets_province ON assets(province);
@@ -42,6 +42,8 @@ CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
 CREATE INDEX IF NOT EXISTS idx_assets_source ON assets(source_type);
 CREATE INDEX IF NOT EXISTS idx_assets_views ON assets(views DESC);
 CREATE INDEX IF NOT EXISTS idx_assets_featured ON assets(featured, status);
+-- 架构师补充：后台审核列表高频查询复合索引
+CREATE INDEX IF NOT EXISTS idx_assets_status_created ON assets(status, created_at DESC);
 
 -- 资产全文搜索
 CREATE VIRTUAL TABLE IF NOT EXISTS assets_fts USING fts5(
@@ -49,7 +51,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS assets_fts USING fts5(
   content='assets', content_rowid='id'
 );
 
--- FTS5 同步触发器：确保新增/修改/删除资产时自动更新搜索索引
+-- FTS5 同步触发器
 CREATE TRIGGER IF NOT EXISTS assets_fts_insert AFTER INSERT ON assets BEGIN
   INSERT INTO assets_fts(rowid, title, description, location, province, city)
   VALUES (new.id, new.title, new.description, new.location, new.province, new.city);
@@ -76,6 +78,7 @@ CREATE TABLE IF NOT EXISTS users (
   phone         TEXT,
   role          TEXT DEFAULT 'buyer', -- buyer/broker/village/admin/superadmin
   status        TEXT DEFAULT 'active', -- active/banned
+  role_approved_at TEXT,           -- 架构师补充：角色审核通过时间（修复审核报错）
   real_name     TEXT,
   org_name      TEXT,              -- 村委/机构名称
   org_license   TEXT,              -- 营业执照/登记证URL
@@ -95,6 +98,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_openid ON users(openid);
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
 
 -- 3. 线索表 (买家解锁记录)
 CREATE TABLE IF NOT EXISTS leads (
@@ -106,8 +110,8 @@ CREATE TABLE IF NOT EXISTS leads (
   status        TEXT DEFAULT 'new',
   notes         TEXT,
   created_at    TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (asset_id) REFERENCES assets(id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_leads_asset ON leads(asset_id);
@@ -130,7 +134,7 @@ CREATE TABLE IF NOT EXISTS brokers (
   avatar_url    TEXT,
   status        TEXT DEFAULT 'active',
   created_at    TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_brokers_province ON brokers(province);
@@ -173,7 +177,7 @@ CREATE TABLE IF NOT EXISTS staging_raw (
   status        TEXT DEFAULT 'raw', -- raw/cleaned/imported/error
   error_msg     TEXT,
   created_at    TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (recipe_id) REFERENCES scrapers_recipes(id)
+  FOREIGN KEY (recipe_id) REFERENCES scrapers_recipes(id) ON DELETE CASCADE
 );
 
 -- 8. 审计日志表 (只INSERT不DELETE)
@@ -201,7 +205,7 @@ CREATE TABLE IF NOT EXISTS unlock_tasks (
   result_data   TEXT,               -- JSON: 解密结果
   created_at    TEXT DEFAULT (datetime('now')),
   completed_at  TEXT,
-  FOREIGN KEY (asset_id) REFERENCES assets(id)
+  FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE
 );
 
 -- 10. 行情数据表
@@ -231,7 +235,7 @@ CREATE TABLE IF NOT EXISTS infrastructure_ratings (
 -- 12. 行政区划表
 CREATE TABLE IF NOT EXISTS regions (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  code          TEXT,
+  code          TEXT UNIQUE,
   name          TEXT NOT NULL,
   level         TEXT NOT NULL,          -- province/city/district
   parent_code   TEXT,
@@ -247,7 +251,6 @@ CREATE TABLE IF NOT EXISTS regions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_regions_path ON regions(path);
-
 CREATE INDEX IF NOT EXISTS idx_regions_level ON regions(level);
 CREATE INDEX IF NOT EXISTS idx_regions_parent ON regions(parent_code);
 CREATE INDEX IF NOT EXISTS idx_regions_province ON regions(province);
@@ -306,7 +309,7 @@ CREATE TABLE IF NOT EXISTS bulk_projects (
   user_id           INTEGER,
   created_at        TEXT DEFAULT (datetime('now')),
   updated_at        TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_bulk_province ON bulk_projects(province);
@@ -337,8 +340,8 @@ CREATE TABLE IF NOT EXISTS role_permissions (
   role          TEXT NOT NULL,
   permission    TEXT NOT NULL,
   PRIMARY KEY (role, permission),
-  FOREIGN KEY (role) REFERENCES roles(code),
-  FOREIGN KEY (permission) REFERENCES permissions(code)
+  FOREIGN KEY (role) REFERENCES roles(code) ON DELETE CASCADE,
+  FOREIGN KEY (permission) REFERENCES permissions(code) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_rp_role ON role_permissions(role);
@@ -350,7 +353,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   user_id       INTEGER NOT NULL,
   expires_at    TEXT NOT NULL,
   created_at    TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON user_sessions(user_id);
@@ -384,7 +387,7 @@ CREATE TABLE IF NOT EXISTS audit_reviews (
   reviewer_id   INTEGER,
   reason        TEXT,
   created_at    TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (reviewer_id) REFERENCES users(id)
+  FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_reviews_target ON audit_reviews(target_type, target_id);
