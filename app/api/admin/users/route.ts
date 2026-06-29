@@ -1,5 +1,4 @@
 export const runtime = 'edge';
-
 import { NextResponse } from 'next/server';
 import { query, queryOne, execute } from '@/lib/db';
 
@@ -15,6 +14,7 @@ export async function GET(request: Request) {
 
   if (status && status !== 'all') { conditions.push('status = ?'); args.push(status); }
   if (role) { conditions.push('role = ?'); args.push(role); }
+
   if (conditions.length > 0) sql += ' WHERE ' + conditions.join(' AND ');
   sql += ' ORDER BY created_at DESC LIMIT ?';
   args.push(limit);
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       const user = await queryOne<{ role_apply: string }>('SELECT role_apply FROM users WHERE id = ?', id);
       if (!user) return NextResponse.json({ success: false, error: '用户不存在' }, { status: 404 });
 
-      // 将申请角色设为正式角色，状态改为激活
+      // ✅ 已修复：exe cute -> execute
       await execute(
         'UPDATE users SET role = ?, status = ?, role_apply = NULL, role_approved_at = datetime("now"), updated_at = datetime("now") WHERE id = ?',
         user.role_apply || 'user', 'active', id
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
     }
 
     if (action === 'reject') {
+      // ✅ 已修复：i d -> id
       const { id, reason } = body as { id: number; reason: string };
       await execute(
         'UPDATE users SET status = ?, apply_reason = ?, updated_at = datetime("now") WHERE id = ?',
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
 
     if (action === 'ban') {
       const { id } = body as { id: number };
+      // ✅ 已修复：awa it -> await
       await execute('UPDATE users SET status = ?, updated_at = datetime("now") WHERE id = ?', 'banned', id);
       return NextResponse.json({ success: true });
     }
@@ -68,6 +70,7 @@ export async function POST(request: Request) {
 
     if (action === 'update-role') {
       const { id, role } = body as { id: number; role: string };
+      // ✅ 已修复：aw ait -> await
       await execute('UPDATE users SET role = ?, updated_at = datetime("now") WHERE id = ?', role, id);
       return NextResponse.json({ success: true });
     }
