@@ -35,6 +35,8 @@ export default function AdminAssetsPage() {
   const [formData, setFormData] = useState<Partial<Asset>>({});
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<{ preview: string; server: string }[]>([]);
+  const [existingVideo, setExistingVideo] = useState<string | null>(null);
+  const [newVideo, setNewVideo] = useState<{ preview: string; server: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [provinceList, setProvinceList] = useState<string[]>([]);
   const [cityList, setCityList] = useState<string[]>([]);
@@ -73,6 +75,8 @@ export default function AdminAssetsPage() {
       setExistingImages(Array.isArray(imgs) ? imgs : []);
     } catch { setExistingImages([]); }
     setNewImages([]);
+    setExistingVideo(asset.video_url || null);
+    setNewVideo(null);
     // 加载地址数据
     fetch('/api/regions?level=province').then(r => r.json()).then((d: any) => setProvinceList((d.data || []).map((p: any) => p.name))).catch(() => {});
     if (asset.province) {
@@ -83,10 +87,11 @@ export default function AdminAssetsPage() {
   const handleSaveEdit = async () => {
     if (!editingAsset) return;
     const allImages = [...existingImages, ...newImages.map(i => i.server)];
+    const videoUrl = newVideo ? newVideo.server : existingVideo || null;
     try {
       const res = await fetch(`/api/admin/assets`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, id: editingAsset.id, images: JSON.stringify(allImages) }),
+        body: JSON.stringify({ ...formData, id: editingAsset.id, images: JSON.stringify(allImages), video_url: videoUrl }),
       });
       const data: any = await res.json();
       if (data.success) { show('✅ 修改已保存'); setEditingAsset(null); fetchAssets(filter); }
@@ -104,6 +109,19 @@ export default function AdminAssetsPage() {
       const upData: any = await upRes.json();
       return upData.success ? upData.url : null;
     } catch { return null; }
+  };
+
+  const handleAdminVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/') || file.size > 50 * 1024 * 1024) { show('❌ 视频格式或大小不符'); return; }
+    setUploading(true);
+    const preview = URL.createObjectURL(file);
+    const url = await uploadFile(file);
+    if (url) { setNewVideo({ preview, server: url }); }
+    else { URL.revokeObjectURL(preview); show('❌ 视频上传失败'); }
+    setUploading(false);
+    e.target.value = '';
   };
 
   const handleAdminImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,6 +268,23 @@ export default function AdminAssetsPage() {
                   <span>📷 添加图片</span>
                   <input type="file" accept="image/*" multiple onChange={handleAdminImageUpload} className="hidden" />
                 </label>
+              </div>
+
+              {/* 视频管理 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">视频</label>
+                {(existingVideo || newVideo) ? (
+                  <div className="relative w-64">
+                    <video src={newVideo?.preview || existingVideo || ''} controls className="w-full h-36 object-cover rounded-lg border" />
+                    <button type="button" onClick={() => { if (newVideo) URL.revokeObjectURL(newVideo.preview); setNewVideo(null); setExistingVideo(null); }}
+                      className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">×</button>
+                  </div>
+                ) : (
+                  <label className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer text-sm ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <span>🎥 添加视频</span>
+                    <input type="file" accept="video/*" onChange={handleAdminVideoUpload} className="hidden" />
+                  </label>
+                )}
               </div>
 
               <div><label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
