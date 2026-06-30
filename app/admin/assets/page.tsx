@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 interface Asset {
   id: number;
@@ -27,7 +28,8 @@ const STATUS_STYLES: Record<string, string> = { approved: 'bg-green-100 text-gre
 const SOURCE_LABELS: Record<string, string> = { official: '官方', village: '村委', ugc: 'UGC' };
 
 export default function AdminAssetsPage() {
-  const [filter, setFilter] = useState('all');
+  const searchParams = useSearchParams();
+  const [filter, setFilter] = useState(searchParams.get('status') || 'all');
   const [search, setSearch] = useState('');
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
