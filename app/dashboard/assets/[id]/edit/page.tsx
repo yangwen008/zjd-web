@@ -41,6 +41,11 @@ export default function EditAssetPage() {
     contact_phone: '',
   });
 
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [existingVideo, setExistingVideo] = useState<string | null>(null);
+  const [newImages, setNewImages] = useState<{ preview: string; server: string }[]>([]);
+  const [newVideo, setNewVideo] = useState<{ preview: string; server: string } | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [provinceList, setProvinceList] = useState<string[]>([]);
   const [cityList, setCityList] = useState<string[]>([]);
 
@@ -86,6 +91,12 @@ export default function EditAssetPage() {
             contact_name: asset.contact_name || '',
             contact_phone: asset.contact_phone || '',
           });
+          // 加载已有图片
+          try {
+            const imgs = asset.images ? JSON.parse(asset.images) : [];
+            setExistingImages(Array.isArray(imgs) ? imgs : []);
+          } catch { setExistingImages([]); }
+          setExistingVideo(asset.video_url || null);
         } else {
           setNotFound(true);
         }
@@ -98,6 +109,53 @@ export default function EditAssetPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // 上传文件
+  const uploadFile = async (file: File): Promise<{ url: string } | null> => {
+    try {
+      const res = await fetch('/api/upload/r2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+      });
+      const data: any = await res.json();
+      if (!data.success) return null;
+      const fd = new FormData();
+      fd.append('file', file);
+      const upRes = await fetch(data.uploadUrl, { method: 'POST', body: fd });
+      const upData: any = await upRes.json();
+      return upData.success ? { url: upData.url } : null;
+    } catch { return null; }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+    setUploading(true);
+    const list = [...newImages];
+    for (const file of files) {
+      if (!file.type.startsWith('image/') || file.size > 10 * 1024 * 1024) continue;
+      const preview = URL.createObjectURL(file);
+      const result = await uploadFile(file);
+      if (result) { list.push({ preview, server: result.url }); setNewImages([...list]); }
+      else { URL.revokeObjectURL(preview); show(`❌ ${file.name} 上传失败`); }
+    }
+    setUploading(false);
+    e.target.value = '';
+  };
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/') || file.size > 50 * 1024 * 1024) { show('❌ 视频格式或大小不符'); return; }
+    setUploading(true);
+    const preview = URL.createObjectURL(file);
+    const result = await uploadFile(file);
+    if (result) { setNewVideo({ preview, server: result.url }); }
+    else { URL.revokeObjectURL(preview); show('❌ 视频上传失败'); }
+    setUploading(false);
+    e.target.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) { show('❌ 请输入资产标题'); return; }
@@ -106,10 +164,13 @@ export default function EditAssetPage() {
 
     setSaving(true);
     try {
+      const allImages = [...existingImages, ...newImages.map(i => i.server)];
+      const videoUrl = newVideo ? newVideo.server : existingVideo || '';
+
       const res = await fetch('/api/dashboard/assets', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: parseInt(assetId), ...formData }),
+        body: JSON.stringify({ id: parseInt(assetId), ...formData, images: JSON.stringify(allImages), video_url: videoUrl }),
       });
       const d = await res.json() as any;
       if (d.success) {
@@ -229,6 +290,74 @@ export default function EditAssetPage() {
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg" />
             </div>
           </div>
+        </div>
+
+        {/* 图片与视频 */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold text-gray-800 border-b pb-2">📷 图片与视频</h3>
+
+          {/* 已有图片 */}
+          {existingImages.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">当前图片（点击×移除）</label>
+              <div className="grid grid-cols-4 gap-3">
+                {existingImages.map((url, i) => (
+                  <div key={i} className="relative aspect-square group">
+                    <img src={url} alt="" className="w-full h-full object-cover rounded-lg border border-gray-200" />
+                    <button type="button" onClick={() => setExistingImages(existingImages.filter((_, j) => j !== i))}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 新增图片 */}
+          {newImages.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">新增图片</label>
+              <div className="grid grid-cols-4 gap-3">
+                {newImages.map((item, i) => (
+                  <div key={i} className="relative aspect-square group">
+                    <img src={item.preview} alt="" className="w-full h-full object-cover rounded-lg border border-gray-200" />
+                    <button type="button" onClick={() => { URL.revokeObjectURL(item.preview); setNewImages(newImages.filter((_, j) => j !== i)); }}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center space-x-3">
+            <label className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <span className="text-lg">📷</span>
+              <span className="text-sm text-gray-600">添加图片</span>
+              <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+            </label>
+            <span className="text-xs text-gray-400">JPG/PNG/WebP，单张 ≤ 10MB</span>
+          </div>
+
+          {/* 视频 */}
+          {(existingVideo || newVideo) && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">视频</label>
+              <div className="relative w-64">
+                <video src={newVideo?.preview || existingVideo || ''} controls className="w-full h-36 object-cover rounded-lg border border-gray-200" />
+                <button type="button" onClick={() => { if (newVideo) URL.revokeObjectURL(newVideo.preview); setNewVideo(null); setExistingVideo(null); }}
+                  className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 shadow">×</button>
+              </div>
+            </div>
+          )}
+          {!existingVideo && !newVideo && (
+            <div className="flex items-center space-x-3">
+              <label className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <span className="text-lg">🎥</span>
+                <span className="text-sm text-gray-600">添加视频</span>
+                <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+              </label>
+              <span className="text-xs text-gray-400">MP4/WebM，≤ 50MB</span>
+            </div>
+          )}
         </div>
 
         {/* 联系方式 */}
