@@ -441,7 +441,67 @@ export default function PublishAssetPage() {
   );
 }
 
-// ═══ 内联地址选择器 ═══
+// ═══ 内联地址选择器（自定义下拉，避免原生 select 兼容问题）═══
+function DropdownSelect({
+  value, options, placeholder, disabled, loading, onChange,
+}: {
+  value: string;
+  options: { label: string; value: string }[];
+  placeholder: string;
+  disabled?: boolean;
+  loading?: boolean;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const handleSelect = (v: string) => {
+    onChange(v);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => !disabled && !loading && setOpen(!open)}
+        className={`w-full px-3 py-2.5 text-sm text-left border rounded-lg transition-colors ${
+          disabled ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
+          : open ? 'border-brand-green ring-1 ring-brand-green/20'
+          : 'border-gray-300 hover:border-gray-400'
+        }`}
+      >
+        {loading ? '加载中...' : value || placeholder}
+        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && !disabled && !loading && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+            {options.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-gray-400">暂无数据</div>
+            ) : (
+              options.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => handleSelect(opt.value)}
+                  className={`w-full px-3 py-2 text-sm text-left hover:bg-brand-green/10 transition-colors ${
+                    opt.value === value ? 'bg-brand-green/5 text-brand-green font-medium' : 'text-gray-700'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function AddressPicker({
   province, city, district,
   onProvinceChange, onCityChange, onDistrictChange,
@@ -491,42 +551,36 @@ function AddressPicker({
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">省份 *</label>
-          <select
+          <DropdownSelect
             value={province}
-            onChange={e => { onProvinceChange(e.target.value); onCityChange(''); onDistrictChange(''); }}
+            options={provinces.map(p => ({ label: `${p.emoji || ''} ${p.name}`.trim(), value: p.name }))}
+            placeholder="请选择省份"
             disabled={lp}
-            style={{ backgroundColor: 'white', cursor: 'pointer', WebkitAppearance: 'menulist' }}
-            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-brand-green"
-          >
-            <option value="">{lp ? '加载中...' : '请选择省份'}</option>
-            {provinces.map(p => <option key={p.code} value={p.name}>{p.emoji ? `${p.emoji} ` : ''}{p.name}</option>)}
-          </select>
+            loading={lp}
+            onChange={v => { onProvinceChange(v); onCityChange(''); onDistrictChange(''); }}
+          />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">城市 *</label>
-          <select
+          <DropdownSelect
             value={city}
-            onChange={e => { onCityChange(e.target.value); onDistrictChange(''); }}
+            options={cities.map(c => ({ label: c.name, value: c.name }))}
+            placeholder={!province ? '请先选择省份' : '请选择城市'}
             disabled={!province || lc}
-            style={{ backgroundColor: 'white', cursor: province ? 'pointer' : 'not-allowed', WebkitAppearance: 'menulist' }}
-            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-brand-green disabled:opacity-50"
-          >
-            <option value="">{!province ? '请先选择省份' : lc ? '加载中...' : '请选择城市'}</option>
-            {cities.map(c => <option key={c.code} value={c.name}>{c.name}</option>)}
-          </select>
+            loading={lc}
+            onChange={v => { onCityChange(v); onDistrictChange(''); }}
+          />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">区县</label>
-          <select
+          <DropdownSelect
             value={district}
-            onChange={e => onDistrictChange(e.target.value)}
+            options={districts.map(d => ({ label: d.name, value: d.name }))}
+            placeholder={!province ? '请先选择省份' : !city ? '请先选择城市' : districts.length === 0 ? '该城市暂无区县数据' : '请选择区县'}
             disabled={!city || ld}
-            style={{ backgroundColor: 'white', cursor: city ? 'pointer' : 'not-allowed', WebkitAppearance: 'menulist' }}
-            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-brand-green disabled:opacity-50"
-          >
-            <option value="">{!province ? '请先选择省份' : !city ? '请先选择城市' : ld ? '加载中...' : districts.length === 0 ? '该城市暂无区县数据' : '请选择区县'}</option>
-            {districts.map(d => <option key={d.code} value={d.name}>{d.name}</option>)}
-          </select>
+            loading={ld}
+            onChange={v => onDistrictChange(v)}
+          />
         </div>
       </div>
       {province && city && <p className="text-xs text-green-600">✅ {province} {city} {district}</p>}
