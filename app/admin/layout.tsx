@@ -1,32 +1,35 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import AdminLayoutClient from '@/components/admin/AdminLayoutClient';
+'use client';
 
-export const metadata = {
-  title: '金禾计划 - Admin 控制台',
-};
+import { useState } from 'react';
+import AdminSidebar from './AdminSidebar';
+import AdminTopbar from './AdminTopbar';
 
-export default async function AdminLayout({
-  children,
-}: {
+// 【修复点】：明确定义接口，接收服务端传来的 userName
+interface AdminLayoutClientProps {
   children: React.ReactNode;
-}) {
-  // 【服务端安全防线 1】：使用 Next.js 15 原生 API 读取 Cookie
-  // 完美契合您 middleware.ts 中的 admin_token 校验逻辑
-  const cookieStore = await cookies();
-  const adminToken = cookieStore.get('admin_token');
+  userName: string;
+}
 
-  // 【服务端安全防线 2】：如果没有 token 或 token 不正确，直接服务端重定向！
-  // 此时 Admin 的侧边栏、菜单等 HTML 根本不会发送给浏览器，杜绝菜单泄露！
-  if (!adminToken || adminToken.value !== 'authenticated') {
-    redirect('/admin/login'); // 如果没有登录页，可以改成 redirect('/')
-  }
+export default function AdminLayoutClient({ children, userName }: AdminLayoutClientProps) {
+  const [collapsed, setCollapsed] = useState(false);
 
-  // 【服务端安全防线 3】：只有合法 Admin 才能看到下面的客户端骨架
-  // 这里我们可以安全地传入一个 Mock 用户名，或者后续从 Cookie/Token 中解析真实用户名
+  const toggleSidebar = () => setCollapsed(!collapsed);
+
   return (
-    <AdminLayoutClient userName="超级管理员">
-      {children}
-    </AdminLayoutClient>
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* 左侧导航 */}
+      <AdminSidebar collapsed={collapsed} />
+
+      {/* 右侧主区域 */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 顶部工具栏：直接接收服务端传来的 userName */}
+        <AdminTopbar toggleSidebar={toggleSidebar} userName={userName} />
+
+        {/* 内容区 */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }
