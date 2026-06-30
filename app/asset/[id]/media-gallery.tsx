@@ -27,10 +27,11 @@ export default function MediaGallery({ images, video }: { images: string[]; vide
   // 如果没有媒体文件，显示占位图
   if (mediaList.length === 0) {
     return (
-      <div className="bg-gray-100 rounded-2xl h-80 flex items-center justify-center overflow-hidden">
-        <div className="text-center text-gray-400">
-          <div className="text-5xl mb-2">🏔️</div>
-          <div>暂无实景图片/视频</div>
+      <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl h-80 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300">
+        <div className="text-center">
+          <div className="text-6xl mb-3 opacity-60">🏔️</div>
+          <div className="text-lg font-semibold text-gray-500">暂无实景图片/视频</div>
+          <div className="text-sm text-gray-400 mt-1">发布者尚未上传资产图片</div>
         </div>
       </div>
     );
