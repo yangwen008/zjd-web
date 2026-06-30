@@ -439,7 +439,7 @@ export default function PublishAssetPage() {
   );
 }
 
-// ═══ 地址二级联动（省份+城市，与搜索页 FilterPanel 同款）═══
+// ═══ 地址二级联动（极简版，排除所有干扰因素）═══
 function AddressSelects({
   province, city,
   onProvinceChange, onCityChange,
@@ -448,45 +448,47 @@ function AddressSelects({
   onProvinceChange: (v: string) => void;
   onCityChange: (v: string) => void;
 }) {
-  const [provinces, setProvinces] = useState<{ name: string; emoji: string | null }[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
-  const [lp, setLp] = useState(true);
-  const [lc, setLc] = useState(false);
+  const [provinceList, setProvinceList] = useState<string[]>([]);
+  const [cityList, setCityList] = useState<string[]>([]);
 
   useEffect(() => {
     fetch('/api/regions?level=province')
       .then(r => r.json())
-      .then((d: any) => setProvinces(d.data || []))
-      .catch(() => {})
-      .finally(() => setLp(false));
+      .then((d: any) => setProvinceList((d.data || []).map((p: any) => p.name)))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!province) { setCities([]); return; }
-    setLc(true);
+    if (!province) { setCityList([]); return; }
     fetch(`/api/regions?level=city&province=${encodeURIComponent(province)}`)
       .then(r => r.json())
-      .then((d: any) => setCities(d.data?.map((c: any) => c.name) || []))
-      .catch(() => {})
-      .finally(() => setLc(false));
+      .then((d: any) => setCityList((d.data || []).map((c: any) => c.name)))
+      .catch(() => {});
   }, [province]);
-
-  const selCls = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green';
 
   return (
     <div className="grid grid-cols-2 gap-3">
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">省份 *</label>
-        <select value={province} onChange={e => { onProvinceChange(e.target.value); onCityChange(''); }} disabled={lp} className={selCls}>
-          <option value="">{lp ? '加载中...' : '请选择省份'}</option>
-          {provinces.map(p => <option key={p.name} value={p.name}>{p.emoji ? `${p.emoji} ` : ''}{p.name}</option>)}
+        <label className="block text-xs font-medium text-gray-500 mb-1">省份</label>
+        <select
+          value={province}
+          onChange={e => { onProvinceChange(e.target.value); onCityChange(''); }}
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green"
+        >
+          <option value="">请选择省份</option>
+          {provinceList.map(name => <option key={name} value={name}>{name}</option>)}
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">城市 *</label>
-        <select value={city} onChange={e => onCityChange(e.target.value)} disabled={!province || lc} className={`${selCls} disabled:opacity-50`}>
-          <option value="">{!province ? '请先选择省份' : lc ? '加载中...' : '请选择城市'}</option>
-          {cities.map(c => <option key={c} value={c}>{c}</option>)}
+        <label className="block text-xs font-medium text-gray-500 mb-1">城市</label>
+        <select
+          value={city}
+          onChange={e => onCityChange(e.target.value)}
+          disabled={!province}
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green"
+        >
+          <option value="">{province ? '请选择城市' : '请先选择省份'}</option>
+          {cityList.map(name => <option key={name} value={name}>{name}</option>)}
         </select>
       </div>
     </div>
