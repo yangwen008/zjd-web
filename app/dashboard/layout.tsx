@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -15,7 +14,7 @@ interface UserInfo {
 }
 
 const MENU_ITEMS = [
-  { icon: '📊', label: '我的概览', href: '/dashboard', roles: ['user', 'broker', 'village_org', 'data_editor', 'project_publisher', 'admin', 'superadmin'] },
+  { icon: '', label: '我的概览', href: '/dashboard', roles: ['user', 'broker', 'village_org', 'data_editor', 'project_publisher', 'admin', 'superadmin'] },
   { icon: '🏠', label: '我的资产', href: '/dashboard/assets', roles: ['user', 'broker', 'village_org', 'admin', 'superadmin'] },
   { icon: '➕', label: '发布资产', href: '/dashboard/assets/new', roles: ['user', 'broker', 'village_org', 'admin', 'superadmin'] },
   { divider: true, roles: ['broker', 'village_org', 'admin', 'superadmin'] },
@@ -75,27 +74,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const visibleMenus = MENU_ITEMS.filter((item) => item.roles?.includes(user.role));
 
   return (
-    <div className="min-h-screen bg-[#F9F9F8] flex pt-16">
-      {/* Sidebar */}
-      <aside className={`${collapsed ? 'w-16' : 'w-56'} bg-white border-r border-gray-100 transition-all duration-300 flex flex-col fixed top-16 bottom-0 left-0 z-30`}>
+    // 【修复点 1】：去掉 pt-16，让 Dashboard 顶天立地
+    <div className="min-h-screen bg-[#F9F9F8] flex">
+      {/* Sidebar：改为 h-screen，占满整个左侧高度 */}
+      <aside className={`${collapsed ? 'w-16' : 'w-56'} bg-white border-r border-gray-100 transition-all duration-300 flex flex-col fixed top-0 bottom-0 left-0 z-30 h-screen`}>
         {/* User info */}
         <div className="p-4 border-b border-gray-100">
           {!collapsed && (
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-brand-green/10 flex items-center justify-center text-lg flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-brand-green/10 flex items-center justify-center text-lg flex-shrink-0 border-2 border-white shadow-sm">
                 {user.avatar_url ? (
                   <img src={user.avatar_url} alt={user.nickname} className="w-10 h-10 rounded-full object-cover" />
                 ) : '👤'}
               </div>
               <div className="min-w-0">
                 <div className="font-bold text-gray-900 text-sm truncate">{user.nickname}</div>
-                <span className={`text-xs px-1.5 py-0.5 rounded ${badge.color}`}>{badge.label}</span>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
               </div>
             </div>
           )}
           {collapsed && (
             <div className="flex justify-center">
-              <div className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center text-sm">
+              <div className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center text-sm border-2 border-white shadow-sm">
                 {user.avatar_url ? (
                   <img src={user.avatar_url} alt={user.nickname} className="w-8 h-8 rounded-full object-cover" />
                 ) : '👤'}
@@ -116,12 +116,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.href}
                 href={item.href!}
-                className={`flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors ${
+                className={`relative flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors ${
                   isActive
-                    ? 'bg-brand-green/10 text-brand-green font-medium border-r-2 border-brand-green'
+                    ? 'bg-brand-green/5 text-brand-green font-medium'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
+                {/* Active 左侧指示条 */}
+                {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-green rounded-r-full"></div>}
                 <span className="text-base flex-shrink-0">{item.icon}</span>
                 {!collapsed && <span>{item.label}</span>}
               </Link>
@@ -141,7 +143,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={handleLogout}
             className="w-full flex items-center justify-center space-x-2 py-2 text-xs text-red-500 hover:bg-red-50 rounded-lg transition-colors"
           >
-            <span>🚪</span>
+            <span></span>
             {!collapsed && <span>退出登录</span>}
           </button>
           <Link
