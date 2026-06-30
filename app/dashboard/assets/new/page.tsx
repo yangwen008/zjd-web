@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import RegionSelector from '@/components/shared/RegionSelector';
 
 const ASSET_TYPES = [
   { value: '宅基地', icon: '🏠' },
@@ -270,7 +271,7 @@ export default function PublishAssetPage() {
         <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
           <h3 className="font-bold text-gray-800 border-b pb-2">📍 地址信息</h3>
 
-          <AddressPicker
+          <RegionSelector
             province={formData.province}
             city={formData.city}
             district={formData.district}
@@ -441,149 +442,4 @@ export default function PublishAssetPage() {
   );
 }
 
-// ═══ 内联地址选择器（自定义下拉，避免原生 select 兼容问题）═══
-function DropdownSelect({
-  value, options, placeholder, disabled, loading, onChange,
-}: {
-  value: string;
-  options: { label: string; value: string }[];
-  placeholder: string;
-  disabled?: boolean;
-  loading?: boolean;
-  onChange: (v: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
 
-  const handleSelect = (v: string) => {
-    onChange(v);
-    setOpen(false);
-  };
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => !disabled && !loading && setOpen(!open)}
-        className={`w-full px-3 py-2.5 text-sm text-left border rounded-lg transition-colors ${
-          disabled ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
-          : open ? 'border-brand-green ring-1 ring-brand-green/20'
-          : 'border-gray-300 hover:border-gray-400'
-        }`}
-      >
-        {loading ? '加载中...' : value || placeholder}
-        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {open && !disabled && !loading && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-            {options.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-gray-400">暂无数据</div>
-            ) : (
-              options.map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleSelect(opt.value)}
-                  className={`w-full px-3 py-2 text-sm text-left hover:bg-brand-green/10 transition-colors ${
-                    opt.value === value ? 'bg-brand-green/5 text-brand-green font-medium' : 'text-gray-700'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function AddressPicker({
-  province, city, district,
-  onProvinceChange, onCityChange, onDistrictChange,
-}: {
-  province: string; city: string; district: string;
-  onProvinceChange: (v: string) => void;
-  onCityChange: (v: string) => void;
-  onDistrictChange: (v: string) => void;
-}) {
-  const [provinces, setProvinces] = useState<{ code: string; name: string; emoji?: string }[]>([]);
-  const [cities, setCities] = useState<{ code: string; name: string }[]>([]);
-  const [districts, setDistricts] = useState<{ code: string; name: string }[]>([]);
-  const [lp, setLp] = useState(true);
-  const [lc, setLc] = useState(false);
-  const [ld, setLd] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/regions?level=province')
-      .then(r => r.json())
-      .then((d: any) => setProvinces(d.data || []))
-      .catch(() => {})
-      .finally(() => setLp(false));
-  }, []);
-
-  useEffect(() => {
-    if (!province) { setCities([]); return; }
-    setLc(true);
-    fetch(`/api/regions?level=city&province=${encodeURIComponent(province)}`)
-      .then(r => r.json())
-      .then((d: any) => setCities(d.data || []))
-      .catch(() => {})
-      .finally(() => setLc(false));
-  }, [province]);
-
-  useEffect(() => {
-    if (!city || !province) { setDistricts([]); return; }
-    setLd(true);
-    fetch(`/api/regions?level=district&province=${encodeURIComponent(province)}&city=${encodeURIComponent(city)}`)
-      .then(r => r.json())
-      .then((d: any) => setDistricts(d.data || []))
-      .catch(() => {})
-      .finally(() => setLd(false));
-  }, [city, province]);
-
-  return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">省份 *</label>
-          <DropdownSelect
-            value={province}
-            options={provinces.map(p => ({ label: `${p.emoji || ''} ${p.name}`.trim(), value: p.name }))}
-            placeholder="请选择省份"
-            disabled={lp}
-            loading={lp}
-            onChange={v => { onProvinceChange(v); onCityChange(''); onDistrictChange(''); }}
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">城市 *</label>
-          <DropdownSelect
-            value={city}
-            options={cities.map(c => ({ label: c.name, value: c.name }))}
-            placeholder={!province ? '请先选择省份' : '请选择城市'}
-            disabled={!province || lc}
-            loading={lc}
-            onChange={v => { onCityChange(v); onDistrictChange(''); }}
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">区县</label>
-          <DropdownSelect
-            value={district}
-            options={districts.map(d => ({ label: d.name, value: d.name }))}
-            placeholder={!province ? '请先选择省份' : !city ? '请先选择城市' : districts.length === 0 ? '该城市暂无区县数据' : '请选择区县'}
-            disabled={!city || ld}
-            loading={ld}
-            onChange={v => onDistrictChange(v)}
-          />
-        </div>
-      </div>
-      {province && city && <p className="text-xs text-green-600">✅ {province} {city} {district}</p>}
-    </div>
-  );
-}
