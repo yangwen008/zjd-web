@@ -51,7 +51,12 @@ export default function PublishAssetPage() {
       });
   }, [router]);
 
-  const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 5000); };
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+
+  const show = (m: string, persist?: boolean) => {
+    setMsg(m);
+    if (!persist) setTimeout(() => setMsg(''), 5000);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -71,7 +76,7 @@ export default function PublishAssetPage() {
   };
 
   // 通用上传函数
-  const uploadFile = async (file: File): Promise<string | null> => {
+  const uploadFile = async (file: File): Promise<{ url: string } | null> => {
     try {
       const res = await fetch('/api/upload/r2', {
         method: 'POST',
@@ -79,14 +84,24 @@ export default function PublishAssetPage() {
         body: JSON.stringify({ filename: file.name, contentType: file.type }),
       });
       const data: any = await res.json();
-      if (!data.success) return null;
+      if (!data.success) {
+        console.error('Presign failed:', data.error);
+        return null;
+      }
 
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
       const uploadRes = await fetch(data.uploadUrl, { method: 'POST', body: formDataUpload });
       const uploadData: any = await uploadRes.json();
-      return uploadData.success ? uploadData.url : null;
-    } catch { return null; }
+      if (!uploadData.success) {
+        console.error('Upload failed:', uploadData.error);
+        return null;
+      }
+      return { url: uploadData.url };
+    } catch (err) {
+      console.error('Upload exception:', err);
+      return null;
+    }
   };
 
   // 图片上传
@@ -101,14 +116,17 @@ export default function PublishAssetPage() {
       if (file.size > 10 * 1024 * 1024) { show(`❌ ${file.name} 超过10MB`); continue; }
 
       const preview = URL.createObjectURL(file);
-      const serverUrl = await uploadFile(file);
-      if (serverUrl) {
-        newList.push({ preview, server: serverUrl });
+      const result = await uploadFile(file);
+      if (result) {
+        newList.push({ preview, server: result.url });
         setUploadedImages([...newList]);
+        setUploadErrors((prev) => prev.filter((e) => !e.includes(file.name)));
         show(`✅ ${file.name} 上传成功`);
       } else {
         URL.revokeObjectURL(preview);
-        show(`❌ ${file.name} 上传失败`);
+        const errMsg = `${file.name} 上传失败，请检查网络后重试`;
+        setUploadErrors((prev) => [...prev, errMsg]);
+        show(`❌ ${errMsg}`, true);
       }
     }
     setUploading(false);
@@ -127,14 +145,14 @@ export default function PublishAssetPage() {
       if (file.size > 50 * 1024 * 1024) { show(`❌ ${file.name} 超过50MB`); continue; }
 
       const preview = URL.createObjectURL(file);
-      const serverUrl = await uploadFile(file);
-      if (serverUrl) {
-        newList.push({ preview, server: serverUrl });
+      const result = await uploadFile(file);
+      if (result) {
+        newList.push({ preview, server: result.url });
         setUploadedVideos([...newList]);
         show(`✅ ${file.name} 上传成功`);
       } else {
         URL.revokeObjectURL(preview);
-        show(`❌ ${file.name} 上传失败`);
+        show(`❌ ${file.name} 上传失败，请检查网络后重试`, true);
       }
     }
     setUploading(false);
@@ -159,8 +177,9 @@ export default function PublishAssetPage() {
     e.preventDefault();
     if (!user) { show('❌ 请先登录'); return; }
     if (!formData.title.trim()) { show('❌ 请输入资产标题'); return; }
-    if (!formData.province) { show('请选择省份'); return; }
+    if (!formData.province) { show('❌ 请选择省份'); return; }
     if (!formData.area_mu || parseFloat(formData.area_mu) <= 0) { show('❌ 请输入有效面积'); return; }
+    if (uploadedImages.length === 0) { show('❌ 请至少上传一张资产图片', true); return; }
 
     setLoading(true);
     try {
@@ -322,9 +341,25 @@ export default function PublishAssetPage() {
         <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
           <h3 className="font-bold text-gray-800 border-b pb-2">📷 图片与视频</h3>
 
+          {/* 上传错误提示 */}
+          {uploadErrors.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-red-700">⚠️ 上传失败</span>
+                <button type="button" onClick={() => setUploadErrors([])} className="text-xs text-red-500 hover:text-red-700">清除</button>
+              </div>
+              {uploadErrors.map((err, i) => (
+                <p key={i} className="text-xs text-red-600">• {err}</p>
+              ))}
+            </div>
+          )}
+
           {/* 图片 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">图片上传 *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              图片上传 <span className="text-red-500">*</span>
+              <span className="text-xs text-gray-400 ml-2">（至少1张，最多10张）</span>
+            </label>
             <div className="flex items-center space-x-3">
               <label className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
                 <span className="text-lg">📷</span>
@@ -333,6 +368,9 @@ export default function PublishAssetPage() {
               </label>
               <span className="text-xs text-gray-400">JPG/PNG/WebP，单张 ≤ 10MB</span>
             </div>
+            {uploadedImages.length === 0 && !uploading && (
+              <p className="text-sm text-orange-500 mt-2">⚠️ 请至少上传一张图片，否则资产将无法通过审核</p>
+            )}
             {uploadedImages.length > 0 && (
               <div className="grid grid-cols-4 gap-3 mt-3">
                 {uploadedImages.map((item, i) => (
