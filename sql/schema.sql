@@ -376,6 +376,20 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   PRIMARY KEY (key, ip)
 );
 
+-- 21.5 用户收藏表
+CREATE TABLE IF NOT EXISTS user_favorites (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id       INTEGER NOT NULL,
+  asset_id      INTEGER NOT NULL,
+  created_at    TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (asset_id) REFERENCES assets(id),
+  UNIQUE(user_id, asset_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_favorites_user ON user_favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_asset ON user_favorites(asset_id);
+
 -- 22. 审核记录表
 CREATE TABLE IF NOT EXISTS audit_reviews (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,

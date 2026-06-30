@@ -27,11 +27,11 @@ export async function GET(request: Request) {
         `SELECT COUNT(*) as total FROM leads WHERE broker_id = ?`,
         user.id
       ),
-      // 3. 收藏统计（用户主动解锁的）
+      // 3. 收藏统计
       queryOne<{ total: number }>(
-        `SELECT COUNT(*) as total FROM leads WHERE user_id = ?`,
+        `SELECT COUNT(*) as total FROM user_favorites WHERE user_id = ?`,
         user.id
-      ),
+      ).catch(() => ({ total: 0 })),
       // 4. 大宗项目统计
       queryOne<{ total: number }>(
         `SELECT COUNT(*) as total FROM bulk_projects WHERE user_id = ?`,

@@ -23,48 +23,61 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: '标题、省份、面积为必填项' }, { status: 400 });
       }
 
-      // 2. 【关键修复】：处理可选字段，将 undefined 或 空字符串 转换为 null
+      // 2. 处理可选字段，undefined/空字符串 → null
       const price_year = body.price_year ? parseFloat(body.price_year) : null;
       const price_total = body.price_total ? parseFloat(body.price_total) : null;
       const lease_years = body.lease_years ? parseInt(body.lease_years) : null;
       const gps_lat = body.gps_lat ? parseFloat(body.gps_lat) : null;
       const gps_lng = body.gps_lng ? parseFloat(body.gps_lng) : null;
-      
-      // 处理图片 (转为 JSON 字符串)
+
+      // 3. 拼接 location 字段
+      const location = [body.province, body.city, body.district].filter(Boolean).join('');
+
+      // 4. 处理图片（兼容 JSON 数组和逗号分隔字符串）
       let imagesJson = '[]';
       if (body.images) {
-        const urls = body.images.split(',').filter((u: string) => u.trim() !== '');
-        imagesJson = JSON.stringify(urls);
-      }
-      
-      // 处理视频 (取第一个)
-      let video_url = null;
-      if (body.videos) {
-        const videos = body.videos.split(',').filter((v: string) => v.trim() !== '');
-        video_url = videos[0] || null;
+        if (typeof body.images === 'string' && body.images.startsWith('[')) {
+          imagesJson = body.images; // 已经是 JSON 数组
+        } else if (typeof body.images === 'string') {
+          const urls = body.images.split(',').filter((u: string) => u.trim() !== '');
+          imagesJson = JSON.stringify(urls);
+        }
       }
 
-      // 3. 执行插入 (所有可选字段都确保是 null 而不是 undefined)
+      // 5. 视频URL
+      const video_url = body.video_url || null;
+
+      // 6. source_type 按角色动态设置
+      let sourceType = 'ugc';
+      if (user.role === 'admin' || user.role === 'superadmin') {
+        sourceType = body.source_type || 'official';
+      } else if (user.role === 'village_org') {
+        sourceType = 'village';
+      }
+
+      // 7. 执行插入
       await execute(
-        `INSERT INTO assets 
-        (title, description, province, city, area_mu, price_year, price_total, lease_years, 
-         asset_type, source_type, images, video_url, gps_lat, gps_lng, contact_name, contact_phone, 
+        `INSERT INTO assets
+        (title, description, location, province, city, district, area_mu, price_year, price_total, lease_years,
+         asset_type, source_type, images, video_url, gps_lat, gps_lng, contact_name, contact_phone,
          user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         body.description || '',
+        location,
         body.province,
         body.city || '',
+        body.district || '',
         parseFloat(body.area_mu),
-        price_year,        // ✅ 这里传的是 null 而不是 undefined
-        price_total,       // ✅ 这里传的是 null 而不是 undefined
-        lease_years,       // ✅ 这里传的是 null 而不是 undefined
+        price_year,
+        price_total,
+        lease_years,
         body.asset_type || '宅基地',
-        'ugc',
+        sourceType,
         imagesJson,
         video_url,
-        gps_lat,           // ✅ 这里传的是 null 而不是 undefined
-        gps_lng,           // ✅ 这里传的是 null 而不是 undefined
+        gps_lat,
+        gps_lng,
         body.contact_name || '',
         body.contact_phone || '',
         user.id,

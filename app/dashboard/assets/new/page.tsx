@@ -7,8 +7,9 @@ export default function PublishAssetPage() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [user, setUser] = useState<any>(null);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [uploadedVideos, setUploadedVideos] = useState<string[]>([]);
+  // preview: 本地blob预览, server: 服务端返回的永久URL
+  const [uploadedImages, setUploadedImages] = useState<{ preview: string; server: string }[]>([]);
+  const [uploadedVideos, setUploadedVideos] = useState<{ preview: string; server: string }[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -83,42 +84,38 @@ export default function PublishAssetPage() {
         continue;
       }
 
+      const previewUrl = URL.createObjectURL(file);
       try {
-        const previewUrl = URL.createObjectURL(file);
-        newImages.push(previewUrl);
-        setUploadedImages(newImages);
-
         const res = await fetch('/api/upload/r2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type
-          }),
+          body: JSON.stringify({ filename: file.name, contentType: file.type }),
         });
 
         const data: any = await res.json();
         if (!data.success) {
+          URL.revokeObjectURL(previewUrl);
           show(`❌ ${file.name} 获取上传URL失败`);
           continue;
         }
 
         const formDataUpload = new FormData();
         formDataUpload.append('file', file);
-        
-        const uploadRes = await fetch(data.uploadUrl, {
-          method: 'POST',
-          body: formDataUpload,
-        });
-
+        const uploadRes = await fetch(data.uploadUrl, { method: 'POST', body: formDataUpload });
         const uploadData: any = await uploadRes.json();
+
         if (!uploadData.success) {
+          URL.revokeObjectURL(previewUrl);
           show(`❌ ${file.name} 上传失败`);
           continue;
         }
 
+        // 保存 preview + server URL
+        newImages.push({ preview: previewUrl, server: uploadData.url });
+        setUploadedImages(newImages);
         show(`✅ ${file.name} 上传成功`);
       } catch (err) {
+        URL.revokeObjectURL(previewUrl);
         show(`❌ ${file.name} 上传出错`);
       }
     }
@@ -143,42 +140,37 @@ export default function PublishAssetPage() {
         continue;
       }
 
+      const previewUrl = URL.createObjectURL(file);
       try {
-        const previewUrl = URL.createObjectURL(file);
-        newVideos.push(previewUrl);
-        setUploadedVideos(newVideos);
-
         const res = await fetch('/api/upload/r2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type
-          }),
+          body: JSON.stringify({ filename: file.name, contentType: file.type }),
         });
 
         const data: any = await res.json();
         if (!data.success) {
+          URL.revokeObjectURL(previewUrl);
           show(`❌ ${file.name} 获取上传URL失败`);
           continue;
         }
 
         const formDataUpload = new FormData();
         formDataUpload.append('file', file);
-        
-        const uploadRes = await fetch(data.uploadUrl, {
-          method: 'POST',
-          body: formDataUpload,
-        });
-
+        const uploadRes = await fetch(data.uploadUrl, { method: 'POST', body: formDataUpload });
         const uploadData: any = await uploadRes.json();
+
         if (!uploadData.success) {
+          URL.revokeObjectURL(previewUrl);
           show(`❌ ${file.name} 上传失败`);
           continue;
         }
 
+        newVideos.push({ preview: previewUrl, server: uploadData.url });
+        setUploadedVideos(newVideos);
         show(`✅ ${file.name} 上传成功`);
       } catch (err) {
+        URL.revokeObjectURL(previewUrl);
         show(`❌ ${file.name} 上传出错`);
       }
     }
@@ -188,7 +180,7 @@ export default function PublishAssetPage() {
   // 删除图片
   const removeImage = (index: number) => {
     const newImages = [...uploadedImages];
-    URL.revokeObjectURL(newImages[index]);
+    URL.revokeObjectURL(newImages[index].preview);
     newImages.splice(index, 1);
     setUploadedImages(newImages);
   };
@@ -196,7 +188,7 @@ export default function PublishAssetPage() {
   // 删除视频
   const removeVideo = (index: number) => {
     const newVideos = [...uploadedVideos];
-    URL.revokeObjectURL(newVideos[index]);
+    URL.revokeObjectURL(newVideos[index].preview);
     newVideos.splice(index, 1);
     setUploadedVideos(newVideos);
   };
@@ -226,9 +218,9 @@ export default function PublishAssetPage() {
     setMsg('');
 
     try {
-      // 提取 R2 的公开 URL（去掉预览 URL）
-      const imageUrls = uploadedImages.filter(url => url.startsWith('http'));
-      const videoUrls = uploadedVideos.filter(url => url.startsWith('http'));
+      // 提取服务端返回的永久 URL
+      const imageUrls = uploadedImages.map(item => item.server);
+      const videoUrls = uploadedVideos.map(item => item.server);
 
       const res = await fetch('/api/dashboard/publish', {
         method: 'POST',
@@ -236,8 +228,8 @@ export default function PublishAssetPage() {
         body: JSON.stringify({
           target: 'asset',
           ...formData,
-          images: imageUrls.join(','),
-          videos: videoUrls.join(','),
+          images: JSON.stringify(imageUrls),
+          video_url: videoUrls[0] || '',
         }),
       });
       
@@ -466,9 +458,9 @@ export default function PublishAssetPage() {
               
               {uploadedImages.length > 0 && (
                 <div className="grid grid-cols-4 gap-2 mt-3">
-                  {uploadedImages.map((url, i) => (
+                  {uploadedImages.map((item, i) => (
                     <div key={i} className="relative aspect-square">
-                      <img src={url} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
+                      <img src={item.preview} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
                       <button
                         type="button"
                         onClick={() => removeImage(i)}
@@ -499,9 +491,9 @@ export default function PublishAssetPage() {
               
               {uploadedVideos.length > 0 && (
                 <div className="grid grid-cols-2 gap-2 mt-3">
-                  {uploadedVideos.map((url, i) => (
+                  {uploadedVideos.map((item, i) => (
                     <div key={i} className="relative">
-                      <video src={url} controls className="w-full h-32 object-cover rounded border border-gray-200" />
+                      <video src={item.preview} controls className="w-full h-32 object-cover rounded border border-gray-200" />
                       <button
                         type="button"
                         onClick={() => removeVideo(i)}
