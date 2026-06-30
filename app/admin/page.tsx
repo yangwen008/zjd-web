@@ -140,15 +140,20 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
           { label: '总资产数', value: stats.total.toLocaleString(), icon: '🏠', color: 'text-brand-green' },
-          { label: '今日新增', value: stats.todayNew.toString(), icon: '📈', color: 'text-green-500' },
-          { label: '待审核', value: stats.pending.toString(), icon: '⏳', color: 'text-orange-500' },
+          { label: '今日新增', value: stats.todayNew.toString(), icon: '📈', color: 'text-green-500', href: '/admin/assets' },
+          { label: '待审核', value: stats.pending.toString(), icon: '⏳', color: 'text-orange-500', href: '/admin/assets?status=pending' },
           { label: '活跃用户', value: '—', icon: '👥', color: 'text-blue-500' },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl p-5 border border-gray-100">
+          <a
+            key={s.label}
+            href={s.href || '#'}
+            className={`bg-white rounded-xl p-5 border border-gray-100 ${s.href ? 'hover:border-brand-green hover:shadow-md transition-all cursor-pointer' : ''}`}
+          >
             <div className="text-2xl mb-2">{s.icon}</div>
             <div className="text-xs text-gray-400">{s.label}</div>
             <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-          </div>
+            {s.href && <div className="text-xs text-brand-green mt-1">点击查看详情 →</div>}
+          </a>
         ))}
       </div>
 
