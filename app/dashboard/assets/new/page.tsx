@@ -473,7 +473,7 @@ function AddressSelects({
         <select
           value={province}
           onChange={e => { onProvinceChange(e.target.value); onCityChange(''); }}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg "
         >
           <option value="">请选择省份</option>
           {provinceList.map(name => <option key={name} value={name}>{name}</option>)}
@@ -485,7 +485,7 @@ function AddressSelects({
           value={city}
           onChange={e => onCityChange(e.target.value)}
           disabled={!province}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg "
         >
           <option value="">{province ? '请选择城市' : '请先选择省份'}</option>
           {cityList.map(name => <option key={name} value={name}>{name}</option>)}
