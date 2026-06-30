@@ -26,6 +26,7 @@ export default function MyAssetsPage() {
   const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState<'mine' | 'all'>('mine');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     // 检查用户角色
@@ -41,12 +42,16 @@ export default function MyAssetsPage() {
 
   useEffect(() => {
     setLoading(true);
-    const url = scope === 'all' ? '/api/dashboard/assets?scope=all&limit=100' : '/api/dashboard/assets';
+    const params = new URLSearchParams();
+    if (scope === 'all') params.set('scope', 'all');
+    if (search.trim()) params.set('search', search.trim());
+    params.set('limit', '100');
+    const url = `/api/dashboard/assets?${params.toString()}`;
     fetch(url)
       .then((r) => r.json())
       .then((d: any) => { if (d.success) setAssets(d.data || []); })
       .finally(() => setLoading(false));
-  }, [scope]);
+  }, [scope, search]);
 
   return (
     <div>
@@ -73,6 +78,23 @@ export default function MyAssetsPage() {
         <Link href="/dashboard/assets/new" className="bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-brand-light transition-colors text-sm">
           ➕ 发布新资产
         </Link>
+      </div>
+
+      {/* 搜索栏 */}
+      <div className="mb-4 flex items-center space-x-3">
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="搜索资产标题、地点..."
+            className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:border-brand-green"
+          />
+          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        {search && <button onClick={() => setSearch('')} className="px-3 py-2.5 text-sm text-gray-500 hover:text-gray-700">清除</button>}
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
