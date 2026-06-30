@@ -273,10 +273,8 @@ export default function PublishAssetPage() {
           <AddressSelects
             province={formData.province}
             city={formData.city}
-            district={formData.district}
             onProvinceChange={(v) => setFormData({ ...formData, province: v, city: '', district: '' })}
             onCityChange={(v) => setFormData({ ...formData, city: v, district: '' })}
-            onDistrictChange={(v) => setFormData({ ...formData, district: v })}
           />
 
           <div>
@@ -441,22 +439,19 @@ export default function PublishAssetPage() {
   );
 }
 
-// ═══ 地址三级联动（与搜索页 FilterPanel 同款原生 select）═══
+// ═══ 地址二级联动（省份+城市，与搜索页 FilterPanel 同款）═══
 function AddressSelects({
-  province, city, district,
-  onProvinceChange, onCityChange, onDistrictChange,
+  province, city,
+  onProvinceChange, onCityChange,
 }: {
-  province: string; city: string; district: string;
+  province: string; city: string;
   onProvinceChange: (v: string) => void;
   onCityChange: (v: string) => void;
-  onDistrictChange: (v: string) => void;
 }) {
   const [provinces, setProvinces] = useState<{ name: string; emoji: string | null }[]>([]);
   const [cities, setCities] = useState<string[]>([]);
-  const [districts, setDistricts] = useState<string[]>([]);
   const [lp, setLp] = useState(true);
   const [lc, setLc] = useState(false);
-  const [ld, setLd] = useState(false);
 
   useEffect(() => {
     fetch('/api/regions?level=province')
@@ -476,44 +471,24 @@ function AddressSelects({
       .finally(() => setLc(false));
   }, [province]);
 
-  useEffect(() => {
-    if (!city || !province) { setDistricts([]); return; }
-    setLd(true);
-    fetch(`/api/regions?level=district&province=${encodeURIComponent(province)}&city=${encodeURIComponent(city)}`)
-      .then(r => r.json())
-      .then((d: any) => setDistricts(d.data?.map((d: any) => d.name) || []))
-      .catch(() => {})
-      .finally(() => setLd(false));
-  }, [city, province]);
-
   const selCls = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green';
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">省份 *</label>
-          <select value={province} onChange={e => { onProvinceChange(e.target.value); onCityChange(''); onDistrictChange(''); }} disabled={lp} className={selCls}>
-            <option value="">{lp ? '加载中...' : '请选择省份'}</option>
-            {provinces.map(p => <option key={p.name} value={p.name}>{p.emoji ? `${p.emoji} ` : ''}{p.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">城市 *</label>
-          <select value={city} onChange={e => { onCityChange(e.target.value); onDistrictChange(''); }} disabled={!province || lc} className={`${selCls} disabled:opacity-50`}>
-            <option value="">{!province ? '请先选择省份' : lc ? '加载中...' : '请选择城市'}</option>
-            {cities.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">区县</label>
-          <select value={district} onChange={e => onDistrictChange(e.target.value)} disabled={!city || ld} className={`${selCls} disabled:opacity-50`}>
-            <option value="">{!province ? '请先选择省份' : !city ? '请先选择城市' : ld ? '加载中...' : districts.length === 0 ? '该城市暂无区县数据' : '请选择区县'}</option>
-            {districts.map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </div>
+    <div className="grid grid-cols-2 gap-3">
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">省份 *</label>
+        <select value={province} onChange={e => { onProvinceChange(e.target.value); onCityChange(''); }} disabled={lp} className={selCls}>
+          <option value="">{lp ? '加载中...' : '请选择省份'}</option>
+          {provinces.map(p => <option key={p.name} value={p.name}>{p.emoji ? `${p.emoji} ` : ''}{p.name}</option>)}
+        </select>
       </div>
-      {province && city && <p className="text-xs text-green-600">✅ {province} {city} {district}</p>}
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">城市 *</label>
+        <select value={city} onChange={e => onCityChange(e.target.value)} disabled={!province || lc} className={`${selCls} disabled:opacity-50`}>
+          <option value="">{!province ? '请先选择省份' : lc ? '加载中...' : '请选择城市'}</option>
+          {cities.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
     </div>
   );
 }
