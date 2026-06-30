@@ -30,6 +30,11 @@ export default function AdminAssetsPage() {
   const [loading, setLoading] = useState(true);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [formData, setFormData] = useState<Partial<Asset>>({});
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<{ preview: string; server: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [provinceList, setProvinceList] = useState<string[]>([]);
+  const [cityList, setCityList] = useState<string[]>([]);
   const [msg, setMsg] = useState('');
 
   const fetchAssets = async (status?: string) => {
@@ -56,18 +61,61 @@ export default function AdminAssetsPage() {
     } catch { show('❌ 操作失败'); }
   };
 
-  const openEdit = (asset: Asset) => { setEditingAsset(asset); setFormData(asset); };
+  const openEdit = (asset: Asset) => {
+    setEditingAsset(asset);
+    setFormData(asset);
+    try {
+      const imgs = asset.images ? JSON.parse(asset.images as any) : [];
+      setExistingImages(Array.isArray(imgs) ? imgs : []);
+    } catch { setExistingImages([]); }
+    setNewImages([]);
+    // 加载地址数据
+    fetch('/api/regions?level=province').then(r => r.json()).then((d: any) => setProvinceList((d.data || []).map((p: any) => p.name))).catch(() => {});
+    if (asset.province) {
+      fetch(`/api/regions?level=city&province=${encodeURIComponent(asset.province)}`).then(r => r.json()).then((d: any) => setCityList((d.data || []).map((c: any) => c.name))).catch(() => {});
+    }
+  };
 
   const handleSaveEdit = async () => {
     if (!editingAsset) return;
+    const allImages = [...existingImages, ...newImages.map(i => i.server)];
     try {
-      const res = await fetch(`/api/admin/assets/${editingAsset.id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData),
+      const res = await fetch(`/api/admin/assets`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, id: editingAsset.id, images: JSON.stringify(allImages) }),
       });
       const data: any = await res.json();
-      if (data.success) { show('✅ 修改已保存'); setEditingAsset(null); fetchAssets(filter); } 
+      if (data.success) { show('✅ 修改已保存'); setEditingAsset(null); fetchAssets(filter); }
       else { show(`❌ ${data.error}`); }
     } catch { show('❌ 保存失败'); }
+  };
+
+  const uploadFile = async (file: File): Promise<string | null> => {
+    try {
+      const res = await fetch('/api/upload/r2', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filename: file.name, contentType: file.type }) });
+      const data: any = await res.json();
+      if (!data.success) return null;
+      const fd = new FormData(); fd.append('file', file);
+      const upRes = await fetch(data.uploadUrl, { method: 'POST', body: fd });
+      const upData: any = await upRes.json();
+      return upData.success ? upData.url : null;
+    } catch { return null; }
+  };
+
+  const handleAdminImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+    setUploading(true);
+    const list = [...newImages];
+    for (const file of files) {
+      if (!file.type.startsWith('image/') || file.size > 10 * 1024 * 1024) continue;
+      const preview = URL.createObjectURL(file);
+      const url = await uploadFile(file);
+      if (url) { list.push({ preview, server: url }); setNewImages([...list]); }
+      else { URL.revokeObjectURL(preview); }
+    }
+    setUploading(false);
+    e.target.value = '';
   };
 
   return (
@@ -135,8 +183,18 @@ export default function AdminAssetsPage() {
             <div className="p-6 space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">标题</label><input type="text" value={formData.title || ''} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">省份</label><input type="text" value={formData.province || ''} onChange={(e) => setFormData({...formData, province: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">城市</label><input type="text" value={formData.city || ''} onChange={(e) => setFormData({...formData, city: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">省份</label>
+                  <select value={formData.province || ''} onChange={e => { setFormData({...formData, province: e.target.value, city: '', district: ''}); fetch(`/api/regions?level=city&province=${encodeURIComponent(e.target.value)}`).then(r=>r.json()).then((d:any)=>setCityList((d.data||[]).map((c:any)=>c.name))).catch(()=>{}); }} className="w-full px-3 py-2 border border-gray-200 rounded-lg">
+                    <option value="">请选择省份</option>
+                    {provinceList.map(name => <option key={name} value={name}>{name}</option>)}
+                  </select>
+                </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">城市</label>
+                  <select value={formData.city || ''} onChange={e => setFormData({...formData, city: e.target.value})} disabled={!formData.province} className="w-full px-3 py-2 border border-gray-200 rounded-lg">
+                    <option value="">{formData.province ? '请选择城市' : '请先选择省份'}</option>
+                    {cityList.map(name => <option key={name} value={name}>{name}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">面积(亩)</label><input type="number" step="0.1" value={formData.area_mu || ''} onChange={(e) => setFormData({...formData, area_mu: parseFloat(e.target.value)})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
@@ -145,6 +203,32 @@ export default function AdminAssetsPage() {
               </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">资产类型</label><input type="text" value={formData.asset_type || ''} onChange={(e) => setFormData({...formData, asset_type: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">描述</label><textarea value={formData.description || ''} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+
+              {/* 图片管理 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">图片</label>
+                {(existingImages.length > 0 || newImages.length > 0) && (
+                  <div className="grid grid-cols-4 gap-2 mb-2">
+                    {existingImages.map((url, i) => (
+                      <div key={`ex-${i}`} className="relative aspect-square group">
+                        <img src={url} alt="" className="w-full h-full object-cover rounded-lg border" />
+                        <button type="button" onClick={() => setExistingImages(existingImages.filter((_,j)=>j!==i))} className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100">×</button>
+                      </div>
+                    ))}
+                    {newImages.map((item, i) => (
+                      <div key={`new-${i}`} className="relative aspect-square group">
+                        <img src={item.preview} alt="" className="w-full h-full object-cover rounded-lg border" />
+                        <button type="button" onClick={() => { URL.revokeObjectURL(item.preview); setNewImages(newImages.filter((_,j)=>j!==i)); }} className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100">×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <label className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer text-sm ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <span>📷 添加图片</span>
+                  <input type="file" accept="image/*" multiple onChange={handleAdminImageUpload} className="hidden" />
+                </label>
+              </div>
+
               <div><label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
                 <select value={formData.status || 'pending'} onChange={(e) => setFormData({...formData, status: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green">
                   <option value="pending">待审核</option><option value="approved">已上架</option><option value="rejected">已拒绝</option><option value="banned">已封禁</option>
