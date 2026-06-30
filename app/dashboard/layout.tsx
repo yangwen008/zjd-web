@@ -16,7 +16,7 @@ interface UserInfo {
 const MENU_ITEMS = [
   { icon: '📊', label: '我的概览', href: '/dashboard', roles: ['user', 'broker', 'village_org', 'data_editor', 'project_publisher', 'admin', 'superadmin'] },
   { icon: '🏠', label: '我的资产', href: '/dashboard/assets', roles: ['user', 'broker', 'village_org', 'admin', 'superadmin'] },
-  { icon: '', label: '发布资产', href: '/dashboard/assets/new', roles: ['user', 'broker', 'village_org', 'admin', 'superadmin'] },
+  { icon: '➕', label: '发布资产', href: '/dashboard/assets/new', roles: ['user', 'broker', 'village_org', 'admin', 'superadmin'] },
   { divider: true, roles: ['broker', 'village_org', 'admin', 'superadmin'] },
   { icon: '📋', label: '我的线索', href: '/dashboard/leads', roles: ['broker', 'village_org', 'admin', 'superadmin'] },
   { divider: true, roles: ['project_publisher', 'admin', 'superadmin'] },
@@ -38,7 +38,6 @@ const ROLE_BADGES: Record<string, { label: string; color: string }> = {
   superadmin: { label: '超级管理员', color: 'bg-red-100 text-red-600' },
 };
 
-// 获取当前页面标题的辅助函数
 const getPageTitle = (pathname: string) => {
   const item = MENU_ITEMS.find(m => 'href' in m && m.href === pathname);
   return item && 'label' in item ? item.label : '我的概览';
@@ -48,7 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false); // 控制用户下拉菜单
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -85,12 +84,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pageTitle = getPageTitle(pathname);
 
   return (
-    // 整体容器：去掉 pt-16，顶天立地
     <div className="min-h-screen bg-[#F9F9F8] flex">
       
       {/* ================= 左侧 Sidebar ================= */}
       <aside className={`${collapsed ? 'w-16' : 'w-56'} bg-white border-r border-gray-100 transition-all duration-300 flex flex-col fixed top-0 bottom-0 left-0 z-30 h-screen`}>
-        {/* User info */}
         <div className="h-16 flex items-center px-4 border-b border-gray-100">
           {!collapsed && (
             <div className="flex items-center space-x-3 w-full truncate">
@@ -115,7 +112,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
         </div>
 
-        {/* Menu */}
         <nav className="flex-1 py-2 overflow-y-auto">
           {visibleMenus.map((item, i) => {
             if ('divider' in item && item.divider) {
@@ -141,7 +137,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        {/* Bottom */}
         <div className="p-3 border-t border-gray-100 space-y-1">
           <button
             onClick={() => setCollapsed(!collapsed)}
@@ -159,31 +154,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      {/* ================= 右侧主区域 (包含 Topbar 和 Content) ================= */}
+      {/* ================= 右侧主区域 ================= */}
       <div className={`flex-1 flex flex-col min-h-screen ${collapsed ? 'ml-16' : 'ml-56'} transition-all duration-300`}>
         
-        {/* 🌟 新增：Dashboard 专属 Topbar (页眉) */}
+        {/* Topbar */}
         <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
-          {/* 左侧：品牌 Logo + 当前页面标题 */}
           <div className="flex items-center gap-6">
-            {/* 品牌 Logo (柔和风格) */}
+            
+            {/* 🌟 【唯一修改点】：将原来的文字 Logo 替换为您上传的图片 Logo */}
             <Link href="/dashboard" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-brand-green flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:shadow-md transition-all">
-                z
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="zjd.cn" 
+                className="w-8 h-8 object-contain drop-shadow-sm group-hover:scale-105 transition-transform" 
+              />
               <span className="font-bold text-gray-800 text-base tracking-tight hidden sm:block">宅基地计划</span>
             </Link>
             
-            {/* 分隔线 */}
             <div className="h-5 w-px bg-gray-200 hidden sm:block"></div>
-            
-            {/* 当前页面标题 */}
             <h2 className="text-sm font-medium text-gray-600 hidden sm:block">{pageTitle}</h2>
           </div>
 
           {/* 右侧：通知 + 用户菜单 */}
           <div className="flex items-center gap-4">
-            {/* 通知铃铛 */}
             <button className="relative p-2 text-gray-400 hover:text-brand-green hover:bg-brand-green/5 rounded-full transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -191,7 +184,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
             </button>
 
-            {/* 用户头像与下拉菜单 */}
             <div className="relative">
               <button 
                 onClick={() => setShowUserMenu(!showUserMenu)}
@@ -208,7 +200,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </svg>
               </button>
 
-              {/* 下拉菜单内容 */}
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="px-4 py-2 border-b border-gray-50">
@@ -242,7 +233,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        {/* 内容滚动区 */}
         <main className="flex-1 p-6 overflow-y-auto">
           {children}
         </main>
