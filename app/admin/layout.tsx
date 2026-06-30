@@ -171,7 +171,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const breadcrumbs = getBreadcrumbs();
 
   return (
-    <div className="fixed inset-0 z-50 flex bg-gray-50/80 font-sans text-gray-900">
+   <div className="min-h-screen flex bg-gray-50 font-sans text-gray-900">
       
       {/* ================= 左侧侧边栏 (🌟 改为浅色主题，对比度极高) ================= */}
       <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-white text-gray-700 transition-all duration-300 ease-in-out flex flex-col shadow-lg z-20 border-r border-gray-200`}>
