@@ -1,10 +1,9 @@
 'use client';
-
 import { useState } from 'react';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-
+  
   const navLinks = [
     { href: '/regions', label: '🔥 热点寻源' },
     { href: '/market-index', label: '📊 流转大盘' },
@@ -23,7 +22,7 @@ export default function Navbar() {
         <a href="/" className="flex items-center space-x-3 cursor-pointer">
           {/* zjd 用深绿，.cn 用金色 */}
           <span className="text-2xl font-black tracking-tight text-[#2C4C3B]">
-            zjd<span className="text-[#D4AF37]">.cn</span>
+            zjd <span className="text-[#D4AF37]">.cn</span>
           </span>
           <span className="text-xs bg-[#2C4C3B]/10 text-[#2C4C3B] px-2.5 py-0.5 rounded-full font-bold">
             宅基地计划 v8.8.1
@@ -45,8 +44,13 @@ export default function Navbar() {
 
         {/* Right */}
         <div className="flex items-center space-x-4">
-          <a href="/admin" className="hidden sm:block text-xs text-gray-400 hover:text-gray-600 transition-colors font-medium">
-            后台管理
+          
+          {/* 🌟 【修改点 1】：将“后台管理”改为“用户登录”，并跳转到 /login */}
+          <a 
+            href="/login" 
+            className="hidden sm:block text-xs text-gray-400 hover:text-[#2C4C3B] transition-colors font-medium"
+          >
+            用户登录
           </a>
           
           {/* 登录按钮 - 深绿色实心 */}
@@ -82,6 +86,15 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
+          
+          {/* 🌟 【修改点 2】：在手机端菜单底部，也加上“用户登录”入口 */}
+          <a 
+            href="/login" 
+            className="block px-3 py-2 text-sm text-gray-400 hover:text-[#2C4C3B] font-medium border-t border-gray-100 mt-2 pt-3"
+            onClick={() => setMenuOpen(false)}
+          >
+            用户登录
+          </a>
         </div>
       )}
     </nav>
