@@ -29,7 +29,8 @@ const SOURCE_LABELS: Record<string, string> = { official: '官方', village: '�
 
 export default function AdminAssetsPage() {
   const searchParams = useSearchParams();
-  const [filter, setFilter] = useState(searchParams.get('status') || 'all');
+  // 【修复点 2】：将默认筛选状态从 'all' 改为 'pending'，让审核员一进来只看到待审核资产
+  const [filter, setFilter] = useState(searchParams.get('status') || 'pending');
   const [search, setSearch] = useState('');
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,15 +59,16 @@ export default function AdminAssetsPage() {
   };
 
   useEffect(() => { fetchAssets(filter); }, [filter]);
+
   const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3000); };
 
   const handleAction = async (id: number, action: 'approve' | 'reject') => {
     try {
       const res = await fetch(`/api/admin/assets/${id}/${action}`, { method: 'POST' });
       const data: any = await res.json();
-      if (data.success) { show(`✅ 已${action === 'approve' ? '批准' : '拒绝'}`); fetchAssets(filter); } 
+      if (data.success) { show(`✅ 已${action === 'approve' ? '批准' : '拒绝'}`); fetchAssets(filter); }
       else { show(`❌ ${data.error}`); }
-    } catch { show('❌ 操作失败'); }
+    } catch { show(' 操作失败'); }
   };
 
   const openEdit = (asset: Asset) => {
@@ -154,7 +156,7 @@ export default function AdminAssetsPage() {
           ))}
         </div>
       </div>
-
+      
       {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
 
       {/* 搜索栏 */}
@@ -178,7 +180,7 @@ export default function AdminAssetsPage() {
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <table className="w-full text-sm">
-          <thead><tr className="bg-gray-50 text-left">
+          <thead> <tr className="bg-gray-50 text-left">
             <th className="px-4 py-3 font-medium text-gray-500">ID</th>
             <th className="px-4 py-3 font-medium text-gray-500">标题</th>
             <th className="px-4 py-3 font-medium text-gray-500">区域</th>
@@ -186,7 +188,7 @@ export default function AdminAssetsPage() {
             <th className="px-4 py-3 font-medium text-gray-500">浏览量</th>
             <th className="px-4 py-3 font-medium text-gray-500">状态</th>
             <th className="px-4 py-3 font-medium text-gray-500">操作</th>
-          </tr></thead>
+          </tr> </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
             : assets.length > 0 ? assets.map((asset) => (
@@ -221,7 +223,7 @@ export default function AdminAssetsPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">✏️ 编辑资产 #{editingAsset.id}</h2>
-              <button onClick={() => setEditingAsset(null)} className="text-gray-400 hover:text-gray-600"></button>
+              <button onClick={() => setEditingAsset(null)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="p-6 space-y-4">
               <div><label className="block text-sm font-medium text-gray-700 mb-1">标题</label><input type="text" value={formData.title || ''} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
@@ -291,7 +293,7 @@ export default function AdminAssetsPage() {
 
               <div><label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
                 <select value={formData.status || 'pending'} onChange={(e) => setFormData({...formData, status: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green">
-                  <option value="pending">待审核</option><option value="approved">已上架</option><option value="rejected">已拒绝</option><option value="banned">已封禁</option>
+                  <option value="pending">待审核</option> <option value="approved">已上架</option> <option value="rejected">已拒绝</option> <option value="banned">已封禁</option>
                 </select>
               </div>
             </div>
