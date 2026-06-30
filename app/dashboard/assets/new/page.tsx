@@ -1,7 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import RegionSelector from '@/components/shared/RegionSelector';
 
 const ASSET_TYPES = [
   { value: '宅基地', icon: '🏠' },
@@ -252,18 +251,14 @@ export default function PublishAssetPage() {
         <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
           <h3 className="font-bold text-gray-800 border-b pb-2">📍 地址信息</h3>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">省/市/区 *</label>
-            <RegionSelector
-              province={formData.province}
-              city={formData.city}
-              district={formData.district}
-              onProvinceChange={(v) => setFormData({ ...formData, province: v, city: '', district: '' })}
-              onCityChange={(v) => setFormData({ ...formData, city: v, district: '' })}
-              onDistrictChange={(v) => setFormData({ ...formData, district: v })}
-              showDistrict
-            />
-          </div>
+          <AddressPicker
+            province={formData.province}
+            city={formData.city}
+            district={formData.district}
+            onProvinceChange={(v) => setFormData({ ...formData, province: v, city: '', district: '' })}
+            onCityChange={(v) => setFormData({ ...formData, city: v, district: '' })}
+            onDistrictChange={(v) => setFormData({ ...formData, district: v })}
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">详细地址</label>
@@ -404,6 +399,99 @@ export default function PublishAssetPage() {
           {loading ? '提交中...' : uploading ? '上传中...' : '✅ 确认发布'}
         </button>
       </form>
+    </div>
+  );
+}
+
+// ═══ 内联地址选择器 ═══
+function AddressPicker({
+  province, city, district,
+  onProvinceChange, onCityChange, onDistrictChange,
+}: {
+  province: string; city: string; district: string;
+  onProvinceChange: (v: string) => void;
+  onCityChange: (v: string) => void;
+  onDistrictChange: (v: string) => void;
+}) {
+  const [provinces, setProvinces] = useState<{ code: string; name: string; emoji?: string }[]>([]);
+  const [cities, setCities] = useState<{ code: string; name: string }[]>([]);
+  const [districts, setDistricts] = useState<{ code: string; name: string }[]>([]);
+  const [lp, setLp] = useState(true);
+  const [lc, setLc] = useState(false);
+  const [ld, setLd] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/regions?level=province')
+      .then(r => r.json())
+      .then(d => setProvinces(d.data || []))
+      .catch(() => {})
+      .finally(() => setLp(false));
+  }, []);
+
+  useEffect(() => {
+    if (!province) { setCities([]); return; }
+    setLc(true);
+    fetch(`/api/regions?level=city&province=${encodeURIComponent(province)}`)
+      .then(r => r.json())
+      .then(d => setCities(d.data || []))
+      .catch(() => {})
+      .finally(() => setLc(false));
+  }, [province]);
+
+  useEffect(() => {
+    if (!city || !province) { setDistricts([]); return; }
+    setLd(true);
+    fetch(`/api/regions?level=district&province=${encodeURIComponent(province)}&city=${encodeURIComponent(city)}`)
+      .then(r => r.json())
+      .then(d => setDistricts(d.data || []))
+      .catch(() => {})
+      .finally(() => setLd(false));
+  }, [city, province]);
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">省份 *</label>
+          <select
+            value={province}
+            onChange={e => { onProvinceChange(e.target.value); onCityChange(''); onDistrictChange(''); }}
+            disabled={lp}
+            style={{ backgroundColor: 'white', cursor: 'pointer', WebkitAppearance: 'menulist' }}
+            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-brand-green"
+          >
+            <option value="">{lp ? '加载中...' : '请选择省份'}</option>
+            {provinces.map(p => <option key={p.code} value={p.name}>{p.emoji ? `${p.emoji} ` : ''}{p.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">城市 *</label>
+          <select
+            value={city}
+            onChange={e => { onCityChange(e.target.value); onDistrictChange(''); }}
+            disabled={!province || lc}
+            style={{ backgroundColor: 'white', cursor: province ? 'pointer' : 'not-allowed', WebkitAppearance: 'menulist' }}
+            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-brand-green disabled:opacity-50"
+          >
+            <option value="">{!province ? '请先选择省份' : lc ? '加载中...' : '请选择城市'}</option>
+            {cities.map(c => <option key={c.code} value={c.name}>{c.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">区县</label>
+          <select
+            value={district}
+            onChange={e => onDistrictChange(e.target.value)}
+            disabled={!city || ld}
+            style={{ backgroundColor: 'white', cursor: city ? 'pointer' : 'not-allowed', WebkitAppearance: 'menulist' }}
+            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-brand-green disabled:opacity-50"
+          >
+            <option value="">{!city ? '请先选择城市' : ld ? '加载中...' : districts.length === 0 ? '暂无数据' : '请选择区县'}</option>
+            {districts.map(d => <option key={d.code} value={d.name}>{d.name}</option>)}
+          </select>
+        </div>
+      </div>
+      {province && city && <p className="text-xs text-green-600">✅ {province} {city} {district}</p>}
     </div>
   );
 }
