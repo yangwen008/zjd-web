@@ -53,6 +53,25 @@ export default function PublishAssetPage() {
 
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
 
+  // 地址数据
+  const [provinceList, setProvinceList] = useState<string[]>([]);
+  const [cityList, setCityList] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch('/api/regions?level=province')
+      .then(r => r.json())
+      .then((d: any) => setProvinceList((d.data || []).map((p: any) => p.name)))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!formData.province) { setCityList([]); return; }
+    fetch(`/api/regions?level=city&province=${encodeURIComponent(formData.province)}`)
+      .then(r => r.json())
+      .then((d: any) => setCityList((d.data || []).map((c: any) => c.name)))
+      .catch(() => {});
+  }, [formData.province]);
+
   const show = (m: string, persist?: boolean) => {
     setMsg(m);
     if (!persist) setTimeout(() => setMsg(''), 5000);
@@ -270,12 +289,31 @@ export default function PublishAssetPage() {
         <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
           <h3 className="font-bold text-gray-800 border-b pb-2">📍 地址信息</h3>
 
-          <AddressSelects
-            province={formData.province}
-            city={formData.city}
-            onProvinceChange={(v) => setFormData({ ...formData, province: v, city: '', district: '' })}
-            onCityChange={(v) => setFormData({ ...formData, city: v, district: '' })}
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">省份</label>
+              <select
+                value={formData.province}
+                onChange={e => setFormData({ ...formData, province: e.target.value, city: '', district: '' })}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg"
+              >
+                <option value="">请选择省份</option>
+                {provinceList.map(name => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">城市</label>
+              <select
+                value={formData.city}
+                onChange={e => setFormData({ ...formData, city: e.target.value, district: '' })}
+                disabled={!formData.province}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg"
+              >
+                <option value="">{formData.province ? '请选择城市' : '请先选择省份'}</option>
+                {cityList.map(name => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </div>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">详细地址</label>
@@ -438,61 +476,4 @@ export default function PublishAssetPage() {
     </div>
   );
 }
-
-// ═══ 地址二级联动（极简版，排除所有干扰因素）═══
-function AddressSelects({
-  province, city,
-  onProvinceChange, onCityChange,
-}: {
-  province: string; city: string;
-  onProvinceChange: (v: string) => void;
-  onCityChange: (v: string) => void;
-}) {
-  const [provinceList, setProvinceList] = useState<string[]>([]);
-  const [cityList, setCityList] = useState<string[]>([]);
-
-  useEffect(() => {
-    fetch('/api/regions?level=province')
-      .then(r => r.json())
-      .then((d: any) => setProvinceList((d.data || []).map((p: any) => p.name)))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (!province) { setCityList([]); return; }
-    fetch(`/api/regions?level=city&province=${encodeURIComponent(province)}`)
-      .then(r => r.json())
-      .then((d: any) => setCityList((d.data || []).map((c: any) => c.name)))
-      .catch(() => {});
-  }, [province]);
-
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">省份</label>
-        <select
-          value={province}
-          onChange={e => { onProvinceChange(e.target.value); onCityChange(''); }}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg "
-        >
-          <option value="">请选择省份</option>
-          {provinceList.map(name => <option key={name} value={name}>{name}</option>)}
-        </select>
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">城市</label>
-        <select
-          value={city}
-          onChange={e => onCityChange(e.target.value)}
-          disabled={!province}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg "
-        >
-          <option value="">{province ? '请选择城市' : '请先选择省份'}</option>
-          {cityList.map(name => <option key={name} value={name}>{name}</option>)}
-        </select>
-      </div>
-    </div>
-  );
-}
-
 
