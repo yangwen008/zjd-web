@@ -524,7 +524,7 @@ function AddressPicker({
             style={{ backgroundColor: 'white', cursor: city ? 'pointer' : 'not-allowed', WebkitAppearance: 'menulist' }}
             className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-brand-green disabled:opacity-50"
           >
-            <option value="">{!city ? '请先选择城市' : ld ? '加载中...' : districts.length === 0 ? '暂无数据' : '请选择区县'}</option>
+            <option value="">{!province ? '请先选择省份' : !city ? '请先选择城市' : ld ? '加载中...' : districts.length === 0 ? '该城市暂无区县数据' : '请选择区县'}</option>
             {districts.map(d => <option key={d.code} value={d.name}>{d.name}</option>)}
           </select>
         </div>
