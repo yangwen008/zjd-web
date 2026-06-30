@@ -47,7 +47,7 @@ export async function PUT(request: Request) {
     if (!user) return NextResponse.json({ success: false, error: '未登录' }, { status: 401 });
 
     const body = await request.json() as any;
-    const { id, title, description, province, city, district, address, area_mu, price_year, price_total, lease_years, asset_type, contact_name, contact_phone } = body;
+    const { id, title, description, province, city, district, address, area_mu, price_year, price_total, lease_years, asset_type, contact_name, contact_phone, images, video_url } = body;
 
     if (!id) return NextResponse.json({ success: false, error: '缺少资产ID' }, { status: 400 });
 
@@ -63,12 +63,12 @@ export async function PUT(request: Request) {
       `UPDATE assets SET
         title = ?, description = ?, location = ?, province = ?, city = ?, district = ?, address = ?,
         area_mu = ?, price_year = ?, price_total = ?, lease_years = ?, asset_type = ?,
-        contact_name = ?, contact_phone = ?, status = 'pending', updated_at = datetime('now')
+        images = ?, video_url = ?, contact_name = ?, contact_phone = ?, status = 'pending', updated_at = datetime('now')
        WHERE id = ?`,
       title, description || '', location, province, city || '', district || '', address || '',
       area_mu ? parseFloat(area_mu) : null, price_year ? parseFloat(price_year) : null,
       price_total ? parseFloat(price_total) : null, lease_years ? parseInt(lease_years) : null,
-      asset_type || '宅基地', contact_name || '', contact_phone || '', id
+      asset_type || '宅基地', images || '[]', video_url || null, contact_name || '', contact_phone || '', id
     );
 
     return NextResponse.json({ success: true, message: '修改成功，需重新审核' });
