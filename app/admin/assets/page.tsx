@@ -26,6 +26,7 @@ const SOURCE_LABELS: Record<string, string> = { official: '官方', village: '�
 
 export default function AdminAssetsPage() {
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
@@ -42,6 +43,7 @@ export default function AdminAssetsPage() {
     try {
       const params = new URLSearchParams();
       if (status && status !== 'all') params.set('status', status);
+      if (search.trim()) params.set('search', search.trim());
       params.set('limit', '50');
       const res = await fetch(`/api/admin/assets?${params.toString()}`);
       const data: any = await res.json();
@@ -132,6 +134,25 @@ export default function AdminAssetsPage() {
       </div>
 
       {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
+
+      {/* 搜索栏 */}
+      <div className="mb-4 flex items-center space-x-3">
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') fetchAssets(filter); }}
+            placeholder="搜索资产标题、地点、类型..."
+            className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:border-brand-green"
+          />
+          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <button onClick={() => fetchAssets(filter)} className="px-4 py-2.5 bg-brand-green text-white text-sm rounded-lg hover:bg-brand-light transition-colors">搜索</button>
+        {search && <button onClick={() => { setSearch(''); fetchAssets(filter); }} className="px-3 py-2.5 text-sm text-gray-500 hover:text-gray-700">清除</button>}
+      </div>
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <table className="w-full text-sm">
