@@ -103,7 +103,7 @@ export default function PublishAssetPage() {
         try {
           // 匹配最近的省
           const provRes = await fetch('/api/regions?level=province');
-          const provData = await provRes.json();
+          const provData: any = await provRes.json();
           const provinces: { name: string; lat: number; lng: number }[] = provData.data || [];
           let nearestProv = provinces[0];
           let minDist = Infinity;
@@ -116,7 +116,7 @@ export default function PublishAssetPage() {
 
           // 匹配最近的市
           const cityRes = await fetch(`/api/regions?level=city&province=${encodeURIComponent(nearestProv.name)}`);
-          const cityData = await cityRes.json();
+          const cityData: any = await cityRes.json();
           const cities: { name: string; lat: number; lng: number }[] = cityData.data || [];
           let nearestCity = '';
           let minCityDist = Infinity;
