@@ -81,14 +81,70 @@ export default function PublishAssetPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // GPS 定位
+  // Haversine 距离计算 (km)
+  const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  // GPS 定位 + 自动匹配省市
   const handleGetLocation = () => {
     if (!navigator.geolocation) { show('❌ 您的浏览器不支持地理位置'); return; }
     show('📍 正在获取位置...');
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setFormData({ ...formData, gps_lat: pos.coords.latitude.toFixed(6), gps_lng: pos.coords.longitude.toFixed(6) });
-        show('✅ 定位成功');
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setFormData(prev => ({ ...prev, gps_lat: lat.toFixed(6), gps_lng: lng.toFixed(6) }));
+
+        try {
+          // 匹配最近的省
+          const provRes = await fetch('/api/regions?level=province');
+          const provData = await provRes.json();
+          const provinces: { name: string; lat: number; lng: number }[] = provData.data || [];
+          let nearestProv = provinces[0];
+          let minDist = Infinity;
+          for (const p of provinces) {
+            if (p.lat && p.lng) {
+              const d = haversine(lat, lng, p.lat, p.lng);
+              if (d < minDist) { minDist = d; nearestProv = p; }
+            }
+          }
+
+          // 匹配最近的市
+          const cityRes = await fetch(`/api/regions?level=city&province=${encodeURIComponent(nearestProv.name)}`);
+          const cityData = await cityRes.json();
+          const cities: { name: string; lat: number; lng: number }[] = cityData.data || [];
+          let nearestCity = '';
+          let minCityDist = Infinity;
+          for (const c of cities) {
+            if (c.lat && c.lng) {
+              const d = haversine(lat, lng, c.lat, c.lng);
+              if (d < minCityDist) { minCityDist = d; nearestCity = c.name; }
+            }
+          }
+
+          setFormData(prev => ({
+            ...prev,
+            gps_lat: lat.toFixed(6),
+            gps_lng: lng.toFixed(6),
+            province: nearestProv.name,
+            city: nearestCity,
+            district: '',
+          }));
+
+          setProvinceList(provinces.map(p => p.name));
+          if (nearestCity) {
+            setCityList(cities.map(c => c.name));
+          }
+
+          show(`✅ 定位成功：${nearestProv.name} ${nearestCity}`);
+        } catch {
+          show('✅ GPS已获取，省市匹配失败，请手动选择');
+        }
       },
       () => show('❌ 获取位置失败，请检查浏览器权限'),
     );
