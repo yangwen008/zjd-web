@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 
 // Homepage section config fields
@@ -89,7 +88,6 @@ export default function AdminDashboard() {
         if (data.success) setConfig((prev) => ({ ...prev, ...data.data }));
       })
       .catch(() => {});
-
     // Load stats
     fetch('/api/admin/stats')
       .then((r) => r.json())
@@ -115,7 +113,7 @@ export default function AdminDashboard() {
         setMessage(`❌ 保存失败: ${data.error}`);
       }
     } catch {
-      setMessage('❌ 网络错误');
+      setMessage(' 网络错误');
     } finally {
       setSaving(false);
       setTimeout(() => setMessage(''), 3000);
@@ -129,7 +127,6 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-5xl">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">📊 运营控制台</h1>
-
       {message && (
         <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${message.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
           {message}
@@ -139,9 +136,10 @@ export default function AdminDashboard() {
       {/* A. Stats Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: '总资产数', value: stats.total.toLocaleString(), icon: '🏠', color: 'text-brand-green' },
+          // 【修复点 1】：为总资产数添加 href 跳转链接，使其与今日新增、待审核保持一致
+          { label: '总资产数', value: stats.total.toLocaleString(), icon: '🏠', color: 'text-brand-green', href: '/admin/assets' },
           { label: '今日新增', value: stats.todayNew.toString(), icon: '📈', color: 'text-green-500', href: '/admin/assets' },
-          { label: '待审核', value: stats.pending.toString(), icon: '⏳', color: 'text-orange-500', href: '/admin/assets?status=pending' },
+          { label: '待审核', value: stats.pending.toString(), icon: '⏳', color: 'text-orange-500', href: '/admin/assets?status=pending' }, 
           { label: '活跃用户', value: '—', icon: '👥', color: 'text-blue-500' },
         ].map((s) => (
           <a
