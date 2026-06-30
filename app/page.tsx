@@ -327,7 +327,7 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {bulkProjects.map((p) => (
-                <Link key={p.id} href={`/asset/${p.id}`} className="block">
+                <Link key={p.id} href={`/bulk-projects/${p.id}`} className="block">
                   <BulkProjectCard project={p} />
                 </Link>
               ))}
