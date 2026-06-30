@@ -30,8 +30,8 @@ export async function POST(request: Request) {
       const gps_lat = body.gps_lat ? parseFloat(body.gps_lat) : null;
       const gps_lng = body.gps_lng ? parseFloat(body.gps_lng) : null;
 
-      // 3. 拼接 location 字段
-      const location = [body.province, body.city, body.district].filter(Boolean).join('');
+      // 3. 拼接 location 字段（省+市+区+详细地址）
+      const location = [body.province, body.city, body.district, body.address].filter(Boolean).join('');
 
       // 4. 处理图片（兼容 JSON 数组和逗号分隔字符串）
       let imagesJson = '[]';
@@ -58,16 +58,17 @@ export async function POST(request: Request) {
       // 7. 执行插入
       await execute(
         `INSERT INTO assets
-        (title, description, location, province, city, district, area_mu, price_year, price_total, lease_years,
+        (title, description, location, province, city, district, address, area_mu, price_year, price_total, lease_years,
          asset_type, source_type, images, video_url, gps_lat, gps_lng, contact_name, contact_phone,
          user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         body.description || '',
         location,
         body.province,
         body.city || '',
         body.district || '',
+        body.address || '',
         parseFloat(body.area_mu),
         price_year,
         price_total,
