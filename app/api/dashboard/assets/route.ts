@@ -11,6 +11,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const scope = searchParams.get('scope');
     const id = searchParams.get('id');
+    const search = searchParams.get('search');
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
 
     // 查单条
@@ -25,14 +26,25 @@ export async function GET(request: Request) {
 
     let sql = 'SELECT * FROM assets';
     const args: unknown[] = [];
+    const conditions: string[] = [];
 
-    if (scope === 'all' && ['admin', 'superadmin'].includes(user.role)) {
-      sql += ' ORDER BY created_at DESC LIMIT ?';
-      args.push(limit);
-    } else {
-      sql += ' WHERE user_id = ? ORDER BY created_at DESC LIMIT ?';
-      args.push(user.id, limit);
+    if (!(scope === 'all' && ['admin', 'superadmin'].includes(user.role))) {
+      conditions.push('user_id = ?');
+      args.push(user.id);
     }
+
+    if (search && search.trim()) {
+      conditions.push('(title LIKE ? OR location LIKE ? OR province LIKE ? OR city LIKE ?)');
+      const q = `%${search.trim()}%`;
+      args.push(q, q, q, q);
+    }
+
+    if (conditions.length > 0) {
+      sql += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    sql += ' ORDER BY created_at DESC LIMIT ?';
+    args.push(limit);
 
     const results = await query(sql, ...args);
     return NextResponse.json({ success: true, data: results });
