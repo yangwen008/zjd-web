@@ -85,6 +85,7 @@ export default function MyAssetsPage() {
             <th className="px-4 py-3 font-medium text-gray-500">浏览</th>
             <th className="px-4 py-3 font-medium text-gray-500">状态</th>
             <th className="px-4 py-3 font-medium text-gray-500">发布时间</th>
+            <th className="px-4 py-3 font-medium text-gray-500">操作</th>
           </tr></thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
@@ -108,9 +109,15 @@ export default function MyAssetsPage() {
                     <span className={`text-xs px-2 py-0.5 rounded-full ${status.color}`}>{status.label}</span>
                   </td>
                   <td className="px-4 py-3 text-gray-400 text-xs">{asset.created_at?.substring(0, 16)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-2">
+                      <Link href={`/asset/${asset.id}`} className="text-xs text-blue-600 hover:underline">查看</Link>
+                      <Link href={`/dashboard/assets/${asset.id}/edit`} className="text-xs text-brand-green hover:underline">修改</Link>
+                    </div>
+                  </td>
                 </tr>
               );
-            }) : <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">暂无资产，<Link href="/dashboard/assets/new" className="text-brand-green hover:underline">去发布</Link></td></tr>}
+            }) : <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">暂无资产，<Link href="/dashboard/assets/new" className="text-brand-green hover:underline">去发布</Link></td></tr>}
           </tbody>
         </table>
       </div>
