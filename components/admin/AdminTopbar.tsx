@@ -1,7 +1,6 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Menu, Search, Bell, User, LogOut } from 'lucide-react';
 import { adminMenuGroups } from '@/lib/admin-menu-config';
 
 interface AdminTopbarProps {
@@ -12,14 +11,11 @@ interface AdminTopbarProps {
 export default function AdminTopbar({ toggleSidebar, userName = 'Admin' }: AdminTopbarProps) {
   const pathname = usePathname();
 
-  // 简单解析面包屑
   const getBreadcrumbs = () => {
-    const crumbs = [{ name: '首页', href: '/admin' }];
-    
-    // 遍历菜单配置找到当前路径对应的名称
+    const crumbs = [{ name: '控制台', href: '/admin' }];
     for (const group of adminMenuGroups) {
       const activeItem = group.items.find(item => 
-        item.href === '/' ? pathname === '/' : pathname === item.href || pathname.startsWith(item.href + '/')
+        item.href === '/admin' ? pathname === '/admin' : pathname === item.href || pathname.startsWith(item.href + '/')
       );
       if (activeItem) {
         crumbs.push({ name: activeItem.name, href: activeItem.href });
@@ -37,10 +33,10 @@ export default function AdminTopbar({ toggleSidebar, userName = 'Admin' }: Admin
       <div className="flex items-center gap-4">
         <button 
           onClick={toggleSidebar}
-          className="p-2 rounded-md hover:bg-gray-100 text-gray-600 transition-colors"
+          className="p-2 rounded-md hover:bg-gray-100 text-gray-600 transition-colors text-xl leading-none"
           title="折叠/展开侧边栏"
         >
-          <Menu className="w-5 h-5" />
+          ☰ {/* 纯 Unicode 汉堡菜单 */}
         </button>
         
         <nav className="flex items-center text-sm text-gray-500">
@@ -57,33 +53,36 @@ export default function AdminTopbar({ toggleSidebar, userName = 'Admin' }: Admin
 
       {/* 右侧：工具区 */}
       <div className="flex items-center gap-4">
-        {/* 全局搜索框 (占位) */}
+        {/* 全局搜索框 (含纯 CSS 手绘搜索图标) */}
         <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          {/* 🌟 纯 CSS 绘制的搜索图标，无需任何图标库 */}
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-gray-400 rounded-full">
+             <div className="w-1.5 h-0.5 bg-gray-400 absolute rotate-45 -bottom-1 -right-1"></div>
+          </div>
           <input 
             type="text" 
-            placeholder="搜索资产/用户 (Cmd+K)" 
-            className="pl-9 pr-4 py-1.5 w-64 bg-gray-50 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="全局搜索资产/用户 (Cmd+K)" 
+            className="pl-9 pr-4 py-1.5 w-64 bg-gray-50 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         </div>
 
-        {/* 通知铃铛 */}
-        <button className="p-2 rounded-full hover:bg-gray-100 text-gray-600 relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        {/* 通知铃铛 (使用 Unicode 字符) */}
+        <button className="p-2 rounded-full hover:bg-gray-100 text-gray-600 relative text-lg leading-none">
+          🔔
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
         </button>
 
-        {/* 用户头像与下拉 */}
-        <div className="flex items-center gap-2 pl-4 border-l border-gray-200">
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
+        {/* 用户信息 */}
+        <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
             {userName.charAt(0).toUpperCase()}
           </div>
           <div className="hidden md:block text-sm">
-            <p className="font-medium text-gray-900">{userName}</p>
-            <p className="text-xs text-gray-500">超级管理员</p>
+            <p className="font-medium text-gray-900 leading-tight">{userName}</p>
+            <p className="text-xs text-gray-500 leading-tight">超级管理员</p>
           </div>
-          <button className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500" title="退出登录">
-            <LogOut className="w-4 h-4" />
+          <button className="p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors text-lg leading-none" title="退出登录">
+            ⏻ {/* 极客风电源符号 */}
           </button>
         </div>
       </div>
