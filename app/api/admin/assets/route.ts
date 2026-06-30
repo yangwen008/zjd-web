@@ -7,15 +7,27 @@ import type { Asset } from '@/lib/data';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
+  const search = searchParams.get('search');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
 
   let sql = 'SELECT * FROM assets';
   const args: unknown[] = [];
+  const conditions: string[] = [];
 
   if (status && status !== 'all') {
-    sql += ' WHERE status = ?';
+    conditions.push('status = ?');
     args.push(status);
+  }
+
+  if (search && search.trim()) {
+    conditions.push('(title LIKE ? OR location LIKE ? OR province LIKE ? OR city LIKE ? OR asset_type LIKE ?)');
+    const q = `%${search.trim()}%`;
+    args.push(q, q, q, q, q);
+  }
+
+  if (conditions.length > 0) {
+    sql += ' WHERE ' + conditions.join(' AND ');
   }
 
   sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
