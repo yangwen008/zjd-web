@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import Link from 'next/link'; // 【修复点 2】：引入 Link 组件，解决页面刷新导致的闪烁问题
+import Link from 'next/link';
 
 // ==========================================
 // 1. 菜单配置 (V5.0 分组折叠版)
@@ -11,7 +11,7 @@ const NAV_GROUPS = [
   {
     title: '工作台',
     items: [
-      { icon: '', label: '运营控制台', href: '/admin' },
+      { icon: '📊', label: '运营控制台', href: '/admin' },
     ],
   },
   {
@@ -28,7 +28,7 @@ const NAV_GROUPS = [
     items: [
       { icon: '🗺️', label: '行政区划', href: '/admin/regions' },
       { icon: '🏷️', label: '资产类型', href: '/admin/asset-types' },
-      { icon: '️', label: '爬虫管理', href: '/admin/scrapers' },
+      { icon: '🕷️', label: '爬虫管理', href: '/admin/scrapers' },
       { icon: '📥', label: '暂存数据', href: '/admin/staging' },
     ],
   },
@@ -77,7 +77,8 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm border border-gray-100">
         <div className="text-center mb-6">
-          <div className="text-4xl mb-2">🔐</div>
+          {/* 🌟 登录页也换上真实的 Logo，提升专业度 */}
+          <img src="/logo.png" alt="Logo" className="w-16 h-16 mx-auto mb-4 object-contain drop-shadow-md" />
           <h1 className="text-xl font-bold text-gray-900">宅基地管理平台</h1>
           <p className="text-sm text-gray-500 mt-1">请输入管理密码</p>
         </div>
@@ -108,7 +109,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
 }
 
 // ==========================================
-// 3. 主 Layout 组件 (V5.1 浅色侧边栏 + Link 修复版)
+// 3. 主 Layout 组件
 // ==========================================
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -173,17 +174,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
    <div className="min-h-screen flex bg-gray-50 font-sans text-gray-900">
       
-      {/* ================= 左侧侧边栏 (🌟 改为浅色主题，对比度极高) ================= */}
+      {/* ================= 左侧侧边栏 ================= */}
       <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-white text-gray-700 transition-all duration-300 ease-in-out flex flex-col shadow-lg z-20 border-r border-gray-200`}>
         {/* Logo 区 */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-gray-100">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <span className="text-xl">🏠</span>
+              {/* 🌟 【修改点 1】：将 emoji 🏠 替换为真实的 Logo 图片 */}
+              <img 
+                src="/logo.png" 
+                alt="Admin" 
+                className="w-8 h-8 object-contain drop-shadow-sm" 
+              />
               <span className="font-bold text-base tracking-wide text-gray-900">宅基地管理平台</span>
             </div>
           )}
-          {collapsed && <span className="text-xl mx-auto">🏠</span>}
+          {/* 🌟 【修改点 2】：侧边栏折叠时，也显示 Logo 图片 */}
+          {collapsed && (
+            <img 
+              src="/logo.png" 
+              alt="Admin" 
+              className="w-8 h-8 object-contain mx-auto drop-shadow-sm" 
+            />
+          )}
           <button 
             onClick={() => setCollapsed(!collapsed)} 
             className="text-gray-400 hover:text-gray-900 transition-colors p-1 rounded hover:bg-gray-100"
@@ -221,7 +234,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         : pathname === item.href || pathname.startsWith(item.href + '/');
 
                       return (
-                        <Link // 【修复点 2】：使用 Link 替代 a 标签，实现无刷新跳转，彻底消灭页眉闪烁
+                        <Link
                           key={item.href}
                           href={item.href}
                           className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group relative ${
@@ -230,10 +243,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                           }`}
                         >
-                          {/* Active 左侧指示条 */}
                           {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-green rounded-r-full"></div>}
-                          
-                          {/* 图标底座 */}
                           <span className={`flex items-center justify-center w-7 h-7 rounded-md text-base transition-colors ${
                             isActive ? 'bg-brand-green/20' : 'bg-gray-100 group-hover:bg-gray-200'
                           }`}>
