@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import RegionSelector from '@/components/shared/RegionSelector';
 
 const ASSET_TYPES = [
   { value: '宅基地', icon: '🏠' },
@@ -271,7 +270,7 @@ export default function PublishAssetPage() {
         <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
           <h3 className="font-bold text-gray-800 border-b pb-2">📍 地址信息</h3>
 
-          <RegionSelector
+          <AddressSelects
             province={formData.province}
             city={formData.city}
             district={formData.district}
@@ -438,6 +437,83 @@ export default function PublishAssetPage() {
           {loading ? '提交中...' : uploading ? '上传中...' : '✅ 确认发布'}
         </button>
       </form>
+    </div>
+  );
+}
+
+// ═══ 地址三级联动（与搜索页 FilterPanel 同款原生 select）═══
+function AddressSelects({
+  province, city, district,
+  onProvinceChange, onCityChange, onDistrictChange,
+}: {
+  province: string; city: string; district: string;
+  onProvinceChange: (v: string) => void;
+  onCityChange: (v: string) => void;
+  onDistrictChange: (v: string) => void;
+}) {
+  const [provinces, setProvinces] = useState<{ name: string; emoji: string | null }[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [districts, setDistricts] = useState<string[]>([]);
+  const [lp, setLp] = useState(true);
+  const [lc, setLc] = useState(false);
+  const [ld, setLd] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/regions?level=province')
+      .then(r => r.json())
+      .then((d: any) => setProvinces(d.data || []))
+      .catch(() => {})
+      .finally(() => setLp(false));
+  }, []);
+
+  useEffect(() => {
+    if (!province) { setCities([]); return; }
+    setLc(true);
+    fetch(`/api/regions?level=city&province=${encodeURIComponent(province)}`)
+      .then(r => r.json())
+      .then((d: any) => setCities(d.data?.map((c: any) => c.name) || []))
+      .catch(() => {})
+      .finally(() => setLc(false));
+  }, [province]);
+
+  useEffect(() => {
+    if (!city || !province) { setDistricts([]); return; }
+    setLd(true);
+    fetch(`/api/regions?level=district&province=${encodeURIComponent(province)}&city=${encodeURIComponent(city)}`)
+      .then(r => r.json())
+      .then((d: any) => setDistricts(d.data?.map((d: any) => d.name) || []))
+      .catch(() => {})
+      .finally(() => setLd(false));
+  }, [city, province]);
+
+  const selCls = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green';
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">省份 *</label>
+          <select value={province} onChange={e => { onProvinceChange(e.target.value); onCityChange(''); onDistrictChange(''); }} disabled={lp} className={selCls}>
+            <option value="">{lp ? '加载中...' : '请选择省份'}</option>
+            {provinces.map(p => <option key={p.name} value={p.name}>{p.emoji ? `${p.emoji} ` : ''}{p.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">城市 *</label>
+          <select value={city} onChange={e => { onCityChange(e.target.value); onDistrictChange(''); }} disabled={!province || lc} className={`${selCls} disabled:opacity-50`}>
+            <option value="">{!province ? '请先选择省份' : lc ? '加载中...' : '请选择城市'}</option>
+            {cities.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">区县</label>
+          <select value={district} onChange={e => onDistrictChange(e.target.value)} disabled={!city || ld} className={`${selCls} disabled:opacity-50`}>
+            <option value="">{!province ? '请先选择省份' : !city ? '请先选择城市' : ld ? '加载中...' : districts.length === 0 ? '该城市暂无区县数据' : '请选择区县'}</option>
+            {districts.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+      </div>
+      {province && city && <p className="text-xs text-green-600">✅ {province} {city} {district}</p>}
     </div>
   );
 }
