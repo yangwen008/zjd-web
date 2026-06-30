@@ -23,7 +23,7 @@ export default function Navbar() {
             zjd <span className="text-[#D4AF37]">.cn</span>
           </span>
           <span className="text-xs bg-[#2C4C3B]/10 text-[#2C4C3B] px-2.5 py-0.5 rounded-full font-bold">
-            宅基地计划 v8.8.1
+            宅基地交易所
           </span>
         </a>
 
