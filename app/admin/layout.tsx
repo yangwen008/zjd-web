@@ -4,61 +4,45 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
 // ==========================================
-// 1. 菜单配置 (V3.0 分组折叠版 - 纯字母图标)
+// 1. 菜单配置 (V5.0 分组折叠版 - 保留 Emoji 风格)
 // ==========================================
 const NAV_GROUPS = [
   {
     title: '工作台',
-    letter: 'W',
-    color: 'bg-blue-500/20 text-blue-400',
     items: [
-      { name: '数据大盘', href: '/admin', letter: 'D', color: 'bg-blue-500/10 text-blue-300' },
-      { name: '大宗撮合池', href: '/admin/deals', letter: 'M', color: 'bg-purple-500/10 text-purple-300' },
+      { icon: '📊', label: '运营控制台', href: '/admin' },
     ],
   },
   {
-    title: '资产运营',
-    letter: 'A',
-    color: 'bg-emerald-500/20 text-emerald-400',
+    title: '资产与业务',
     items: [
-      { name: '资产审核', href: '/admin/assets', letter: 'A', color: 'bg-emerald-500/10 text-emerald-300' },
-      { name: '线索/意向', href: '/admin/leads', letter: 'L', color: 'bg-cyan-500/10 text-cyan-300' },
+      { icon: '🏠', label: '资产审核', href: '/admin/assets' },
+      { icon: '🏢', label: '大宗路演', href: '/admin/bulk-projects' },
+      { icon: '💰', label: '行情数据', href: '/admin/market-data' },
+      { icon: '📡', label: '基建评分', href: '/admin/infra-ratings' },
     ],
   },
   {
-    title: '用户与渠道',
-    letter: 'U',
-    color: 'bg-amber-500/20 text-amber-400',
+    title: '系统与数据',
     items: [
-      { name: '全量用户', href: '/admin/users', letter: 'U', color: 'bg-amber-500/10 text-amber-300' },
-      { name: '大宗认证', href: '/admin/vip-audit', letter: 'V', color: 'bg-rose-500/10 text-rose-300' },
-      { name: '合伙人绩效', href: '/admin/partners', letter: 'P', color: 'bg-indigo-500/10 text-indigo-300' },
+      { icon: '🗺️', label: '行政区划', href: '/admin/regions' },
+      { icon: '🏷️', label: '资产类型', href: '/admin/asset-types' },
+      { icon: '🕷️', label: '爬虫管理', href: '/admin/scrapers' },
+      { icon: '', label: '暂存数据', href: '/admin/staging' },
     ],
   },
   {
-    title: '数据与爬虫',
-    letter: 'D',
-    color: 'bg-orange-500/20 text-orange-400',
+    title: '用户与配置',
     items: [
-      { name: '爬虫任务', href: '/admin/scrapers', letter: 'S', color: 'bg-slate-500/10 text-slate-300' },
-      { name: '原始数据池', href: '/admin/raw-data', letter: 'R', color: 'bg-orange-500/10 text-orange-300' },
-      { name: 'AI 清洗日志', href: '/admin/ai-logs', letter: 'I', color: 'bg-pink-500/10 text-pink-300' },
-    ],
-  },
-  {
-    title: '系统设置',
-    letter: 'S',
-    color: 'bg-gray-500/20 text-gray-400',
-    items: [
-      { name: '数据字典', href: '/admin/dict', letter: 'T', color: 'bg-teal-500/10 text-teal-300' },
-      { name: 'R2/API 配置', href: '/admin/config', letter: 'C', color: 'bg-lime-500/10 text-lime-300' },
-      { name: '操作审计', href: '/admin/logs', letter: 'G', color: 'bg-gray-500/10 text-gray-300' },
+      { icon: '', label: '合伙人管理', href: '/admin/brokers' },
+      { icon: '', label: '用户管理', href: '/admin/users' },
+      { icon: '️', label: '全局配置', href: '/admin/config' },
     ],
   },
 ];
 
 // ==========================================
-// 2. 登录页组件 (完全保留您的原始逻辑)
+// 2. 登录页组件 (完全保留您的原始代码)
 // ==========================================
 function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState('');
@@ -90,7 +74,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm border border-gray-100">
         <div className="text-center mb-6">
           <div className="text-4xl mb-2">🔐</div>
           <h1 className="text-xl font-bold text-gray-900">后台管理</h1>
@@ -102,14 +86,14 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="管理密码"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-green transition-all"
             autoFocus
           />
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
+            className="w-full bg-brand-green hover:bg-brand-light text-white py-3 rounded-xl font-medium transition-colors disabled:opacity-50 shadow-sm"
           >
             {loading ? '验证中...' : '登录'}
           </button>
@@ -123,7 +107,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
 }
 
 // ==========================================
-// 3. 主 Layout 组件 (集成所有高级 UI)
+// 3. 主 Layout 组件 (V5.0 专业美化版)
 // ==========================================
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -131,7 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
-  // 检查登录状态 (保留您的原始逻辑)
+  // 检查登录状态
   useEffect(() => {
     fetch('/api/admin/auth')
       .then((r) => r.json())
@@ -139,7 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .catch(() => setAuthed(false));
   }, []);
 
-  // 根据当前路由，自动展开对应的菜单分组
+  // 根据当前路由自动展开菜单
   useEffect(() => {
     const initialExpanded: Record<string, boolean> = {};
     NAV_GROUPS.forEach(group => {
@@ -156,7 +140,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setExpandedGroups(prev => ({ ...prev, [title]: !prev[title] }));
   };
 
-  // 计算面包屑
+  // 获取面包屑
   const getBreadcrumbs = () => {
     const crumbs = [{ name: '控制台', href: '/admin' }];
     for (const group of NAV_GROUPS) {
@@ -164,7 +148,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         item.href === '/admin' ? pathname === '/admin' : pathname === item.href || pathname.startsWith(item.href + '/')
       );
       if (activeItem) {
-        crumbs.push({ name: activeItem.name, href: activeItem.href });
+        crumbs.push({ name: activeItem.label, href: activeItem.href });
         break;
       }
     }
@@ -174,7 +158,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (authed === null) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-400">加载中...</div>
+        <div className="text-gray-400 flex items-center gap-2">
+          <div className="w-5 h-5 border-2 border-brand-green border-t-transparent rounded-full animate-spin"></div>
+          加载中...
+        </div>
       </div>
     );
   }
@@ -185,14 +172,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const breadcrumbs = getBreadcrumbs();
 
+  // 🌟 核心隔离技巧：fixed inset-0 z-50 让后台全屏覆盖，彻底挡住前台 Header/Footer
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="fixed inset-0 z-50 flex bg-gray-50/80 font-sans text-gray-900">
+      
       {/* ================= 左侧侧边栏 ================= */}
-      <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-slate-900 text-white transition-all duration-300 flex flex-col shadow-lg`}>
+      <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-brand-dark text-white transition-all duration-300 ease-in-out flex flex-col shadow-xl z-20`}>
         {/* Logo 区 */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
-          {!collapsed && <span className="font-bold text-lg tracking-wide">金禾 Admin</span>}
-          <button onClick={() => setCollapsed(!collapsed)} className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-white/10">
+          {!collapsed && (
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔧</span>
+              <span className="font-bold text-base tracking-wide">金禾 Admin</span>
+            </div>
+          )}
+          {collapsed && <span className="text-xl mx-auto">🔧</span>}
+          <button 
+            onClick={() => setCollapsed(!collapsed)} 
+            className="text-gray-400 hover:text-white transition-colors p-1 rounded hover:bg-white/10"
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={collapsed ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'} />
             </svg>
@@ -200,7 +198,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* 菜单列表 */}
-        <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+        <nav className="flex-1 py-4 space-y-1 px-3 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
           {NAV_GROUPS.map((group) => {
             const isExpanded = expandedGroups[group.title] || false;
             return (
@@ -208,23 +206,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {/* 分组标题 */}
                 <button
                   onClick={() => toggleGroup(group.title)}
-                  className={`w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-800 transition-colors ${collapsed ? 'justify-center' : ''}`}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-white hover:bg-white/5 transition-all ${collapsed ? 'justify-center' : ''}`}
                   title={collapsed ? group.title : ''}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${group.color}`}>
-                      {group.letter}
-                    </div>
-                    {!collapsed && <span className="text-sm font-medium text-slate-200">{group.title}</span>}
-                  </div>
+                  {!collapsed && <span>{group.title}</span>}
                   {!collapsed && (
-                    <span className={`text-slate-500 text-xs transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
+                    <span className={`text-[10px] transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
                   )}
                 </button>
 
                 {/* 子菜单 */}
                 {!collapsed && isExpanded && (
-                  <div className="mt-1 ml-3 space-y-1 border-l border-slate-800 pl-2">
+                  <div className="mt-1 space-y-1">
                     {group.items.map((item) => {
                       const isActive = item.href === '/admin' 
                         ? pathname === '/admin' 
@@ -234,16 +227,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <a
                           key={item.href}
                           href={item.href}
-                          className={`flex items-center gap-3 px-2 py-1.5 rounded-md text-sm transition-all ${
+                          className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group relative ${
                             isActive 
-                              ? 'bg-slate-800 text-white border-l-2 border-blue-500 -ml-[9px] pl-[11px]' 
-                              : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                              ? 'bg-brand-green/10 text-brand-green font-medium' 
+                              : 'text-gray-400 hover:text-white hover:bg-white/10'
                           }`}
                         >
-                          <div className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${item.color}`}>
-                            {item.letter}
-                          </div>
-                          <span>{item.name}</span>
+                          {/* Active 左侧指示条 */}
+                          {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-green rounded-r-full"></div>}
+                          
+                          {/* 图标底座 */}
+                          <span className={`flex items-center justify-center w-7 h-7 rounded-md text-base transition-colors ${
+                            isActive ? 'bg-brand-green/20' : 'bg-white/5 group-hover:bg-white/10'
+                          }`}>
+                            {item.icon}
+                          </span>
+                          <span>{item.label}</span>
                         </a>
                       );
                     })}
@@ -255,8 +254,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* 底部返回前台 */}
-        <div className="p-4 border-t border-slate-800">
-          <a href="/" className={`flex items-center gap-2 text-xs text-slate-400 hover:text-white ${collapsed ? 'justify-center' : ''}`}>
+        <div className="p-4 border-t border-white/10">
+          <a href="/" className={`flex items-center space-x-2 text-xs text-gray-400 hover:text-white transition-colors ${collapsed ? 'justify-center' : ''}`}>
             <span>←</span>
             {!collapsed && <span>返回前台</span>}
           </a>
@@ -265,46 +264,79 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ================= 右侧主区域 ================= */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 顶部工具栏 */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-10">
+        
+        {/* 顶部工具栏 (Topbar) */}
+        <header className="h-16 bg-white border-b border-gray-200/60 flex items-center justify-between px-6 shadow-sm z-10">
           {/* 左侧：面包屑 */}
           <nav className="flex items-center text-sm text-gray-500">
             {breadcrumbs.map((crumb, index) => (
               <div key={crumb.href} className="flex items-center">
                 {index > 0 && <span className="mx-2 text-gray-300">/</span>}
-                <span className={index === breadcrumbs.length - 1 ? 'text-gray-900 font-medium' : ''}>
+                <a 
+                  href={crumb.href}
+                  className={`transition-colors ${index === breadcrumbs.length - 1 ? 'text-gray-900 font-semibold' : 'hover:text-brand-green'}`}
+                >
                   {crumb.name}
-                </span>
+                </a>
               </div>
             ))}
           </nav>
 
-          {/* 右侧：用户信息 */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
-              A
+          {/* 右侧：工具区 */}
+          <div className="flex items-center gap-4">
+            {/* 全局搜索框 (视觉展示) */}
+            <div className="relative hidden md:block">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+              <input 
+                type="text" 
+                placeholder="搜索资产、用户..." 
+                className="pl-9 pr-12 py-1.5 w-64 bg-gray-100 border border-transparent rounded-lg text-sm focus:outline-none focus:bg-white focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200">⌘K</span>
             </div>
-            <div className="hidden md:block text-sm">
-              <p className="font-medium text-gray-900 leading-tight">超级管理员</p>
-              <p className="text-xs text-gray-500 leading-tight">金禾计划</p>
-            </div>
-            <button 
-              onClick={() => {
-                // 简单的退出逻辑：清除 cookie 并刷新
-                document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                window.location.reload();
-              }}
-              className="p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors text-lg leading-none" 
-              title="退出登录"
-            >
-              ⏻
+
+            {/* 通知铃铛 */}
+            <button className="relative p-2 text-gray-500 hover:text-brand-green hover:bg-gray-100 rounded-full transition-colors">
+              <span className="text-lg">🔔</span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
             </button>
+
+            {/* 管理员信息 */}
+            <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-green to-emerald-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                A
+              </div>
+              <div className="hidden md:block text-sm">
+                <p className="font-semibold text-gray-900 leading-tight">超级管理员</p>
+                <p className="text-xs text-gray-500 leading-tight">金禾计划</p>
+              </div>
+              <button 
+                onClick={() => {
+                  document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                  window.location.reload();
+                }}
+                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" 
+                title="退出登录"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
           </div>
         </header>
 
-        {/* 内容区 */}
-        <main className="flex-1 p-6 overflow-auto">
-          {children}
+        {/* 内容滚动区 (灰底白卡) */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {/* 这里渲染具体的子页面内容 */}
+          <div className="max-w-7xl mx-auto space-y-6">
+            {children}
+          </div>
+          
+          {/* 极简底部版权 */}
+          <div className="mt-10 pt-6 border-t border-gray-200/60 text-center text-xs text-gray-400">
+            © 2026 金禾计划 Admin v8.8.2 · 乡村闲置资产数字交易所
+          </div>
         </main>
       </div>
     </div>
