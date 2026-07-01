@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { getBulkProjectById, getBulkProjects, incrementBulkViews } from '@/lib/data';
 import type { BulkProject } from '@/lib/data';
 import MediaGallery from '@/app/asset/[id]/media-gallery';
+import ContactCard from '@/components/shared/ContactCard';
 
 function getFirstImage(images: string | null): string {
   if (!images) return 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
@@ -174,7 +175,7 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Price card */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6 sticky top-24">
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
               <div className="text-center mb-4">
                 <div className="text-xs text-gray-400 mb-1">起始价格</div>
                 <div className="text-3xl font-bold text-brand-green">
@@ -184,54 +185,20 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
                   <div className="text-sm text-gray-500 mt-1">总价 ¥{project.price_total}万</div>
                 )}
               </div>
-
-              <div className="bg-gray-50 rounded-lg p-4 text-center mb-4">
-                <div className="text-2xl font-bold text-gray-300 tracking-widest">136****8899</div>
-                <div className="text-xs text-gray-400 mt-1">微信一键安全授权解锁</div>
-              </div>
-
-              <button className="w-full bg-brand-green hover:bg-brand-light text-white py-3 rounded-xl font-medium transition-colors">
-                微信一键安全授权解锁真实电话
-              </button>
-
-              {/* Docs */}
-              <div className="mt-6 space-y-2">
-                <div className="text-xs font-medium text-gray-500 mb-2">项目附件</div>
-                {(project as any).commercial_plan_doc ? (
-                  <a href={(project as any).commercial_plan_doc} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <span>📄</span>
-                    <span className="text-sm text-gray-700">商业计划书</span>
-                    <span className="text-xs text-brand-green ml-auto">点击下载</span>
-                  </a>
-                ) : project.commercial_plan ? (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                    <span>📄</span>
-                    <span className="text-sm text-gray-700">商业规划书（详见项目描述）</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg opacity-50">
-                    <span>📄</span>
-                    <span className="text-sm text-gray-400">商业规划书（未上传）</span>
-                  </div>
-                )}
-                {project.cert_doc_url ? (
-                  <a href={project.cert_doc_url} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <span>📋</span>
-                    <span className="text-sm text-gray-700">确权证书</span>
-                    <span className="text-xs text-brand-green ml-auto">点击查看</span>
-                  </a>
-                ) : (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg opacity-50">
-                    <span>📋</span>
-                    <span className="text-sm text-gray-400">确权证书（未上传）</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 text-xs text-gray-400 text-center">
+              <div className="text-xs text-gray-400 text-center">
                 浏览量: {project.views.toLocaleString()}
               </div>
             </div>
+
+            {/* Contact + Attachments */}
+            <ContactCard
+              phone={project.contact_phone}
+              name={project.contact_name}
+              attachments={[
+                { label: '商业计划书', icon: '📄', url: (project as any).commercial_plan_doc || null, type: 'doc' },
+                { label: '确权证书', icon: '📋', url: project.cert_doc_url || null, type: 'cert' },
+              ]}
+            />
 
             {/* Similar */}
             {similar.length > 0 && (

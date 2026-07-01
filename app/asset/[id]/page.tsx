@@ -4,6 +4,7 @@ import { getAssetById, getAssets, getHomepageConfig, incrementViews } from '@/li
 import { notFound } from 'next/navigation';
 // ✅ 新增：导入我们刚才创建的轮播图客户端组件
 import MediaGallery from './media-gallery';
+import ContactCard from '@/components/shared/ContactCard';
 
 export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -160,28 +161,11 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
 
             {/* Sidebar */}
             <div className="space-y-4">
-              {/* Contact card */}
-              <div className="bg-white rounded-xl border border-gray-100 p-6 sticky top-24">
-                <div className="text-center mb-4">
-                  <div className="text-3xl mb-2">🔐</div>
-                  <div className="font-bold text-gray-900">产权联系经办</div>
-                  <div className="text-sm text-gray-500 mt-1">直连咨询热线</div>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4 text-center mb-4">
-                  <div className="text-2xl font-bold text-gray-300 tracking-widest">
-                    {asset.contact_phone ? '136****8899' : '****'}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">微信一键安全授权解锁</div>
-                </div>
-                <button className="w-full bg-brand-green hover:bg-brand-light text-white py-3 rounded-xl font-medium transition-colors">
-                  微信一键安全授权解锁真实电话
-                </button>
-                <div className="mt-4 text-xs text-gray-400 text-center">
-                  {asset.gps_lat && asset.gps_lng
-                    ? `地块边界GIS坐标: 已加密 (${asset.gps_lat.toFixed(4)}, ${asset.gps_lng.toFixed(4)})`
-                    : '地块边界GIS坐标: 已加密'}
-                </div>
-              </div>
+              {/* Contact + Attachments */}
+              <ContactCard
+                phone={asset.contact_phone}
+                name={asset.contact_name}
+              />
 
               {/* Similar assets */}
               {similarFiltered.length > 0 && (
