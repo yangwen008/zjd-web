@@ -39,6 +39,12 @@ export default function AdminAssetsPage() {
   const [filter, setFilter] = useState(searchParams.get('status') || 'all');
   const [sourceFilter, setSourceFilter] = useState(searchParams.get('source') || '');
   const [search, setSearch] = useState('');
+
+  // 监听 URL 参数变化（侧边栏跳转时同步）
+  useEffect(() => {
+    setFilter(searchParams.get('status') || 'all');
+    setSourceFilter(searchParams.get('source') || '');
+  }, [searchParams]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
