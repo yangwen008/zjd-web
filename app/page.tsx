@@ -162,17 +162,26 @@ function toBrokerFormat(broker: Broker, defaultAvatar: string) {
 
 // --- 主页面（异步服务端组件） ---
 export default async function HomePage() {
+  // 先获取配置
+  const config = await getHomepageConfig().catch(() => ({} as Record<string, string>));
+
+  // 用配置值决定各板块数量
+  const latestCount = getConfigCount(config, 'section_latest_count', 6);
+  const officialCount = getConfigCount(config, 'section_official_count', 6);
+  const villageCount = getConfigCount(config, 'section_village_count', 2);
+  const bulkCount = getConfigCount(config, 'section_bulk_count', 2);
+  const brokersCount = getConfigCount(config, 'section_brokers_count', 3);
+
   // 并行查询所有数据
-  const [hotAssets, marketData, latestAssets, officialAssets, villageAssets, bulkProjectsData, infraRatings, brokers, config] = await Promise.all([
+  const [hotAssets, marketData, latestAssets, officialAssets, villageAssets, bulkProjectsData, infraRatings, brokers] = await Promise.all([
     getHotAssets(6).catch(() => [] as Asset[]),
     getMarketData().catch(() => [] as MarketData[]),
-    getLatestAssets(getConfigCount({}, 'section_latest_count', 6)).catch(() => [] as Asset[]),
-    getAssetsBySource('official', 6).catch(() => [] as Asset[]),
-    getAssetsBySource('village', 2).catch(() => [] as Asset[]),
-    getFeaturedBulkProjects(2).catch(() => [] as BulkProject[]),
+    getLatestAssets(latestCount).catch(() => [] as Asset[]),
+    getAssetsBySource('official', officialCount).catch(() => [] as Asset[]),
+    getAssetsBySource('village', villageCount).catch(() => [] as Asset[]),
+    getFeaturedBulkProjects(bulkCount).catch(() => [] as BulkProject[]),
     getInfraRatings().catch(() => [] as InfraRating[]),
-    getBrokers(3).catch(() => [] as Broker[]),
-    getHomepageConfig().catch(() => ({} as Record<string, string>)),
+    getBrokers(brokersCount).catch(() => [] as Broker[]),
   ]);
 
   // 从 config 读取图片 fallback
