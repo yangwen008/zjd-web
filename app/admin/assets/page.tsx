@@ -166,6 +166,17 @@ export default function AdminAssetsPage() {
     e.target.value = '';
   };
 
+  const toggleFeatured = async (id: number, featured: number) => {
+    try {
+      await fetch('/api/admin/assets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle-featured', id, featured: featured ? 0 : 1 }),
+      });
+      setAssets(assets.map(a => a.id === id ? { ...a, featured: featured ? 0 : 1 } : a));
+    } catch { show('操作失败'); }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -217,12 +228,13 @@ export default function AdminAssetsPage() {
             <th className="px-4 py-3 font-medium text-gray-500">区域</th>
             <th className="px-4 py-3 font-medium text-gray-500">来源</th>
             <th className="px-4 py-3 font-medium text-gray-500">确权</th>
+            <th className="px-4 py-3 font-medium text-gray-500">推荐</th>
             <th className="px-4 py-3 font-medium text-gray-500">浏览量</th>
             <th className="px-4 py-3 font-medium text-gray-500">状态</th>
             <th className="px-4 py-3 font-medium text-gray-500">操作</th>
           </tr> </thead>
           <tbody className="divide-y divide-gray-50">
-            {loading ? <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
+            {loading ? <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
             : assets.length > 0 ? assets.map((asset) => (
               <tr key={asset.id} className="hover:bg-gray-50/50">
                 <td className="px-4 py-3 text-gray-400">#{asset.id}</td>
@@ -230,10 +242,12 @@ export default function AdminAssetsPage() {
                 <td className="px-4 py-3 text-gray-500">{asset.province || '-'}</td>
                 <td className="px-4 py-3"><span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{SOURCE_LABELS[asset.source_type] || asset.source_type}</span></td>
                 <td className="px-4 py-3">{(() => { const c = CERT_LABELS[(asset as any).certification || 'uncertified'] || CERT_LABELS.uncertified; return <span className={`text-xs px-2 py-0.5 rounded ${c.className}`}>{c.label}</span>; })()}</td>
+                <td className="px-4 py-3 text-center">{asset.featured ? <span className="text-yellow-500">★</span> : <span className="text-gray-300">-</span>}</td>
                 <td className="px-4 py-3 text-gray-500">{asset.views.toLocaleString()}</td>
                 <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[asset.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_LABELS[asset.status] || asset.status}</span></td>
                 <td className="px-4 py-3">
                   <div className="flex items-center space-x-2">
+                    <button onClick={() => toggleFeatured(asset.id, asset.featured)} className={`text-xs hover:underline ${asset.featured ? 'text-yellow-500' : 'text-gray-400'}`}>{asset.featured ? '★ 推荐' : '☆ 推荐'}</button>
                     <a href={`/asset/${asset.id}`} target="_blank" className="text-xs text-brand-green hover:underline">查看</a>
                     <button onClick={() => openEdit(asset)} className="text-xs text-blue-600 hover:underline">编辑</button>
                     {asset.status === 'pending' && (

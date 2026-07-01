@@ -194,7 +194,7 @@ export async function getFeaturedAssets(limit: number = 6): Promise<Asset[]> {
 
 export async function getAssetsBySource(sourceType: string, limit: number = 6): Promise<Asset[]> {
   return query<Asset>(
-    'SELECT * FROM assets WHERE status = ? AND source_type = ? ORDER BY views DESC LIMIT ?',
+    'SELECT * FROM assets WHERE status = ? AND source_type = ? ORDER BY featured DESC, views DESC LIMIT ?',
     'approved', sourceType, limit
   );
 }
@@ -202,7 +202,7 @@ export async function getAssetsBySource(sourceType: string, limit: number = 6): 
 // 获取最新资产（所有来源混合，按创建时间倒序）
 export async function getLatestAssets(limit: number = 6): Promise<Asset[]> {
   return query<Asset>(
-    'SELECT * FROM assets WHERE status = ? ORDER BY created_at DESC LIMIT ?',
+    'SELECT * FROM assets WHERE status = ? ORDER BY featured DESC, created_at DESC LIMIT ?',
     'approved', limit
   );
 }
