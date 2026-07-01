@@ -2,12 +2,14 @@ export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
 import { execute } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/auth';
+import { getUserFromRequest, getUserPermissions, ROLE_LABELS } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
     const user = await getUserFromRequest(request);
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+
+    const permissions = await getUserPermissions(user.id);
 
     return NextResponse.json({
       success: true,
@@ -16,8 +18,10 @@ export async function GET(request: Request) {
         nickname: user.nickname,
         phone: user.phone,
         role: user.role,
+        role_label: ROLE_LABELS[user.role] || user.role,
         avatar_url: user.avatar_url,
         verified: user.verified,
+        permissions,
         broker_region: user.broker_region,
         broker_specialties: user.broker_specialties,
         broker_bio: user.broker_bio,
