@@ -12,6 +12,7 @@ const NAV_GROUPS = [
     title: '工作台',
     items: [
       { icon: '📊', label: '运营控制台', href: '/admin' },
+      { icon: '📋', label: '审核中心', href: '/admin/audit' },
     ],
   },
   {

@@ -75,7 +75,7 @@ export default function AdminDashboard() {
     icp_number: '', police_record: '', footer_about: '',
     hero_title: '', hero_subtitle: '', total_assets: '', today_new: '',
   });
-  const [stats, setStats] = useState({ total: 0, todayNew: 0, pending: 0 });
+  const [stats, setStats] = useState({ total: 0, todayNew: 0, pending: 0, pendingAssets: 0, pendingBulk: 0, pendingUsers: 0, totalUsers: 0 });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -139,8 +139,9 @@ export default function AdminDashboard() {
           // 【修复点 1】：为总资产数添加 href 跳转链接，使其与今日新增、待审核保持一致
           { label: '总资产数', value: stats.total.toLocaleString(), icon: '🏠', color: 'text-brand-green', href: '/admin/assets' },
           { label: '今日新增', value: stats.todayNew.toString(), icon: '📈', color: 'text-green-500', href: '/admin/assets' },
-          { label: '待审核', value: stats.pending.toString(), icon: '⏳', color: 'text-orange-500', href: '/admin/assets?status=pending' }, 
-          { label: '活跃用户', value: '—', icon: '👥', color: 'text-blue-500' },
+          { label: '待审核', value: stats.pending.toString(), icon: '⏳', color: 'text-orange-500', href: '/admin/audit',
+            subtitle: [stats.pendingAssets > 0 ? `${stats.pendingAssets}资产` : '', stats.pendingBulk > 0 ? `${stats.pendingBulk}大宗` : '', stats.pendingUsers > 0 ? `${stats.pendingUsers}用户` : ''].filter(Boolean).join(' / ') || '暂无' },
+          { label: '活跃用户', value: (stats.totalUsers || '—').toString(), icon: '👥', color: 'text-blue-500' },
         ].map((s) => (
           <a
             key={s.label}
@@ -150,7 +151,8 @@ export default function AdminDashboard() {
             <div className="text-2xl mb-2">{s.icon}</div>
             <div className="text-xs text-gray-400">{s.label}</div>
             <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-            {s.href && <div className="text-xs text-brand-green mt-1">点击查看详情 →</div>}
+            {(s as any).subtitle && <div className="text-xs text-gray-400 mt-0.5">{(s as any).subtitle}</div>}
+            {s.href && <div className="text-xs text-brand-green mt-1">点击查看详情 →</div>
           </a>
         ))}
       </div>
