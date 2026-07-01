@@ -23,6 +23,7 @@ export default function AdminStagingPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('raw');
   const [msg, setMsg] = useState('');
+  const [selected, setSelected] = useState<Set<number>>(new Set());
   
   // 三栏工作台状态
   const [activeItem, setActiveItem] = useState<StagingItem | null>(null);
@@ -44,6 +45,38 @@ export default function AdminStagingPage() {
 
   const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3000); };
 
+  const toggleSelect = (id: number) => {
+    setSelected(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  };
+  const toggleAll = () => {
+    if (selected.size === items.length) setSelected(new Set());
+    else setSelected(new Set(items.map(i => i.id)));
+  };
+
+  const handleBatchClean = async () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) { show('❌ 请先选择数据'); return; }
+    show(`🔄 正在 AI 清洗 ${ids.length} 条...`);
+    try {
+      const res = await fetch('/api/admin/staging', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clean', ids }) });
+      const d = await res.json() as any;
+      if (d.success) show(`✅ 清洗完成：${d.data.cleaned} 成功，${d.data.errors} 失败`);
+      else show(`❌ ${d.error}`);
+    } catch { show('❌ 操作失败'); }
+    setSelected(new Set());
+    fetchItems();
+  };
+
+  const handleBatchDelete = async () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) { show('❌ 请先选择数据'); return; }
+    if (!confirm(`确定删除 ${ids.length} 条数据？`)) return;
+    await fetch('/api/admin/staging', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', ids }) });
+    show(`✅ 已删除 ${ids.length} 条`);
+    setSelected(new Set());
+    fetchItems();
+  };
+
   const handleOpen = (item: StagingItem) => {
     setActiveItem(item);
     // 尝试格式化 JSON 以便阅读
@@ -58,7 +91,11 @@ export default function AdminStagingPage() {
     if (!activeItem) return;
     try {
       const body: any = { action, id: activeItem.id };
-      if (action === 'import' || action === 'update-data') {
+      if (action === 'import') {
+        try { body.asset = JSON.parse(editedData); } 
+        catch { show('❌ JSON 格式错误，请检查'); return; }
+      }
+      if (action === 'update-data') {
         try { JSON.parse(editedData); body.data = editedData; } 
         catch { show('❌ JSON 格式错误，请检查'); return; }
       }
@@ -176,7 +213,8 @@ export default function AdminStagingPage() {
       
       {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
 
-      <div className="flex items-center space-x-2 mb-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-2">
         {Object.entries(STATUS_LABELS).map(([key, val]) => (
           <button 
             key={key} 
@@ -186,12 +224,21 @@ export default function AdminStagingPage() {
             {val.label}
           </button>
         ))}
+        </div>
+        {selected.size > 0 && (
+          <div className="flex items-center space-x-2">
+            <span className="text-xs text-gray-500">已选 {selected.size} 条</span>
+            <button onClick={handleBatchClean} className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600">🤖 批量 AI 清洗</button>
+            <button onClick={handleBatchDelete} className="px-3 py-1.5 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600">🗑️ 批量删除</button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 text-left">
+              <th className="px-4 py-3 font-medium text-gray-500 w-8"><input type="checkbox" checked={selected.size === items.length && items.length > 0} onChange={toggleAll} className="rounded" /></th>
               <th className="px-4 py-3 font-medium text-gray-500">ID</th>
               <th className="px-4 py-3 font-medium text-gray-500">配方ID</th>
               <th className="px-4 py-3 font-medium text-gray-500">状态</th>
@@ -207,6 +254,7 @@ export default function AdminStagingPage() {
               const statusInfo = STATUS_LABELS[item.status] || STATUS_LABELS.raw;
               return (
                 <tr key={item.id} className="hover:bg-gray-50/50">
+                  <td className="px-4 py-3"><input type="checkbox" checked={selected.has(item.id)} onChange={() => toggleSelect(item.id)} className="rounded" /></td>
                   <td className="px-4 py-3 text-gray-400">#{item.id}</td>
                   <td className="px-4 py-3 text-gray-500">{item.recipe_id}</td>
                   <td className="px-4 py-3">

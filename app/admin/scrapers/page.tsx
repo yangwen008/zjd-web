@@ -63,7 +63,9 @@ export default function AdminScrapersPage() {
         max_pages: parseInt(form.max_pages) || 10, pagination_type: form.pagination_type,
         ai_prompt: form.ai_prompt || null, schedule_cron: form.schedule_cron,
         selectors: selectorsObj, detail_selectors: detailObj,
+        enabled: form.enabled, proxy_enabled: form.proxy_enabled,
       };
+      if (editId) payload.id = editId;
 
       const res = await fetch('/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const d = await res.json() as any;
@@ -71,9 +73,26 @@ export default function AdminScrapersPage() {
     } catch { show('❌ 网络错误'); } finally { setSaving(false); }
   };
 
-  const handleToggle = async (id: number, enabled: number) => {
-    // Use the existing scrape API to update enabled status
-    await fetch('/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update-status', recipeId: id, status: enabled ? 'idle' : 'idle' }) });
+  const handleToggle = async (id: number, currentEnabled: number) => {
+    await fetch('/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'toggle-enabled', recipeId: id, enabled: currentEnabled ? 0 : 1 }) });
+    fetchRecipes();
+  };
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`确定删除配方「${name}」？`)) return;
+    await fetch('/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete-recipe', recipeId: id }) });
+    show('✅ 已删除');
+    fetchRecipes();
+  };
+
+  const handleRunNow = async (id: number, name: string) => {
+    show(`🔄 正在执行「${name}」...`);
+    try {
+      const res = await fetch('/api/scrape/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipeId: id }) });
+      const d = await res.json() as any;
+      if (d.success) show(`✅ 执行完成，采集 ${d.itemCount || 0} 条数据`);
+      else show(`❌ ${d.error}`);
+    } catch { show('❌ 执行失败'); }
     fetchRecipes();
   };
 
@@ -145,8 +164,8 @@ export default function AdminScrapersPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center space-x-2">
                       <button onClick={() => handleEdit(r)} className="text-xs text-brand-green hover:underline">编辑</button>
-                      <button className="text-xs text-blue-500 hover:underline">测试</button>
-                      <button className="text-xs text-gray-500 hover:underline">日志</button>
+                      <button onClick={() => handleRunNow(r.id, r.name)} className="text-xs text-blue-500 hover:underline">立即执行</button>
+                      <button onClick={() => handleDelete(r.id, r.name)} className="text-xs text-red-500 hover:underline">删除</button>
                     </div>
                   </td>
                 </tr>

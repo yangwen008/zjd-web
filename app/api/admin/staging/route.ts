@@ -107,8 +107,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: { cleaned, errors } });
     }
 
+    if (action === 'update-data') {
+      const { id, data } = body as { id: number; data: string };
+      await execute('UPDATE staging_raw SET raw_data = ? WHERE id = ?', data, id);
+      return NextResponse.json({ success: true });
+    }
+
     if (action === 'import') {
-      const { id, asset } = body as { id: number; asset: Record<string, unknown> };
+      const { id } = body as { id: number };
+      const asset = (body.asset || JSON.parse(body.data || '{}')) as Record<string, unknown>;
       const staging = await queryOne<{ status: string }>('SELECT status FROM staging_raw WHERE id = ?', id);
       if (!staging) return NextResponse.json({ success: false, error: 'Staging record not found' }, { status: 404 });
 

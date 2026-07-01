@@ -219,8 +219,16 @@ async function main() {
     process.exit(1);
   }
 
-  const recipes = await fetchRecipes();
-  console.log(`📋 Found ${recipes.length} enabled recipes`);
+  const targetRecipeId = process.env.RECIPE_ID ? parseInt(process.env.RECIPE_ID) : null;
+  let recipes = await fetchRecipes();
+
+  // 如果指定了配方ID，只运行该配方
+  if (targetRecipeId) {
+    recipes = recipes.filter(r => r.id === targetRecipeId);
+    console.log(`🎯 Running specific recipe #${targetRecipeId}`);
+  }
+
+  console.log(`📋 Found ${recipes.length} recipe(s) to run`);
 
   if (recipes.length === 0) {
     console.log('No recipes to run. Exiting.');
