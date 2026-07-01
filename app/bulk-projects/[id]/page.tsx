@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getBulkProjectById, getBulkProjects, incrementBulkViews } from '@/lib/data';
 import type { BulkProject } from '@/lib/data';
+import MediaGallery from '@/app/asset/[id]/media-gallery';
 
 function getFirstImage(images: string | null): string {
   if (!images) return 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
@@ -55,23 +56,8 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Image */}
-            <div className="bg-gray-100 rounded-2xl h-80 overflow-hidden">
-              {images.length > 0 ? (
-                <img src={images[0]} alt={project.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <div className="text-center"><div className="text-5xl mb-2">🏢</div><div>项目实景图</div></div>
-                </div>
-              )}
-            </div>
-
-            {/* Video */}
-            {project.video_url && (
-              <div className="bg-gray-100 rounded-2xl overflow-hidden">
-                <video src={project.video_url} controls className="w-full max-h-96" />
-              </div>
-            )}
+            {/* Media Gallery */}
+            <MediaGallery images={images} video={project.video_url} />
 
             {/* Title */}
             <div>
