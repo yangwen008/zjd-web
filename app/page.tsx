@@ -13,6 +13,7 @@ import {
   getHotAssets, 
   getMarketData, 
   getAssetsBySource, 
+  getLatestAssets,
   getFeaturedBulkProjects,
   getInfraRatings,
   getBrokers,
@@ -99,7 +100,7 @@ function toPropertyFormat(asset: Asset, defaultImage: string) {
     type: `${asset.lease_years || 20}年期${asset.asset_type || '宅基地'}使用权`,
     imageUrl: getFirstImage(asset.images, defaultImage),
     badge: asset.source_type === 'official' ? '一手官方资源' : 
-           asset.source_type === 'village' ? '村委直发' : '用户上传'
+           asset.source_type === 'village' ? '村委直发' : '个人'
   };
 }
 
@@ -157,9 +158,10 @@ function toBrokerFormat(broker: Broker, defaultAvatar: string) {
 // --- 主页面（异步服务端组件） ---
 export default async function HomePage() {
   // 并行查询所有数据
-  const [hotAssets, marketData, officialAssets, villageAssets, bulkProjectsData, infraRatings, brokers, config] = await Promise.all([
+  const [hotAssets, marketData, latestAssets, officialAssets, villageAssets, bulkProjectsData, infraRatings, brokers, config] = await Promise.all([
     getHotAssets(6).catch(() => [] as Asset[]),
     getMarketData().catch(() => [] as MarketData[]),
+    getLatestAssets(getConfigCount({}, 'section_latest_count', 6)).catch(() => [] as Asset[]),
     getAssetsBySource('official', 6).catch(() => [] as Asset[]),
     getAssetsBySource('village', 2).catch(() => [] as Asset[]),
     getFeaturedBulkProjects(2).catch(() => [] as BulkProject[]),
@@ -204,6 +206,32 @@ export default async function HomePage() {
       <main>
         <HeroSection totalAssets={totalAssets} todayNew={todayNew} />
         <RegionGrid regions={regions} title={getConfigValue(config, 'section_regions_title')} subtitle={getConfigValue(config, 'section_regions_subtitle')} />
+
+        {/* 最新发布（所有来源混合） */}
+        {latestAssets.length > 0 && (
+          <section className="py-16 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">🆕</span>
+                  <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_latest_title')}</h2>
+                </div>
+                <Link href="/search" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_latest_subtitle')} →</Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {latestAssets.map((a) => {
+                  const badge = a.source_type === 'official' ? '官方' : a.source_type === 'village' ? '村委' : '个人';
+                  return (
+                    <Link key={a.id} href={`/asset/${a.id}`} className="block">
+                      <PropertyCard property={toPropertyFormat(a, defaultImage)} />
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
         <MarketStats marketData={marketData} />
         
         {/* 行情数据详细表格（动态） */}

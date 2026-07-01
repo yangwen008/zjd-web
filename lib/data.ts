@@ -30,6 +30,9 @@ const SECTION_DEFAULTS: Record<string, string> = {
   section_official_title: '纯净一手官方原矿区',
   section_official_subtitle: '进入原矿搜寻引擎',
   section_official_count: '6',
+  section_latest_title: '最新发布',
+  section_latest_subtitle: '查看全部最新资产',
+  section_latest_count: '6',
   section_village_title: '村集体直发专区',
   section_village_subtitle: '查看所有村委直发',
   section_village_count: '2',
@@ -192,6 +195,14 @@ export async function getAssetsBySource(sourceType: string, limit: number = 6): 
   return query<Asset>(
     'SELECT * FROM assets WHERE status = ? AND source_type = ? ORDER BY views DESC LIMIT ?',
     'approved', sourceType, limit
+  );
+}
+
+// 获取最新资产（所有来源混合，按创建时间倒序）
+export async function getLatestAssets(limit: number = 6): Promise<Asset[]> {
+  return query<Asset>(
+    'SELECT * FROM assets WHERE status = ? ORDER BY created_at DESC LIMIT ?',
+    'approved', limit
   );
 }
 

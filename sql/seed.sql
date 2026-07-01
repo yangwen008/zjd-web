@@ -17,6 +17,10 @@ INSERT OR IGNORE INTO homepage_config (key, value) VALUES
   ('section_regions_title', '核心地点寻源区'),
   ('section_regions_subtitle', '默认按本站最热点击量、收藏量降序排列'),
   ('section_regions_count', '6'),
+  -- 板块配置：最新发布
+  ('section_latest_title', '最新发布'),
+  ('section_latest_subtitle', '查看全部最新资产'),
+  ('section_latest_count', '6'),
   -- 板块配置：行情数据
   ('section_market_title', '省级行政细分流速与交易深度'),
   ('section_market_subtitle', 'CONNECTED'),

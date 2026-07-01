@@ -20,6 +20,14 @@ const SECTION_FIELDS: Record<string, { label: string; fields: { key: string; lab
       { key: 'section_regions_count', label: '显示数量', type: 'number', placeholder: '8', min: 1, max: 12 },
     ],
   },
+  latest: {
+    label: '最新发布',
+    fields: [
+      { key: 'section_latest_title', label: '标题', type: 'text', placeholder: '最新发布' },
+      { key: 'section_latest_subtitle', label: '副标题', type: 'text', placeholder: '查看全部最新资产' },
+      { key: 'section_latest_count', label: '显示数量', type: 'number', placeholder: '6', min: 1, max: 12 },
+    ],
+  },
   market: {
     label: '行情数据',
     fields: [

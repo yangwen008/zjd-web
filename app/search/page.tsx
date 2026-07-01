@@ -30,7 +30,7 @@ function formatPrice(price: number | null): string {
 }
 
 export default function SearchPage() {
-  const [source, setSource] = useState('official');
+  const [source, setSource] = useState('');
   const [province, setProvince] = useState('');
   const [city, setCity] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
