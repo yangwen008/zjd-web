@@ -37,7 +37,7 @@ export default function SearchPage() {
   const [results, setResults] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [sort, setSort] = useState('');
+  const [sort, setSort] = useState('newest');
 
   // 首次加载自动搜索（从 URL 参数或默认加载全部）
   useEffect(() => {
