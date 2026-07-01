@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [msg, setMsg] = useState('');
 
   // 基本信息
@@ -65,6 +66,23 @@ export default function ProfilePage() {
       const upData: any = await upRes.json();
       return upData.success ? upData.url : null;
     } catch { return null; }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { show('❌ 请选择图片文件'); return; }
+    if (file.size > 5 * 1024 * 1024) { show('❌ 头像不能超过5MB'); return; }
+    setUploadingAvatar(true);
+    const url = await uploadFile(file);
+    if (url) {
+      setAvatarUrl(url);
+      show('✅ 头像已上传，请点击「保存修改」');
+    } else {
+      show('❌ 上传失败，请重试');
+    }
+    setUploadingAvatar(false);
+    e.target.value = '';
   };
 
   const handleLicenseUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,10 +149,16 @@ export default function ProfilePage() {
       {/* Profile card */}
       <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
         <div className="flex items-center space-x-4 mb-6">
-          <div className="w-20 h-20 rounded-full bg-brand-green/10 flex items-center justify-center text-3xl">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={nickname} className="w-20 h-20 rounded-full object-cover" />
-            ) : '👤'}
+          <div className="relative group">
+            <div className="w-20 h-20 rounded-full bg-brand-green/10 flex items-center justify-center text-3xl overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={nickname} className="w-20 h-20 rounded-full object-cover" />
+              ) : '👤'}
+            </div>
+            <label className={`absolute inset-0 rounded-full bg-black/40 flex items-center justify-center text-white text-xs font-medium cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity ${uploadingAvatar ? '!opacity-100' : ''}`}>
+              {uploadingAvatar ? '上传中' : '更换'}
+              <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+            </label>
           </div>
           <div>
             <div className="text-xl font-bold text-gray-900">{user.nickname}</div>
@@ -155,10 +179,18 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">头像URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">头像</label>
+            <div className="flex items-center space-x-3">
+              <label className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer transition-colors text-sm ${uploadingAvatar ? 'opacity-50 pointer-events-none' : ''}`}>
+                <span>📤</span>
+                <span className="text-gray-600">{uploadingAvatar ? '上传中...' : '上传头像图片'}</span>
+                <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+              </label>
+              {avatarUrl && !uploadingAvatar && <span className="text-xs text-green-600">✅ 已设置</span>}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">支持 JPG/PNG/WebP，≤ 5MB，或粘贴图片链接：</p>
             <input type="text" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..."
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-brand-green" />
-            <p className="text-xs text-gray-400 mt-1">输入图片链接，或上传到图床后粘贴地址</p>
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-brand-green text-sm mt-1" />
           </div>
 
           <div>
