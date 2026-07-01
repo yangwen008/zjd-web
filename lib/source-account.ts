@@ -42,24 +42,29 @@ export async function findOrCreateSourceAccount(params: {
     if (cityMatch) return cityMatch;
   }
 
-  // 3. 省匹配（兜底）
-  if (province) {
-    const provMatch = await queryOne<SourceAccount>(
-      'SELECT * FROM source_accounts WHERE province = ? AND city IS NULL AND enabled = 1',
-      province
-    );
-    if (provMatch) return provMatch;
-  }
-
-  // 4. 无匹配 → 自动创建
+  // 3. 有省+市但无城市匹配 → 自动创建城市级账号
   if (province && city) {
     const newName = generateSourceName(province, city, district);
     return await autoCreateSourceAccount(newName, province, city, district);
   }
 
-  // 5. 最终兜底：返回默认账号
+  // 4. 仅有省级 → 返回省级兜底
+  if (province) {
+    return await queryOne<SourceAccount>(
+      'SELECT * FROM source_accounts WHERE province = ? AND city IS NULL AND enabled = 1',
+      province
+    );
+  }
+
+  // 5. 最终兜底：返回省级默认账号
+  if (province) {
+    return await queryOne<SourceAccount>(
+      'SELECT * FROM source_accounts WHERE province = ? AND city IS NULL AND enabled = 1',
+      province
+    );
+  }
   return await queryOne<SourceAccount>(
-    "SELECT * FROM source_accounts WHERE city IS NULL AND province IS NOT NULL AND enabled = 1 LIMIT 1"
+    "SELECT * FROM source_accounts WHERE city IS NULL AND province IS NULL AND enabled = 1 LIMIT 1"
   );
 }
 
