@@ -153,7 +153,7 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
 
   if (!countOnly) {
     const orderBy = sort === 'price' ? 'price_year ASC' : sort === 'newest' ? 'created_at DESC' : 'views DESC';
-    sql += ` ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
+    sql += ` ORDER BY featured DESC, ${orderBy} LIMIT ? OFFSET ?`;
     args.push(limitNum, (page - 1) * limitNum);
   }
 
@@ -180,7 +180,7 @@ export async function getAssetById(id: number | string): Promise<Asset | null> {
 
 export async function getHotAssets(limit: number = 6): Promise<Asset[]> {
   return query<Asset>(
-    'SELECT * FROM assets WHERE status = ? ORDER BY views DESC LIMIT ?',
+    'SELECT * FROM assets WHERE status = ? ORDER BY featured DESC, views DESC LIMIT ?',
     'approved', limit
   );
 }
@@ -209,7 +209,7 @@ export async function getLatestAssets(limit: number = 6): Promise<Asset[]> {
 
 export async function getAssetsByProvince(province: string, limit: number = 20): Promise<Asset[]> {
   return query<Asset>(
-    'SELECT * FROM assets WHERE status = ? AND province = ? ORDER BY views DESC LIMIT ?',
+    'SELECT * FROM assets WHERE status = ? AND province = ? ORDER BY featured DESC, views DESC LIMIT ?',
     'approved', province, limit
   );
 }
@@ -471,7 +471,7 @@ export async function searchAssets(keyword: string, limit: number = 20): Promise
     `SELECT assets.* FROM assets
      JOIN assets_fts ON assets.id = assets_fts.rowid
      WHERE assets.status = ? AND assets_fts MATCH ?
-     ORDER BY assets.views DESC LIMIT ?`,
+     ORDER BY assets.featured DESC, assets.views DESC LIMIT ?`,
     'approved', keyword, limit
   );
 }
