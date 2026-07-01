@@ -152,7 +152,7 @@ export default function AdminDashboard() {
             <div className="text-xs text-gray-400">{s.label}</div>
             <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
             {(s as any).subtitle && <div className="text-xs text-gray-400 mt-0.5">{(s as any).subtitle}</div>}
-            {s.href && <div className="text-xs text-brand-green mt-1">点击查看详情 →</div>
+            {s.href && <div className="text-xs text-brand-green mt-1">点击查看详情 →</div>}
           </a>
         ))}
       </div>
