@@ -96,6 +96,7 @@ export default function BulkProjectsPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center space-x-2">
                       <a href={`/bulk-projects/${p.id}`} target="_blank" className="text-xs text-brand-green hover:underline">查看</a>
+                      <a href={`/dashboard/bulk-projects/${p.id}/edit`} className="text-xs text-blue-600 hover:underline">编辑</a>
                       <button onClick={() => handleDelete(p.id)} className="text-xs text-red-500 hover:underline">删除</button>
                     </div>
                   </td>
