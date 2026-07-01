@@ -13,7 +13,7 @@ export interface User {
   status: string;
   real_name: string | null;
   org_name: string | null;
-  org_license_url: string | null;
+  org_license: string | null;
   verified: number;
   daily_quota: number;
   password_hash: string | null;
