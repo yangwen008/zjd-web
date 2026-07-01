@@ -31,7 +31,7 @@ export default function PublishAssetPage() {
     { key: 'water', icon: '💧', label: '自来水', enabled: true, status: '已通' },
     { key: 'network', icon: '📶', label: '网络', enabled: true, status: '5G覆盖' },
     { key: 'sewage', icon: '🚽', label: '污水化粪池', enabled: true, status: '已建' },
-    { key: 'gas', icon: '🔥', label: '天然气', enabled: true, status: '已通' },
+    { key: 'gas', icon: '🔥', label: '天燃气', enabled: true, status: '已通' },
     { key: 'road', icon: '🛣️', label: '自建路', enabled: true, status: '已硬化' },
     { key: 'far', icon: '🏗️', label: '容积率', enabled: true, status: '≤1.5' },
   ]);
