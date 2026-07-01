@@ -21,11 +21,17 @@ interface Asset {
   views: number;
   images: string | null;
   video_url: string | null;
+  certification: string;
 }
 
 const STATUS_LABELS: Record<string, string> = { approved: '已上架', pending: '待审核', rejected: '已拒绝', banned: '已封禁' };
 const STATUS_STYLES: Record<string, string> = { approved: 'bg-green-100 text-green-700', pending: 'bg-yellow-100 text-yellow-700', rejected: 'bg-red-100 text-red-700', banned: 'bg-red-100 text-red-700' };
 const SOURCE_LABELS: Record<string, string> = { official: '官方', village: '村委', ugc: '个人' };
+const CERT_LABELS: Record<string, { label: string; className: string }> = {
+  certified: { label: '✅ 已确权', className: 'bg-green-100 text-green-700' },
+  pending: { label: '⏳ 待确权', className: 'bg-yellow-100 text-yellow-700' },
+  uncertified: { label: '未确权', className: 'bg-gray-100 text-gray-600' },
+};
 
 export default function AdminAssetsPage() {
   const searchParams = useSearchParams();
@@ -193,18 +199,20 @@ export default function AdminAssetsPage() {
             <th className="px-4 py-3 font-medium text-gray-500">标题</th>
             <th className="px-4 py-3 font-medium text-gray-500">区域</th>
             <th className="px-4 py-3 font-medium text-gray-500">来源</th>
+            <th className="px-4 py-3 font-medium text-gray-500">确权</th>
             <th className="px-4 py-3 font-medium text-gray-500">浏览量</th>
             <th className="px-4 py-3 font-medium text-gray-500">状态</th>
             <th className="px-4 py-3 font-medium text-gray-500">操作</th>
           </tr> </thead>
           <tbody className="divide-y divide-gray-50">
-            {loading ? <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
+            {loading ? <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
             : assets.length > 0 ? assets.map((asset) => (
               <tr key={asset.id} className="hover:bg-gray-50/50">
                 <td className="px-4 py-3 text-gray-400">#{asset.id}</td>
                 <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate">{asset.title}</td>
                 <td className="px-4 py-3 text-gray-500">{asset.province || '-'}</td>
                 <td className="px-4 py-3"><span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{SOURCE_LABELS[asset.source_type] || asset.source_type}</span></td>
+                <td className="px-4 py-3">{(() => { const c = CERT_LABELS[(asset as any).certification || 'uncertified'] || CERT_LABELS.uncertified; return <span className={`text-xs px-2 py-0.5 rounded ${c.className}`}>{c.label}</span>; })()}</td>
                 <td className="px-4 py-3 text-gray-500">{asset.views.toLocaleString()}</td>
                 <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[asset.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_LABELS[asset.status] || asset.status}</span></td>
                 <td className="px-4 py-3">
@@ -256,6 +264,13 @@ export default function AdminAssetsPage() {
               </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">资产类型</label><input type="text" value={formData.asset_type || ''} onChange={(e) => setFormData({...formData, asset_type: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">描述</label><textarea value={formData.description || ''} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">确权状态</label>
+                <select value={(formData as any).certification || 'uncertified'} onChange={(e) => setFormData({...formData, certification: e.target.value} as any)} className="w-full px-3 py-2 border border-gray-200 rounded-lg">
+                  <option value="uncertified">❌ 未确权</option>
+                  <option value="pending">⏳ 待确权</option>
+                  <option value="certified">✅ 已确权</option>
+                </select>
+              </div>
 
               {/* 图片管理 */}
               <div>

@@ -8,11 +8,19 @@ interface AssetCardProps {
   imageUrl?: string;
   href?: string;
   badge?: string;
+  certification?: string;
 }
 
-export default function AssetCard({ rank, title, subtitle, views, price, gradient, imageUrl, href, badge }: AssetCardProps) {
+const CERT_LABELS: Record<string, { label: string; className: string }> = {
+  certified: { label: '✅ 已确权', className: 'bg-green-500/90 text-white' },
+  pending: { label: '⏳ 待确权', className: 'bg-yellow-500/90 text-white' },
+  uncertified: { label: '未确权', className: 'bg-gray-500/70 text-white' },
+};
+
+export default function AssetCard({ rank, title, subtitle, views, price, gradient, imageUrl, href, badge, certification }: AssetCardProps) {
   const Wrapper = href ? 'a' : 'div';
   const wrapperProps = href ? { href } : {};
+  const cert = CERT_LABELS[certification || 'uncertified'] || CERT_LABELS.uncertified;
 
   return (
     <Wrapper
@@ -27,21 +35,16 @@ export default function AssetCard({ rank, title, subtitle, views, price, gradien
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
 
-      {/* 左上角标签 */}
+      {/* 左上角：来源标签 + 确权标签 */}
       <div className="absolute top-4 left-4 z-10 flex items-center space-x-2">
-        {badge ? (
+        {badge && (
           <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-brand-green text-white shadow-lg">
             {badge}
           </span>
-        ) : (
-          rank <= 3 && (
-            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold ${
-              rank === 1 ? 'bg-yellow-500' : rank === 2 ? 'bg-gray-400' : 'bg-orange-700'
-            } text-white shadow-lg`}>
-              {rank === 1 ? '🥇 TOP 1' : rank === 2 ? '🥈 TOP 2' : '🥉 TOP 3'}
-            </span>
-          )
         )}
+        <span className={`inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-medium ${cert.className} shadow`}>
+          {cert.label}
+        </span>
       </div>
 
       {/* 底部信息 */}

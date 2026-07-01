@@ -92,6 +92,7 @@ export interface Asset {
   raw_html: string | null;
   ai_extracted: string | null;
   infra_details: string | null;
+  certification: string;
   created_at: string;
   updated_at: string;
 }

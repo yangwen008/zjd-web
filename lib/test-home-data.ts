@@ -20,6 +20,7 @@ export interface Property {
   type: string;
   imageUrl: string;
   badge?: string;
+  certification?: string;
 }
 
 export interface VillageProject {

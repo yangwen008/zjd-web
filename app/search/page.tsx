@@ -14,6 +14,7 @@ interface Asset {
   source_type: string;
   views: number;
   images: string | null;
+  certification: string;
 }
 
 const GRADIENTS = [
@@ -168,6 +169,7 @@ export default function SearchPage() {
                     gradient={GRADIENTS[i % GRADIENTS.length]}
                     imageUrl={getFirstImage(asset.images)}
                     badge={SOURCE_BADGES[asset.source_type]}
+                    certification={asset.certification}
                     href={`/asset/${asset.id}`}
                   />
                 ))

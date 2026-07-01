@@ -54,6 +54,7 @@ export default function PublishAssetPage() {
     price_total: '',
     lease_years: '20',
     asset_type: '宅基地',
+    certification: 'uncertified',
     contact_name: '',
     contact_phone: '',
     gps_lat: '',
@@ -592,6 +593,32 @@ export default function PublishAssetPage() {
                   )}
                 </div>
               </label>
+            ))}
+          </div>
+        </div>
+
+        {/* ═══ 确权状态 ═══ */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold text-gray-800 border-b pb-2">📋 确权状态</h3>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { key: 'uncertified', label: '❌ 未确权', desc: '暂无权属证明' },
+              { key: 'pending', label: '⏳ 待确权', desc: '权属确认中' },
+              { key: 'certified', label: '✅ 已确权', desc: '已完成权属登记' },
+            ].map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setFormData({ ...formData, certification: opt.key })}
+                className={`p-4 rounded-lg border-2 text-left transition-colors ${
+                  formData.certification === opt.key
+                    ? 'border-brand-green bg-brand-green/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="text-sm font-medium">{opt.label}</div>
+                <div className="text-xs text-gray-400 mt-1">{opt.desc}</div>
+              </button>
             ))}
           </div>
         </div>

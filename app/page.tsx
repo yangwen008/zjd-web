@@ -100,7 +100,8 @@ function toPropertyFormat(asset: Asset, defaultImage: string) {
     type: `${asset.lease_years || 20}年期${asset.asset_type || '宅基地'}使用权`,
     imageUrl: getFirstImage(asset.images, defaultImage),
     badge: asset.source_type === 'official' ? '官方' : 
-           asset.source_type === 'village' ? '村委' : '个人'
+           asset.source_type === 'village' ? '村委' : '个人',
+    certification: (asset as any).certification || 'uncertified',
   };
 }
 

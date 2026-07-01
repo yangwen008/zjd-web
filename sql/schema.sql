@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS assets (
   raw_html      TEXT,              -- 原始抓取HTML
   ai_extracted  TEXT,              -- AI提取的JSON
   infra_details TEXT,              -- 基建配套+环境指标JSON
+  certification TEXT DEFAULT 'uncertified', -- 确权状态: certified/uncertified/pending
   created_at    TEXT DEFAULT (datetime('now')),
   updated_at    TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
