@@ -54,7 +54,7 @@ export default function AdminBulkProjectsPage() {
     area_mu: '', area_sqm: '', price_total: '', price_start: '',
     yield_rate: '', lease_years: '', certification: 'uncertified',
     planning_use: '', images: '', video_url: '', commercial_plan: '',
-    cert_doc_url: '', gps_lat: '', gps_lng: '',
+    cert_doc_url: '', infra_details: '', gps_lat: '', gps_lng: '',
     contact_name: '', contact_phone: '', status: 'pending', featured: false,
   };
   const [form, setForm] = useState(emptyForm);
@@ -90,6 +90,7 @@ export default function AdminBulkProjectsPage() {
       certification: p.certification || 'uncertified',
       planning_use: p.planning_use || '', images: '', video_url: '',
       commercial_plan: '', cert_doc_url: '',
+      infra_details: (p as any).infra_details || '',
       gps_lat: '', gps_lng: '', contact_name: '', contact_phone: '',
       status: p.status, featured: p.featured === 1,
     });
@@ -111,6 +112,7 @@ export default function AdminBulkProjectsPage() {
         lease_years: form.lease_years ? parseInt(form.lease_years) : null,
         gps_lat: form.gps_lat ? parseFloat(form.gps_lat) : null,
         gps_lng: form.gps_lng ? parseFloat(form.gps_lng) : null,
+        infra_details: form.infra_details || null,
       };
       if (editId) payload.id = editId;
 
@@ -287,6 +289,10 @@ export default function AdminBulkProjectsPage() {
           <div className="mb-4">
             <label className="block text-xs font-medium text-gray-500 mb-1">项目描述</label>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
+          </div>
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-gray-500 mb-1">确权证书URL</label>
+            <input type="text" value={form.cert_doc_url} onChange={(e) => setForm({ ...form, cert_doc_url: e.target.value })} placeholder="https://..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
           </div>
           <div className="flex items-center space-x-3">
             <button onClick={handleSave} disabled={saving} className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50">
