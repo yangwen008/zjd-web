@@ -100,6 +100,18 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
               </div>
             )}
 
+            {/* Commercial Plan */}
+            {project.commercial_plan && (
+              <div className="bg-white rounded-xl border border-gray-100 p-6">
+                <h2 className="font-bold text-gray-900 mb-3">商业计划书</h2>
+                <div
+                  className="text-gray-600 text-sm leading-relaxed"
+                  style={{ lineHeight: '1.8' }}
+                  dangerouslySetInnerHTML={{ __html: project.commercial_plan }}
+                />
+              </div>
+            )}
+
             {/* Infra from database */}
             <div className="bg-white rounded-xl border border-gray-100 p-6">
               <h2 className="font-bold text-gray-900 mb-4">基础设施配套</h2>
