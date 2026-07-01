@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         (title, description, location, province, city, district, address, area_mu, price_year, price_total, lease_years,
          asset_type, source_type, images, video_url, infra_details, gps_lat, gps_lng, contact_name, contact_phone,
          user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         body.description || '',
         location,
