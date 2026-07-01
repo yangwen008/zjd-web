@@ -70,7 +70,7 @@ export async function POST(request: Request) {
         id, title, code, description, location, province, city, district,
         area_mu, area_sqm, price_total, price_start, yield_rate, lease_years,
         certification, planning_use, images, video_url, commercial_plan,
-        cert_doc_url, infra_details, gps_lat, gps_lng, contact_name, contact_phone,
+        commercial_plan_doc, cert_doc_url, infra_details, gps_lat, gps_lng, contact_name, contact_phone,
         status, featured,
       } = body as Record<string, unknown>;
 
