@@ -38,10 +38,10 @@ export default function AdminAuditPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/admin/assets?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] })),
-      fetch('/api/admin/bulk-projects?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] })),
-      fetch('/api/admin/users?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] })),
-    ]).then(([assetData, bulkData, userData]) => {
+      fetch('/api/admin/assets?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] as PendingAsset[] })),
+      fetch('/api/admin/bulk-projects?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] as PendingBulk[] })),
+      fetch('/api/admin/users?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] as PendingUser[] })),
+    ]).then(([assetData, bulkData, userData]: [{ data: PendingAsset[] }, { data: PendingBulk[] }, { data: PendingUser[] }]) => {
       setAssets(assetData.data || []);
       setBulk(bulkData.data || []);
       setUsers((userData.data || []).filter((u: PendingUser) => u.role_apply));
