@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     args.push(status);
   }
 
-  sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+  sql += ' ORDER BY featured DESC, created_at DESC LIMIT ? OFFSET ?';
   args.push(limit, (page - 1) * limit);
 
   try {
