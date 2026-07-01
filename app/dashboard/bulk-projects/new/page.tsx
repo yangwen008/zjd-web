@@ -9,6 +9,7 @@ export default function BulkProjectPublishPage() {
   const [msg, setMsg] = useState('');
   const [user, setUser] = useState<any>(null);
   const [uploadedImages, setUploadedImages] = useState<{ preview: string; server: string }[]>([]);
+  const [uploadedVideo, setUploadedVideo] = useState<{ preview: string; server: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [commercialDoc, setCommercialDoc] = useState<{ name: string; url: string } | null>(null);
   const [certDoc, setCertDoc] = useState<{ name: string; url: string } | null>(null);
@@ -126,6 +127,32 @@ export default function BulkProjectPublishPage() {
     setUploadedImages(newList);
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/') || file.size > 100 * 1024 * 1024) {
+      show('❌ 视频文件不能超过100MB');
+      return;
+    }
+    setUploading(true);
+    const preview = URL.createObjectURL(file);
+    const url = await uploadFile(file);
+    if (url) {
+      if (uploadedVideo) URL.revokeObjectURL(uploadedVideo.preview);
+      setUploadedVideo({ preview, server: url });
+    } else {
+      URL.revokeObjectURL(preview);
+      show('❌ 视频上传失败');
+    }
+    setUploading(false);
+    e.target.value = '';
+  };
+
+  const removeVideo = () => {
+    if (uploadedVideo) URL.revokeObjectURL(uploadedVideo.preview);
+    setUploadedVideo(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) { show('❌ 请先登录'); return; }
@@ -141,6 +168,7 @@ export default function BulkProjectPublishPage() {
           target: 'bulk_project',
           ...formData,
           images: JSON.stringify(uploadedImages.map((i) => i.server)),
+          video_url: uploadedVideo?.server || '',
           commercial_plan_doc: commercialDoc?.url || '',
           cert_doc_url: certDoc?.url || '',
           infra_details: JSON.stringify({
@@ -403,7 +431,7 @@ export default function BulkProjectPublishPage() {
 
         {/* 图片 */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
-          <h3 className="font-bold text-gray-800 border-b pb-2">📷 项目图片</h3>
+          <h3 className="font-bold text-gray-800 border-b pb-2">📷 项目图片 & 视频</h3>
           <div className="flex items-center space-x-3">
             <label className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
               <span className="text-lg">📷</span>
@@ -424,6 +452,25 @@ export default function BulkProjectPublishPage() {
               ))}
             </div>
           )}
+
+          {/* 视频 */}
+          <div className="pt-4 border-t border-gray-100">
+            <label className="block text-sm font-medium text-gray-700 mb-2">📹 项目视频（选填）</label>
+            {uploadedVideo ? (
+              <div className="relative">
+                <video src={uploadedVideo.preview} controls className="w-full max-h-64 rounded-lg border border-gray-200" />
+                <button type="button" onClick={removeVideo}
+                  className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600">删除视频</button>
+              </div>
+            ) : (
+              <label className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <span className="text-lg">📹</span>
+                <span className="text-sm text-gray-600">选择视频</span>
+                <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+              </label>
+            )}
+            <span className="text-xs text-gray-400 ml-2">MP4/WebM，≤ 100MB</span>
+          </div>
         </div>
 
         {/* 联系方式 */}

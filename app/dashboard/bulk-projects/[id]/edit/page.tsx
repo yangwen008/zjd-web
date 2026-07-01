@@ -14,6 +14,8 @@ export default function EditBulkProjectPage() {
   const [user, setUser] = useState<any>(null);
   const [uploadedImages, setUploadedImages] = useState<{ preview: string; server: string }[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [uploadedVideo, setUploadedVideo] = useState<{ preview: string; server: string } | null>(null);
+  const [existingVideo, setExistingVideo] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [commercialDoc, setCommercialDoc] = useState<{ name: string; url: string } | null>(null);
   const [certDoc, setCertDoc] = useState<{ name: string; url: string } | null>(null);
@@ -74,6 +76,7 @@ export default function EditBulkProjectPage() {
       });
 
       try { setExistingImages(project.images ? JSON.parse(project.images) : []); } catch { setExistingImages([]); }
+      if (project.video_url) setExistingVideo(project.video_url);
 
       // 加载附件
       if (project.commercial_plan_doc) setCommercialDoc({ name: '商业计划书', url: project.commercial_plan_doc });
@@ -143,6 +146,19 @@ export default function EditBulkProjectPage() {
     const newList = [...uploadedImages]; URL.revokeObjectURL(newList[i].preview); newList.splice(i, 1); setUploadedImages(newList);
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/') || file.size > 100 * 1024 * 1024) { show('❌ 视频文件不能超过100MB'); return; }
+    setUploading(true);
+    const preview = URL.createObjectURL(file);
+    const url = await uploadFile(file);
+    if (url) { if (uploadedVideo) URL.revokeObjectURL(uploadedVideo.preview); setUploadedVideo({ preview, server: url }); }
+    else { URL.revokeObjectURL(preview); show('❌ 视频上传失败'); }
+    setUploading(false);
+    e.target.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) { show('❌ 请输入项目标题'); return; }
@@ -158,6 +174,7 @@ export default function EditBulkProjectPage() {
           id: parseInt(projectId),
           ...formData,
           images: JSON.stringify(allImages),
+          video_url: uploadedVideo?.server || existingVideo || '',
           commercial_plan_doc: commercialDoc?.url || '',
           cert_doc_url: certDoc?.url || '',
           infra_details: JSON.stringify({ infra: infraItems.filter(i => i.enabled), env: envItems.filter(e => e.enabled) }),
@@ -329,6 +346,29 @@ export default function EditBulkProjectPage() {
             <span>📷</span><span className="text-gray-600">{uploading ? '上传中...' : '添加图片'}</span>
             <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
           </label>
+
+          {/* 视频 */}
+          <div className="pt-4 border-t border-gray-100">
+            <label className="block text-sm font-medium text-gray-700 mb-2">📹 项目视频</label>
+            {uploadedVideo ? (
+              <div className="relative">
+                <video src={uploadedVideo.preview} controls className="w-full max-h-64 rounded-lg border border-gray-200" />
+                <button type="button" onClick={() => { URL.revokeObjectURL(uploadedVideo.preview); setUploadedVideo(null); }} className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600">删除视频</button>
+              </div>
+            ) : existingVideo ? (
+              <div className="relative">
+                <video src={existingVideo} controls className="w-full max-h-64 rounded-lg border border-gray-200" />
+                <button type="button" onClick={() => setExistingVideo(null)} className="absolute top-2 right-2 px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600">删除视频</button>
+              </div>
+            ) : (
+              <label className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <span className="text-lg">📹</span>
+                <span className="text-sm text-gray-600">选择视频</span>
+                <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+              </label>
+            )}
+            <span className="text-xs text-gray-400 ml-2">MP4/WebM，≤ 100MB</span>
+          </div>
         </div>
 
         {/* 联系方式 */}

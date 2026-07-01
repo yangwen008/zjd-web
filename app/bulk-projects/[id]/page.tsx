@@ -66,6 +66,13 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
               )}
             </div>
 
+            {/* Video */}
+            {project.video_url && (
+              <div className="bg-gray-100 rounded-2xl overflow-hidden">
+                <video src={project.video_url} controls className="w-full max-h-96" />
+              </div>
+            )}
+
             {/* Title */}
             <div>
               <div className="flex items-center space-x-2 mb-2">
