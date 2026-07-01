@@ -28,7 +28,6 @@ const NAV_GROUPS = [
       { icon: '🏛️', label: '村委资产', href: '/admin/assets?source=village' },
       { icon: '👤', label: '个人资产', href: '/admin/assets?source=ugc' },
       { icon: '🏢', label: '大宗路演', href: '/admin/bulk-projects' },
-      { icon: '🤝', label: '合伙人管理', href: '/admin/brokers' },
       { icon: '💰', label: '行情数据', href: '/admin/market-data' },
       { icon: '📡', label: '基建评分', href: '/admin/infra-ratings' },
     ],
@@ -36,6 +35,7 @@ const NAV_GROUPS = [
   {
     title: '用户与配置',
     items: [
+      { icon: '🤝', label: '合伙人管理', href: '/admin/brokers' },
       { icon: '👥', label: '用户管理', href: '/admin/users' },
       { icon: '⚙️', label: '全局配置', href: '/admin/config' },
     ],
