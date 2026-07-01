@@ -215,10 +215,10 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
                   </div>
                 )}
                 {project.cert_doc_url ? (
-                  <a href="#" className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <a href={project.cert_doc_url} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <span>📋</span>
                     <span className="text-sm text-gray-700">确权证书</span>
-                    <span className="text-xs text-brand-green ml-auto">点击解锁查看</span>
+                    <span className="text-xs text-brand-green ml-auto">点击查看</span>
                   </a>
                 ) : (
                   <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg opacity-50">
