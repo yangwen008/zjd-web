@@ -80,7 +80,7 @@ export async function PUT(request: Request) {
       `UPDATE bulk_projects SET
         title = ?, code = ?, description = ?, location = ?, province = ?, city = ?, district = ?,
         area_mu = ?, area_sqm = ?, price_total = ?, price_start = ?, yield_rate = ?, lease_years = ?,
-        certification = ?, planning_use = ?, images = ?, commercial_plan = ?, infra_details = ?,
+        certification = ?, planning_use = ?, images = ?, commercial_plan = ?, commercial_plan_doc = ?, infra_details = ?,
         gps_lat = ?, gps_lng = ?, contact_name = ?, contact_phone = ?, updated_at = datetime('now')
       WHERE id = ?`,
       body.title, body.code || null, body.description || '', location,
@@ -93,7 +93,7 @@ export async function PUT(request: Request) {
       body.lease_years ? parseInt(body.lease_years) : null,
       body.certification || 'uncertified',
       body.planning_use || null, imagesJson,
-      body.commercial_plan || null, body.infra_details || null,
+      body.commercial_plan || null, body.commercial_plan_doc || null, body.infra_details || null,
       body.gps_lat ? parseFloat(body.gps_lat) : null,
       body.gps_lng ? parseFloat(body.gps_lng) : null,
       body.contact_name || '', body.contact_phone || '',

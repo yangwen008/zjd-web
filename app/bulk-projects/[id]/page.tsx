@@ -192,12 +192,17 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
               {/* Docs */}
               <div className="mt-6 space-y-2">
                 <div className="text-xs font-medium text-gray-500 mb-2">项目附件</div>
-                {project.commercial_plan ? (
-                  <a href="#" className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                {(project as any).commercial_plan_doc ? (
+                  <a href={(project as any).commercial_plan_doc} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <span>📄</span>
-                    <span className="text-sm text-gray-700">商业规划书</span>
-                    <span className="text-xs text-brand-green ml-auto">点击解锁查看</span>
+                    <span className="text-sm text-gray-700">商业计划书</span>
+                    <span className="text-xs text-brand-green ml-auto">点击下载</span>
                   </a>
+                ) : project.commercial_plan ? (
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                    <span>📄</span>
+                    <span className="text-sm text-gray-700">商业规划书（详见项目描述）</span>
+                  </div>
                 ) : (
                   <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg opacity-50">
                     <span>📄</span>

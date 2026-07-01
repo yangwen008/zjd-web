@@ -128,11 +128,11 @@ export async function POST(request: Request) {
       await execute(
         `INSERT INTO bulk_projects
         (title, code, description, location, province, city, district, area_mu, area_sqm, price_total, price_start,
-         yield_rate, lease_years, certification, planning_use, images, commercial_plan, cert_doc_url, infra_details, gps_lat, gps_lng,
+         yield_rate, lease_years, certification, planning_use, images, commercial_plan, commercial_plan_doc, cert_doc_url, infra_details, gps_lat, gps_lng,
          contact_name, contact_phone, user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
-        body.code || null,
+        code || null,
         body.description || '',
         location,
         body.province,
@@ -148,6 +148,7 @@ export async function POST(request: Request) {
         body.planning_use || null,
         imagesJson,
         body.commercial_plan || null,
+        body.commercial_plan_doc || null,
         body.cert_doc_url || null,
         body.infra_details || null,
         body.gps_lat ? parseFloat(body.gps_lat) : null,

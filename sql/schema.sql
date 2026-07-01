@@ -299,6 +299,7 @@ CREATE TABLE IF NOT EXISTS bulk_projects (
   images            TEXT,
   video_url         TEXT,
   commercial_plan   TEXT,
+  commercial_plan_doc TEXT,            -- 商业计划书附件URL
   cert_doc_url      TEXT,
   infra_details     TEXT,              -- 基建配套+环境指标JSON
   gps_lat           REAL,
