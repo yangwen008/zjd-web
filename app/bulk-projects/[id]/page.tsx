@@ -56,14 +56,18 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Media Gallery */}
-            <MediaGallery images={images} video={project.video_url} />
+            {/* Media Gallery with overlay badges */}
+            <div className="relative">
+              <MediaGallery images={images} video={project.video_url} />
+              <div className="absolute top-4 left-4 flex items-center space-x-2 z-10">
+                {project.code && <span className="bg-yellow-500 text-white text-xs font-bold px-2.5 py-1 rounded shadow-lg">{project.code}</span>}
+                <span className={`text-xs px-2.5 py-1 rounded shadow-lg font-medium ${cert.className}`}>{cert.label}</span>
+              </div>
+            </div>
 
             {/* Title */}
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                {project.code && <span className="bg-yellow-500 text-white text-xs font-bold px-2 py-0.5 rounded">{project.code}</span>}
-                <span className={`text-xs px-2 py-0.5 rounded ${cert.className}`}>{cert.label}</span>
                 {project.planning_use && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{project.planning_use}</span>}
               </div>
               <h1 className="text-2xl font-bold text-gray-900">{project.title}</h1>
