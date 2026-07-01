@@ -101,9 +101,6 @@ export default function RegionsPage() {
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
           searchPlaceholder="输入标题、地点、类型..."
-          onSearch={handleSearch}
-          searchLoading={loading}
-          searchLabel={searched ? '重新搜索' : '搜索'}
           filterGroups={[
             {
               label: '资产来源',
@@ -119,20 +116,28 @@ export default function RegionsPage() {
           ]}
           resultCount={searched ? results.length : hotAssets.length}
           resultLabel="宗资产"
-          className="mb-6"
+          className="mb-3"
         />
 
-        {/* 排序 + 清除筛选 */}
+        {/* 搜索按钮 + 排序 */}
         <div className="mb-8 flex items-center justify-between">
-          {searched && (
+          <div className="flex items-center space-x-3">
             <button
-              onClick={() => { setSearched(false); setSource(''); setProvince(''); setCity(''); setSearchQuery(''); }}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              onClick={handleSearch}
+              disabled={loading}
+              className="bg-brand-green hover:bg-brand-light text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
-              ← 清除筛选，回到热门排行
+              {loading ? '搜索中...' : '🔍 搜索'}
             </button>
-          )}
-          {!searched && <div />}
+            {searched && (
+              <button
+                onClick={() => { setSearched(false); setSource(''); setProvince(''); setCity(''); setSearchQuery(''); }}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                ← 清除筛选，回到热门排行
+              </button>
+            )}
+          </div>
 
           {!searched && (
             <div className="flex items-center space-x-2 text-sm">
