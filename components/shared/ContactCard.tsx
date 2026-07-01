@@ -20,7 +20,7 @@ export default function ContactCard({ phone, name, attachments = [] }: ContactCa
   useEffect(() => {
     fetch('/api/auth/me')
       .then(r => r.json())
-      .then(d => setLoggedIn(d.success))
+      .then((d: any) => setLoggedIn(d.success))
       .catch(() => setLoggedIn(false))
       .finally(() => setChecking(false));
   }, []);
