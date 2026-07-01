@@ -80,7 +80,6 @@ async function enrichPublisherName<T extends { user_id?: number | null; publishe
 
 export interface Asset {
   id: number;
-  user_id?: number | null;
   publisher_name?: string;
   title: string;
   description: string | null;
