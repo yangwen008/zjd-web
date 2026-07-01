@@ -35,7 +35,7 @@ const SECTION_DEFAULTS: Record<string, string> = {
   section_latest_count: '6',
   section_village_title: '村集体直发专区',
   section_village_subtitle: '查看所有村委直发',
-  section_village_count: '6',
+  section_village_count: '2',
   section_bulk_title: '文旅大宗产业路演带',
   section_bulk_subtitle: '进入独立路演大厅',
   section_bulk_count: '2',
@@ -194,7 +194,7 @@ export async function getFeaturedAssets(limit: number = 6): Promise<Asset[]> {
 
 export async function getAssetsBySource(sourceType: string, limit: number = 6): Promise<Asset[]> {
   return query<Asset>(
-    'SELECT * FROM assets WHERE status = ? AND source_type = ? ORDER BY featured DESC, views DESC LIMIT ?',
+    'SELECT * FROM assets WHERE status = ? AND source_type = ? ORDER BY featured DESC, created_at DESC LIMIT ?',
     'approved', sourceType, limit
   );
 }
