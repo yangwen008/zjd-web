@@ -1,4 +1,5 @@
 export const runtime = 'edge';
+export const revalidate = 300;
 
 import Link from 'next/link';
 import { getBulkProjects, getHomepageConfig } from '@/lib/data';

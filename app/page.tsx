@@ -28,6 +28,7 @@ import {
 } from "@/lib/data";
 
 export const runtime = 'edge';
+export const revalidate = 300; // 5分钟缓存，大幅减少 D1 读取
 
 // --- 原版辅助函数与字典（用于行情表格） ---
 function getRegionEmojis(config: Record<string, string>): Record<string, string> {

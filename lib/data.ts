@@ -61,24 +61,6 @@ export function getConfigCount(config: Record<string, string>, key: string, fall
   return isNaN(n) ? fallback : Math.max(1, Math.min(12, n));
 }
 
-// ============ 批量填充发布者名称 ============
-async function enrichPublisherName<T extends { user_id?: number | null; publisher_name?: string; publisher_role?: string }>(assets: T[]): Promise<T[]> {
-  const userIds = [...new Set(assets.map(a => a.user_id).filter(Boolean))];
-  if (userIds.length === 0) return assets;
-  const placeholders = userIds.map(() => '?').join(',');
-  const users = await query<{ id: number; nickname: string; role: string }>(
-    `SELECT id, nickname, role FROM users WHERE id IN (${placeholders})`, ...userIds
-  );
-  const userMap = new Map(users.map(u => [u.id, { nickname: u.nickname, role: u.role }]));
-  for (const a of assets) {
-    if (a.user_id) {
-      const u = userMap.get(a.user_id);
-      if (u) { a.publisher_name = u.nickname; a.publisher_role = u.role; }
-    }
-  }
-  return assets;
-}
-
 // ============ 资产列表 ============
 
 export interface Asset {
@@ -146,8 +128,9 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
     // FTS5 全文搜索
     const selectClause = countOnly
       ? 'SELECT COUNT(*) as count'
-      : 'SELECT assets.*';
-    sql = `${selectClause} FROM assets
+      : `SELECT assets.*, u.nickname as publisher_name, u.role as publisher_role`;
+    const joinClause = countOnly ? '' : ' LEFT JOIN users u ON assets.user_id = u.id';
+    sql = `${selectClause} FROM assets${joinClause}
            JOIN assets_fts ON assets.id = assets_fts.rowid
            WHERE assets.status = ? AND assets_fts MATCH ?`;
     args = ['approved', search];
@@ -159,8 +142,13 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
     if (priceMax) { sql += ' AND assets.price_year <= ?'; args.push(priceMax); }
     if (featured) { sql += ' AND assets.featured = 1'; }
   } else {
-    const selectClause = countOnly ? 'SELECT COUNT(*) as count' : 'SELECT *';
-    sql = `${selectClause} FROM assets WHERE status = ?`;
+    const selectClause = countOnly ? 'SELECT COUNT(*) as count' : `SELECT assets.*, u.nickname as publisher_name, u.role as publisher_role`;
+    const joinClause = countOnly ? '' : ' LEFT JOIN users u ON assets.user_id = u.id';
+    sql = `${selectClause} FROM assets${joinClause} WHERE assets.status = ?`;
+    // 消歧义
+    if (!countOnly) {
+      sql = sql.replace('WHERE assets.status', 'WHERE assets.status');
+    }
     args = ['approved'];
     if (source) { sql += ' AND source_type = ?'; args.push(source); }
     if (province) { sql += ' AND province = ?'; args.push(province); }
@@ -193,56 +181,46 @@ export async function getAssetsCount(params: AssetFilters = {}): Promise<number>
 }
 
 export async function getAssetById(id: number | string): Promise<Asset | null> {
-  const asset = await queryOne<Asset>(
-    'SELECT * FROM assets WHERE id = ? AND status = ?',
+  return queryOne<Asset>(
+    'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.id = ? AND a.status = ?',
     id, 'approved'
   );
-  if (asset) {
-    const [enriched] = await enrichPublisherName([asset]);
-    return enriched;
-  }
-  return null;
 }
 
 export async function getHotAssets(limit: number = 6): Promise<Asset[]> {
-  const assets = await query<Asset>(
-    'SELECT * FROM assets WHERE status = ? ORDER BY featured DESC, views DESC LIMIT ?',
+  return query<Asset>(
+    'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? ORDER BY a.featured DESC, a.views DESC LIMIT ?',
     'approved', limit
   );
-  return enrichPublisherName(assets);
 }
 
 export async function getFeaturedAssets(limit: number = 6): Promise<Asset[]> {
-  const assets = await query<Asset>(
-    'SELECT * FROM assets WHERE status = ? AND featured = 1 ORDER BY views DESC LIMIT ?',
+  return query<Asset>(
+    'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? AND a.featured = 1 ORDER BY a.views DESC LIMIT ?',
     'approved', limit
   );
-  return enrichPublisherName(assets);
 }
 
 export async function getAssetsBySource(sourceType: string, limit: number = 6): Promise<Asset[]> {
-  const assets = await query<Asset>(
-    'SELECT * FROM assets WHERE status = ? AND source_type = ? ORDER BY featured DESC, created_at DESC LIMIT ?',
+  return query<Asset>(
+    'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? AND a.source_type = ? ORDER BY a.featured DESC, a.created_at DESC LIMIT ?',
     'approved', sourceType, limit
   );
-  return enrichPublisherName(assets);
 }
 
 // 获取最新资产（所有来源混合，按创建时间倒序）
 export async function getLatestAssets(limit: number = 6): Promise<Asset[]> {
-  const assets = await query<Asset>(
-    'SELECT * FROM assets WHERE status = ? ORDER BY featured DESC, created_at DESC LIMIT ?',
+  return query<Asset>(
+    'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? ORDER BY a.featured DESC, a.created_at DESC LIMIT ?',
     'approved', limit
   );
-  return enrichPublisherName(assets);
 }
 
 export async function getAssetsByProvince(province: string, limit: number = 20): Promise<Asset[]> {
-  const assets = await query<Asset>(
-    'SELECT * FROM assets WHERE status = ? AND province = ? ORDER BY featured DESC, views DESC LIMIT ?',
+  return query<Asset>(
+    'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? AND a.province = ? ORDER BY a.featured DESC, a.views DESC LIMIT ?',
     'approved', province, limit
   );
-  return enrichPublisherName(assets);
 }
 
 export async function getMarketDataByProvince(province: string): Promise<MarketData | null> {

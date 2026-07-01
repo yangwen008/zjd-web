@@ -1,4 +1,5 @@
 export const runtime = 'edge';
+export const revalidate = 300;
 
 import type { Metadata, Viewport } from 'next';
 import './globals.css';

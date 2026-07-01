@@ -1,4 +1,5 @@
 export const runtime = 'edge';
+export const revalidate = 60; // 1分钟缓存
 
 import { getAssetById, getAssets, getHomepageConfig, incrementViews } from '@/lib/data';
 import { notFound } from 'next/navigation';
