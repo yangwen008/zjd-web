@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { query, queryOne, execute } from '@/lib/db';
 import { getEnv } from '@/lib/db';
+import { findOrCreateSourceAccount } from '@/lib/source-account';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -126,15 +127,25 @@ export async function POST(request: Request) {
 
       for (const asset of assets) {
         const a = asset as Record<string, unknown>;
-        if (!a.title) continue; // 跳过无标题的
+        if (!a.title) continue;
+
+        // 自动匹配来源账号
+        const source = await findOrCreateSourceAccount({
+          province: a.province as string || undefined,
+          city: a.city as string || undefined,
+        });
+        const userId = source?.user_id || null;
+        const status = source?.auto_approve ? 'approved' : 'pending';
+
         await execute(
-          `INSERT INTO assets (title, description, location, province, city, district, area_mu, price_year, lease_years, asset_type, source_type, source_url, contact_name, contact_phone, certification, status, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+          `INSERT INTO assets (title, description, location, province, city, district, area_mu, price_year, lease_years, asset_type, source_type, source_url, contact_name, contact_phone, certification, user_id, status, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
           a.title || 'Untitled', a.description || null, a.location || null,
           a.province || null, a.city || null, a.district || null,
           a.area_mu || null, a.price_year || null, a.lease_years || null,
-          a.asset_type || null, a.source_type || 'official', a.source_url || null,
-          a.contact_name || null, a.contact_phone || null, a.certification || 'uncertified'
+          a.asset_type || '种植', a.source_type || 'official', a.source_url || null,
+          a.contact_name || null, a.contact_phone || null, a.certification || 'uncertified',
+          userId, status
         );
         imported++;
       }
