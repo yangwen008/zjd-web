@@ -69,7 +69,6 @@ export default function EditBulkProjectPage() {
         yield_rate: String(project.yield_rate || ''), lease_years: String(project.lease_years || '30'),
         certification: project.certification || 'uncertified', planning_use: project.planning_use || '',
         commercial_plan: project.commercial_plan || '',
-        contact_name: project.contact_name || '',
         contact_name: project.contact_name || '', contact_phone: project.contact_phone || '',
         gps_lat: String(project.gps_lat || ''), gps_lng: String(project.gps_lng || ''),
       });
