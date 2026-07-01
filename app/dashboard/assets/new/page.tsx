@@ -25,6 +25,22 @@ export default function PublishAssetPage() {
   const [uploading, setUploading] = useState(false);
   const [orgName, setOrgName] = useState('');
 
+  // 基建配套 & 环境指标（默认全选）
+  const [infraItems, setInfraItems] = useState([
+    { key: 'electricity', icon: '⚡', label: '通电', enabled: true, status: '已通' },
+    { key: 'water', icon: '💧', label: '自来水', enabled: true, status: '已通' },
+    { key: 'network', icon: '📶', label: '网络', enabled: true, status: '5G覆盖' },
+    { key: 'sewage', icon: '🚽', label: '污水化粪池', enabled: true, status: '已建' },
+    { key: 'road', icon: '🛣️', label: '自建路', enabled: true, status: '已硬化' },
+    { key: 'far', icon: '🏗️', label: '容积率', enabled: true, status: '≤1.5' },
+  ]);
+  const [envItems, setEnvItems] = useState([
+    { key: 'comfort', icon: '🌡️', label: '舒适度', enabled: true, value: '±1级' },
+    { key: 'air', icon: '🌬️', label: '空气质量', enabled: true, value: '51-100(良)' },
+    { key: 'water_quality', icon: '💧', label: '水质', enabled: true, value: 'II类' },
+    { key: 'noise', icon: '🔇', label: '噪声指数', enabled: true, value: '20-40 dB' },
+  ]);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -267,6 +283,10 @@ export default function PublishAssetPage() {
           ...formData,
           images: JSON.stringify(uploadedImages.map((i) => i.server)),
           video_url: uploadedVideos[0]?.server || '',
+          infra_details: JSON.stringify({
+            infra: infraItems.filter(i => i.enabled),
+            env: envItems.filter(e => e.enabled),
+          }),
         }),
       });
       const d = await res.json() as any;
@@ -506,6 +526,72 @@ export default function PublishAssetPage() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* ═══ 基建配套 ═══ */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold text-gray-800 border-b pb-2">⚡ 基础设施配套</h3>
+          <p className="text-xs text-gray-400 -mt-2">默认全选，取消勾选表示该项不适用</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {infraItems.map((item, i) => (
+              <label key={item.key} className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${item.enabled ? 'border-brand-green/30 bg-brand-green/5' : 'border-gray-200 bg-gray-50 opacity-60'}`}>
+                <input type="checkbox" checked={item.enabled}
+                  onChange={() => {
+                    const arr = [...infraItems];
+                    arr[i] = { ...arr[i], enabled: !arr[i].enabled };
+                    setInfraItems(arr);
+                  }}
+                  className="w-4 h-4 rounded border-gray-300 text-brand-green focus:ring-brand-green" />
+                <span className="text-lg">{item.icon}</span>
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                  {item.enabled && (
+                    <input type="text" value={item.status}
+                      onChange={(e) => {
+                        const arr = [...infraItems];
+                        arr[i] = { ...arr[i], status: e.target.value };
+                        setInfraItems(arr);
+                      }}
+                      className="block w-full text-xs text-gray-500 border-b border-dashed border-gray-300 bg-transparent outline-none mt-0.5"
+                      placeholder="状态" />
+                  )}
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* ═══ 环境指标 ═══ */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold text-gray-800 border-b pb-2">🌡️ 环境指标</h3>
+          <p className="text-xs text-gray-400 -mt-2">默认全选，取消勾选表示该项不适用</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {envItems.map((item, i) => (
+              <label key={item.key} className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${item.enabled ? 'border-brand-green/30 bg-brand-green/5' : 'border-gray-200 bg-gray-50 opacity-60'}`}>
+                <input type="checkbox" checked={item.enabled}
+                  onChange={() => {
+                    const arr = [...envItems];
+                    arr[i] = { ...arr[i], enabled: !arr[i].enabled };
+                    setEnvItems(arr);
+                  }}
+                  className="w-4 h-4 rounded border-gray-300 text-brand-green focus:ring-brand-green" />
+                <div className="flex-1">
+                  <div className="text-lg mb-0.5">{item.icon}</div>
+                  <span className="text-xs text-gray-400">{item.label}</span>
+                  {item.enabled && (
+                    <input type="text" value={item.value}
+                      onChange={(e) => {
+                        const arr = [...envItems];
+                        arr[i] = { ...arr[i], value: e.target.value };
+                        setEnvItems(arr);
+                      }}
+                      className="block w-full text-sm font-bold text-gray-900 border-b border-dashed border-gray-300 bg-transparent outline-none mt-0.5"
+                      placeholder="数值" />
+                  )}
+                </div>
+              </label>
+            ))}
           </div>
         </div>
 

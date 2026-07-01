@@ -44,6 +44,8 @@ export default function AdminAssetsPage() {
   const [provinceList, setProvinceList] = useState<string[]>([]);
   const [cityList, setCityList] = useState<string[]>([]);
   const [msg, setMsg] = useState('');
+  const [editInfra, setEditInfra] = useState<any[]>([]);
+  const [editEnv, setEditEnv] = useState<any[]>([]);
 
   const fetchAssets = async (status?: string) => {
     setLoading(true);
@@ -81,6 +83,12 @@ export default function AdminAssetsPage() {
     setNewImages([]);
     setExistingVideo(asset.video_url || null);
     setNewVideo(null);
+    // 解析基建信息
+    try {
+      const parsed = (asset as any).infra_details ? JSON.parse((asset as any).infra_details) : null;
+      setEditInfra(parsed?.infra || []);
+      setEditEnv(parsed?.env || []);
+    } catch { setEditInfra([]); setEditEnv([]); }
     // 加载地址数据
     fetch('/api/regions?level=province').then(r => r.json()).then((d: any) => setProvinceList((d.data || []).map((p: any) => p.name))).catch(() => {});
     if (asset.province) {
@@ -95,7 +103,7 @@ export default function AdminAssetsPage() {
     try {
       const res = await fetch(`/api/admin/assets`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, id: editingAsset.id, images: JSON.stringify(allImages), video_url: videoUrl }),
+        body: JSON.stringify({ ...formData, id: editingAsset.id, images: JSON.stringify(allImages), video_url: videoUrl, infra_details: JSON.stringify({ infra: editInfra, env: editEnv }) }),
       });
       const data: any = await res.json();
       if (data.success) { show('✅ 修改已保存'); setEditingAsset(null); fetchAssets(filter); }
@@ -289,6 +297,28 @@ export default function AdminAssetsPage() {
                     <input type="file" accept="video/*" onChange={handleAdminVideoUpload} className="hidden" />
                   </label>
                 )}
+              </div>
+
+              {/* 基建配套编辑 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">基建配套 & 环境指标</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {editInfra.map((item: any, i: number) => (
+                    <label key={i} className="flex items-center space-x-2 p-2 rounded border border-gray-200 text-xs">
+                      <input type="checkbox" checked={true} onChange={() => setEditInfra(editInfra.filter((_: any, j: number) => j !== i))} className="rounded" />
+                      <span>{item.icon}</span>
+                      <span>{item.label}: {item.status}</span>
+                    </label>
+                  ))}
+                  {editEnv.map((item: any, i: number) => (
+                    <label key={`env-${i}`} className="flex items-center space-x-2 p-2 rounded border border-gray-200 text-xs">
+                      <input type="checkbox" checked={true} onChange={() => setEditEnv(editEnv.filter((_: any, j: number) => j !== i))} className="rounded" />
+                      <span>{item.icon}</span>
+                      <span>{item.label}: {item.value}</span>
+                    </label>
+                  ))}
+                </div>
+                {editInfra.length === 0 && editEnv.length === 0 && <p className="text-xs text-gray-400 mt-1">暂无基建/环境数据</p>}
               </div>
 
               <div><label className="block text-sm font-medium text-gray-700 mb-1">状态</label>

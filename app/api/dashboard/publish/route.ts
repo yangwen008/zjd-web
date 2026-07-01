@@ -47,6 +47,9 @@ export async function POST(request: Request) {
       // 5. 视频URL
       const video_url = body.video_url || null;
 
+      // 5.5 基建详情JSON
+      const infra_details = body.infra_details || null;
+
       // 6. source_type 按角色动态设置
       let sourceType = 'ugc';
       if (user.role === 'admin' || user.role === 'superadmin') {
@@ -59,7 +62,7 @@ export async function POST(request: Request) {
       await execute(
         `INSERT INTO assets
         (title, description, location, province, city, district, address, area_mu, price_year, price_total, lease_years,
-         asset_type, source_type, images, video_url, gps_lat, gps_lng, contact_name, contact_phone,
+         asset_type, source_type, images, video_url, infra_details, gps_lat, gps_lng, contact_name, contact_phone,
          user_id, status, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
@@ -77,6 +80,7 @@ export async function POST(request: Request) {
         sourceType,
         imagesJson,
         video_url,
+        infra_details,
         gps_lat,
         gps_lng,
         body.contact_name || '',

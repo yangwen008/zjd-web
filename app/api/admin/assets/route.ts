@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json() as any;
-    const { id, title, description, province, city, district, address, area_mu, price_year, price_total, lease_years, asset_type, contact_name, contact_phone, images, video_url, status } = body;
+    const { id, title, description, province, city, district, address, area_mu, price_year, price_total, lease_years, asset_type, contact_name, contact_phone, images, video_url, status, infra_details } = body;
 
     if (!id) return NextResponse.json({ success: false, error: '缺少资产ID' }, { status: 400 });
 
@@ -99,6 +99,7 @@ export async function PUT(request: Request) {
     if (contact_name !== undefined) { fields.push('contact_name = ?'); args.push(contact_name || ''); }
     if (contact_phone !== undefined) { fields.push('contact_phone = ?'); args.push(contact_phone || ''); }
     if (status !== undefined) { fields.push('status = ?'); args.push(status); }
+    if (infra_details !== undefined) { fields.push('infra_details = ?'); args.push(infra_details); }
     fields.push("updated_at = datetime('now')");
 
     args.push(id);

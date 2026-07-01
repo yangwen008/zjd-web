@@ -88,6 +88,7 @@ export interface Asset {
   user_id: number | null;
   raw_html: string | null;
   ai_extracted: string | null;
+  infra_details: string | null;
   created_at: string;
   updated_at: string;
 }

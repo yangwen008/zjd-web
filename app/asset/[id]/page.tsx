@@ -34,8 +34,8 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     }
   } catch {}
 
-  // 解析基建信息
-  const infraItems = [
+  // 解析基建信息（从数据库读取，fallback为默认值）
+  let infraItems = [
     { icon: '⚡', label: '通电', status: '已通' },
     { icon: '💧', label: '自来水', status: '已通' },
     { icon: '📶', label: '网络', status: '5G覆盖' },
@@ -43,13 +43,33 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     { icon: '🛣️', label: '自建路', status: '已硬化' },
     { icon: '🏗️', label: '容积率', status: '≤1.5' },
   ];
-
-  const envItems = [
+  let envItems = [
     { label: '舒适度', value: '±1级', icon: '🌡️' },
     { label: '空气质量', value: '51-100(良)', icon: '🌬️' },
     { label: '水质', value: 'II类', icon: '💧' },
     { label: '噪声指数', value: '20-40 dB', icon: '🔇' },
   ];
+
+  // 从 infra_details JSON 覆盖
+  if ((asset as any).infra_details) {
+    try {
+      const parsed = JSON.parse((asset as any).infra_details);
+      if (parsed.infra && Array.isArray(parsed.infra) && parsed.infra.length > 0) {
+        infraItems = parsed.infra.map((item: any) => ({
+          icon: item.icon || '📌',
+          label: item.label || '',
+          status: item.status || '',
+        }));
+      }
+      if (parsed.env && Array.isArray(parsed.env) && parsed.env.length > 0) {
+        envItems = parsed.env.map((item: any) => ({
+          icon: item.icon || '📌',
+          label: item.label || '',
+          value: item.value || '',
+        }));
+      }
+    } catch {}
+  }
 
   return (
     <>
