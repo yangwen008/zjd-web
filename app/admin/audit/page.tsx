@@ -6,9 +6,24 @@ import Link from 'next/link';
 interface PendingAsset {
   id: number;
   title: string;
+  description: string | null;
+  location: string | null;
   province: string | null;
+  city: string | null;
+  district: string | null;
+  area_mu: number | null;
+  price_year: number | null;
+  price_total: number | null;
+  lease_years: number | null;
   asset_type: string | null;
   source_type: string;
+  images: string | null;
+  video_url: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  certification: string;
+  featured: number;
+  views: number;
   created_at: string;
 }
 
@@ -16,6 +31,7 @@ interface PendingBulk {
   id: number;
   title: string;
   code: string | null;
+  description: string | null;
   province: string | null;
   created_at: string;
 }
@@ -35,6 +51,8 @@ export default function AdminAuditPage() {
   const [users, setUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'asset' | 'bulk' | 'user'>('all');
+  const [previewAsset, setPreviewAsset] = useState<PendingAsset | null>(null);
+  const [previewBulk, setPreviewBulk] = useState<PendingBulk | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,7 +146,7 @@ export default function AdminAuditPage() {
   }
 
   return (
-    <div>
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">📋 审核中心</h1>
         <span className="text-sm text-gray-500">共 {totalPending} 项待审核</span>
@@ -197,6 +215,7 @@ export default function AdminAuditPage() {
                     <td className="px-4 py-3 text-gray-400 text-xs">{asset.created_at}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
+                        <button onClick={() => setPreviewAsset(asset)} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs hover:bg-blue-100">查看</button>
                         <button onClick={() => handleApproveAsset(asset.id)} className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-xs hover:bg-green-100">通过</button>
                         <button onClick={() => handleRejectAsset(asset.id)} className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs hover:bg-red-100">拒绝</button>
                       </div>
@@ -237,6 +256,7 @@ export default function AdminAuditPage() {
                     <td className="px-4 py-3 text-gray-400 text-xs">{bp.created_at}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
+                        <button onClick={() => setPreviewBulk(bp)} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs hover:bg-blue-100">查看</button>
                         <button onClick={() => handleApproveBulk(bp.id)} className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-xs hover:bg-green-100">通过</button>
                         <button onClick={() => handleRejectBulk(bp.id)} className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs hover:bg-red-100">拒绝</button>
                       </div>
@@ -293,5 +313,81 @@ export default function AdminAuditPage() {
         </div>
       )}
     </div>
+
+    {/* 资产详情预览弹窗 */}
+    {previewAsset && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setPreviewAsset(null)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-900">📋 资产详情 #{previewAsset.id}</h2>
+            <button onClick={() => setPreviewAsset(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+          </div>
+          <div className="p-6 space-y-4">
+            {/* 图片 */}
+            {previewAsset.images && (() => {
+              try {
+                const imgs = JSON.parse(previewAsset.images);
+                if (Array.isArray(imgs) && imgs.length > 0) {
+                  return (
+                    <div className="grid grid-cols-2 gap-2">
+                      {imgs.slice(0, 4).map((img: any, i: number) => (
+                        <img key={i} src={typeof img === 'object' ? img.url : img} alt="" className="w-full h-32 object-cover rounded-lg" />
+                      ))}
+                    </div>
+                  );
+                }
+              } catch {}
+              return null;
+            })()}
+
+            <div><span className="text-xs text-gray-400">标题</span><div className="font-bold text-lg">{previewAsset.title}</div></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><span className="text-xs text-gray-400">来源</span><div>{SOURCE_LABELS[previewAsset.source_type] || previewAsset.source_type}</div></div>
+              <div><span className="text-xs text-gray-400">类型</span><div>{previewAsset.asset_type || '-'}</div></div>
+              <div><span className="text-xs text-gray-400">省份</span><div>{previewAsset.province || '-'}</div></div>
+              <div><span className="text-xs text-gray-400">城市</span><div>{previewAsset.city || '-'}</div></div>
+              <div><span className="text-xs text-gray-400">面积</span><div>{previewAsset.area_mu ? `${previewAsset.area_mu}亩` : '-'}</div></div>
+              <div><span className="text-xs text-gray-400">年租金</span><div>{previewAsset.price_year ? `¥${previewAsset.price_year}万` : '-'}</div></div>
+              <div><span className="text-xs text-gray-400">流转年限</span><div>{previewAsset.lease_years ? `${previewAsset.lease_years}年` : '-'}</div></div>
+              <div><span className="text-xs text-gray-400">确权</span><div>{previewAsset.certification === 'certified' ? '✅ 已确权' : previewAsset.certification === 'pending' ? '⏳ 待确权' : '未确权'}</div></div>
+            </div>
+            {previewAsset.description && <div><span className="text-xs text-gray-400">描述</span><div className="text-sm text-gray-700 mt-1">{previewAsset.description}</div></div>}
+            <div className="grid grid-cols-2 gap-4">
+              <div><span className="text-xs text-gray-400">联系人</span><div>{previewAsset.contact_name || '-'}</div></div>
+              <div><span className="text-xs text-gray-400">联系电话</span><div>{previewAsset.contact_phone || '-'}</div></div>
+            </div>
+            <div className="flex gap-3 pt-4 border-t">
+              <button onClick={() => { handleApproveAsset(previewAsset.id); setPreviewAsset(null); }} className="flex-1 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">✅ 通过</button>
+              <button onClick={() => { handleRejectAsset(previewAsset.id); setPreviewAsset(null); }} className="flex-1 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">❌ 拒绝</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* 大宗项目详情预览弹窗 */}
+    {previewBulk && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setPreviewBulk(null)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-900">🏢 大宗项目详情 #{previewBulk.id}</h2>
+            <button onClick={() => setPreviewBulk(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+          </div>
+          <div className="p-6 space-y-4">
+            <div><span className="text-xs text-gray-400">标题</span><div className="font-bold text-lg">{previewBulk.title}</div></div>
+            {previewBulk.code && <div><span className="text-xs text-gray-400">编号</span><div>{previewBulk.code}</div></div>}
+            <div className="grid grid-cols-2 gap-4">
+              <div><span className="text-xs text-gray-400">省份</span><div>{previewBulk.province || '-'}</div></div>
+            </div>
+            {previewBulk.description && <div><span className="text-xs text-gray-400">描述</span><div className="text-sm text-gray-700 mt-1">{previewBulk.description}</div></div>}
+            <div className="flex gap-3 pt-4 border-t">
+              <button onClick={() => { handleApproveBulk(previewBulk.id); setPreviewBulk(null); }} className="flex-1 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">✅ 通过</button>
+              <button onClick={() => { handleRejectBulk(previewBulk.id); setPreviewBulk(null); }} className="flex-1 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">❌ 拒绝</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 }
