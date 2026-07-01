@@ -20,13 +20,21 @@ export async function POST(request: Request) {
     }
 
     // 验证文件类型
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'];
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'video/mp4', 'video/webm', 'video/quicktime',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ success: false, error: '不支持的文件类型' }, { status: 400 });
+      return NextResponse.json({ success: false, error: `不支持的文件类型: ${file.type}` }, { status: 400 });
     }
 
-    // 验证文件大小 (图片10M，视频50M)
-    const maxSize = file.type.startsWith('image/') ? 10 * 1024 * 1024 : 50 * 1024 * 1024;
+    // 验证文件大小 (图片10M，视频100M，文档20M)
+    let maxSize = 10 * 1024 * 1024;
+    if (file.type.startsWith('video/')) maxSize = 100 * 1024 * 1024;
+    else if (file.type.startsWith('application/')) maxSize = 20 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json({ success: false, error: '文件大小超过限制' }, { status: 400 });
     }
