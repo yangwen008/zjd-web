@@ -37,16 +37,21 @@ export default function AdminAuditPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'asset' | 'bulk' | 'user'>('all');
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/admin/assets?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] as PendingAsset[] })),
-      fetch('/api/admin/bulk-projects?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] as PendingBulk[] })),
-      fetch('/api/admin/users?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] as PendingUser[] })),
-    ]).then(([assetData, bulkData, userData]: [{ data: PendingAsset[] }, { data: PendingBulk[] }, { data: PendingUser[] }]) => {
-      setAssets(assetData.data || []);
-      setBulk(bulkData.data || []);
-      setUsers((userData.data || []).filter((u: PendingUser) => u.role_apply));
-      setLoading(false);
-    });
+    const fetchData = async () => {
+      try {
+        const [assetRes, bulkRes, userRes] = await Promise.all([
+          fetch('/api/admin/assets?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] })),
+          fetch('/api/admin/bulk-projects?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] })),
+          fetch('/api/admin/users?status=pending&limit=50').then(r => r.json()).catch(() => ({ data: [] })),
+        ]);
+        setAssets((assetRes as any).data || []);
+        setBulk((bulkRes as any).data || []);
+        setUsers(((userRes as any).data || []).filter((u: PendingUser) => u.role_apply));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const totalPending = assets.length + bulk.length + users.length;
