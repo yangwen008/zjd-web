@@ -288,7 +288,7 @@ export default function ProfilePage() {
       <div className="bg-white rounded-xl border border-gray-100 p-6 mt-6">
         <h2 className="font-bold text-gray-900 mb-4">🔑 我的权限</h2>
         <div className="flex flex-wrap gap-2">
-          {user.permissions.map((p) => (
+          {(user.permissions || []).map((p) => (
             <span key={p} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{p}</span>
           ))}
         </div>
