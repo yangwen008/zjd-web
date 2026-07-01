@@ -19,6 +19,10 @@ interface FilterPanelProps {
   searchValue?: string;
   onSearchChange?: (v: string) => void;
   searchPlaceholder?: string;
+  /** 搜索按钮 */
+  onSearch?: () => void;
+  searchLabel?: string;
+  searchLoading?: boolean;
   /** 排序 */
   showSort?: boolean;
   sortValue?: string;
@@ -55,6 +59,9 @@ export default function FilterPanel({
   filterGroups = [],
   resultCount,
   resultLabel = '条结果',
+  onSearch,
+  searchLabel = '搜索',
+  searchLoading = false,
   className = '',
 }: FilterPanelProps) {
   const [provinceList, setProvinceList] = useState<{ name: string; emoji: string | null }[]>([]);
@@ -135,17 +142,29 @@ export default function FilterPanel({
             </div>
           )}
 
-          {/* 搜索框 */}
+          {/* 搜索框 + 按钮 */}
           {showSearch && (
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">关键词</label>
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={searchPlaceholder}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green"
-              />
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-gray-500 mb-1">关键词</label>
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && onSearch) onSearch(); }}
+                  placeholder={searchPlaceholder}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 outline-none focus:border-brand-green"
+                />
+              </div>
+              {onSearch && (
+                <button
+                  onClick={onSearch}
+                  disabled={searchLoading}
+                  className="px-4 py-2 bg-brand-green text-white text-sm rounded-lg hover:bg-brand-light transition-colors disabled:opacity-50 whitespace-nowrap"
+                >
+                  {searchLoading ? '...' : `🔍 ${searchLabel}`}
+                </button>
+              )}
             </div>
           )}
 
