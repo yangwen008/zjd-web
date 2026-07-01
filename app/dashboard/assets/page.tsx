@@ -16,9 +16,9 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 const SOURCE_LABELS: Record<string, string> = {
-  official: '🏛️ 官方',
-  village: '🏛️ 村委',
-  ugC: '👤 UGC',
+  official: '官方',
+  village: '村委',
+  ugc: '个人',
 };
 
 export default function MyAssetsPage() {

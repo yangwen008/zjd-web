@@ -25,7 +25,7 @@ interface Asset {
 
 const STATUS_LABELS: Record<string, string> = { approved: '已上架', pending: '待审核', rejected: '已拒绝', banned: '已封禁' };
 const STATUS_STYLES: Record<string, string> = { approved: 'bg-green-100 text-green-700', pending: 'bg-yellow-100 text-yellow-700', rejected: 'bg-red-100 text-red-700', banned: 'bg-red-100 text-red-700' };
-const SOURCE_LABELS: Record<string, string> = { official: '官方', village: '村委', ugc: 'UGC' };
+const SOURCE_LABELS: Record<string, string> = { official: '官方', village: '村委', ugc: '个人' };
 
 export default function AdminAssetsPage() {
   const searchParams = useSearchParams();

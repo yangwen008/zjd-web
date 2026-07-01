@@ -56,6 +56,8 @@ export default function AdminAuditPage() {
 
   const totalPending = assets.length + bulk.length + users.length;
 
+  const SOURCE_LABELS: Record<string, string> = { official: '官方', village: '村委', ugc: '个人' };
+
   const ROLE_LABELS: Record<string, string> = {
     broker: '合伙人',
     village_org: '村集体',
@@ -188,7 +190,7 @@ export default function AdminAuditPage() {
                       <Link href={`/asset/${asset.id}`} className="hover:text-brand-green" target="_blank">{asset.title}</Link>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{asset.source_type}</span>
+                      <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">{SOURCE_LABELS[asset.source_type] || asset.source_type}</span>
                     </td>
                     <td className="px-4 py-3 text-gray-500">{asset.province || '-'}</td>
                     <td className="px-4 py-3 text-gray-500">{asset.asset_type || '-'}</td>
