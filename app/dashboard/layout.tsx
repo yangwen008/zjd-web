@@ -15,16 +15,13 @@ interface UserInfo {
 
 const MENU_ITEMS = [
   { icon: '📊', label: '我的概览', href: '/dashboard', roles: ['user', 'broker', 'village_org', 'data_editor', 'project_publisher', 'admin', 'superadmin'] },
-  { icon: '🏠', label: '我的资产', href: '/dashboard/assets', roles: ['user', 'broker', 'village_org', 'admin', 'superadmin'] },
-  { icon: '➕', label: '发布资产', href: '/dashboard/assets/new', roles: ['user', 'broker', 'village_org', 'admin', 'superadmin'] },
-  { divider: true, roles: ['broker', 'village_org', 'admin', 'superadmin'] },
-  { icon: '📋', label: '我的线索', href: '/dashboard/leads', roles: ['broker', 'village_org', 'admin', 'superadmin'] },
-  { divider: true, roles: ['project_publisher', 'admin', 'superadmin'] },
+  { icon: '🏠', label: '我的资产', href: '/dashboard/assets', roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
+  { icon: '➕', label: '发布资产', href: '/dashboard/assets/new', roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
+  { divider: true, roles: ['broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
   { icon: '🏢', label: '大宗项目', href: '/dashboard/bulk-projects', roles: ['project_publisher', 'admin', 'superadmin'] },
-  { divider: true, roles: ['data_editor', 'admin', 'superadmin'] },
-  { icon: '📡', label: '基建数据', href: '/dashboard/infra', roles: ['data_editor', 'admin', 'superadmin'] },
-  { divider: true, roles: ['user', 'broker', 'village_org', 'admin', 'superadmin'] },
-  { icon: '❤️', label: '我的收藏', href: '/dashboard/favorites', roles: ['user', 'broker', 'village_org', 'admin', 'superadmin'] },
+  { icon: '📋', label: '我的线索', href: '/dashboard/leads', roles: ['broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
+  { divider: true, roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
+  { icon: '❤️', label: '我的收藏', href: '/dashboard/favorites', roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
   { icon: '👤', label: '个人资料', href: '/dashboard/profile', roles: ['user', 'broker', 'village_org', 'data_editor', 'project_publisher', 'admin', 'superadmin'] },
 ];
 

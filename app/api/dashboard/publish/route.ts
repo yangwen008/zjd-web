@@ -107,6 +107,14 @@ export async function POST(request: Request) {
 
       const location = [body.province, body.city, body.district, body.location].filter(Boolean).join('');
 
+      // 自动生成编号
+      let code = body.code;
+      if (!code) {
+        const countRow = await queryOne<{ cnt: number }>('SELECT COUNT(*) as cnt FROM bulk_projects');
+        const nextNum = (countRow?.cnt || 0) + 1;
+        code = `ZJD-${nextNum.toString().padStart(3, '0')}`;
+      }
+
       let imagesJson = '[]';
       if (body.images) {
         if (typeof body.images === 'string' && body.images.startsWith('[')) {
