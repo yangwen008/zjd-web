@@ -162,7 +162,7 @@ export default function SearchPage() {
                     price={formatPrice(asset.price_year)}
                     gradient={GRADIENTS[i % GRADIENTS.length]}
                     imageUrl={getFirstImage(asset.images)}
-                    badge={SOURCE_BADGES[asset.source_type]}
+                    badge={(asset as any).publisher_name || SOURCE_BADGES[asset.source_type]}
                     certification={asset.certification}
                     href={`/asset/${asset.id}`}
                   />

@@ -61,10 +61,27 @@ export function getConfigCount(config: Record<string, string>, key: string, fall
   return isNaN(n) ? fallback : Math.max(1, Math.min(12, n));
 }
 
+// ============ 批量填充发布者名称 ============
+async function enrichPublisherName<T extends { user_id?: number | null; publisher_name?: string }>(assets: T[]): Promise<T[]> {
+  const userIds = [...new Set(assets.map(a => a.user_id).filter(Boolean))];
+  if (userIds.length === 0) return assets;
+  const placeholders = userIds.map(() => '?').join(',');
+  const users = await query<{ id: number; nickname: string }>(
+    `SELECT id, nickname FROM users WHERE id IN (${placeholders})`, ...userIds
+  );
+  const userMap = new Map(users.map(u => [u.id, u.nickname]));
+  for (const a of assets) {
+    if (a.user_id) a.publisher_name = userMap.get(a.user_id) || '';
+  }
+  return assets;
+}
+
 // ============ 资产列表 ============
 
 export interface Asset {
   id: number;
+  user_id?: number | null;
+  publisher_name?: string;
   title: string;
   description: string | null;
   location: string | null;
@@ -162,7 +179,8 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
 
 export async function getAssets(params: AssetFilters = {}): Promise<Asset[]> {
   const { sql, args } = buildAssetQuery(params);
-  return query<Asset>(sql, ...args);
+  const assets = await query<Asset>(sql, ...args);
+  return enrichPublisherName(assets);
 }
 
 export async function getAssetsCount(params: AssetFilters = {}): Promise<number> {
@@ -172,46 +190,56 @@ export async function getAssetsCount(params: AssetFilters = {}): Promise<number>
 }
 
 export async function getAssetById(id: number | string): Promise<Asset | null> {
-  return queryOne<Asset>(
+  const asset = await queryOne<Asset>(
     'SELECT * FROM assets WHERE id = ? AND status = ?',
     id, 'approved'
   );
+  if (asset) {
+    const [enriched] = await enrichPublisherName([asset]);
+    return enriched;
+  }
+  return null;
 }
 
 export async function getHotAssets(limit: number = 6): Promise<Asset[]> {
-  return query<Asset>(
+  const assets = await query<Asset>(
     'SELECT * FROM assets WHERE status = ? ORDER BY featured DESC, views DESC LIMIT ?',
     'approved', limit
   );
+  return enrichPublisherName(assets);
 }
 
 export async function getFeaturedAssets(limit: number = 6): Promise<Asset[]> {
-  return query<Asset>(
+  const assets = await query<Asset>(
     'SELECT * FROM assets WHERE status = ? AND featured = 1 ORDER BY views DESC LIMIT ?',
     'approved', limit
   );
+  return enrichPublisherName(assets);
 }
 
 export async function getAssetsBySource(sourceType: string, limit: number = 6): Promise<Asset[]> {
-  return query<Asset>(
+  const assets = await query<Asset>(
     'SELECT * FROM assets WHERE status = ? AND source_type = ? ORDER BY featured DESC, created_at DESC LIMIT ?',
     'approved', sourceType, limit
   );
+  return enrichPublisherName(assets);
 }
 
 // 获取最新资产（所有来源混合，按创建时间倒序）
 export async function getLatestAssets(limit: number = 6): Promise<Asset[]> {
-  return query<Asset>(
+  const assets = await query<Asset>(
     'SELECT * FROM assets WHERE status = ? ORDER BY featured DESC, created_at DESC LIMIT ?',
     'approved', limit
   );
+  return enrichPublisherName(assets);
 }
 
 export async function getAssetsByProvince(province: string, limit: number = 20): Promise<Asset[]> {
-  return query<Asset>(
+  const assets = await query<Asset>(
     'SELECT * FROM assets WHERE status = ? AND province = ? ORDER BY featured DESC, views DESC LIMIT ?',
     'approved', province, limit
   );
+  return enrichPublisherName(assets);
 }
 
 export async function getMarketDataByProvince(province: string): Promise<MarketData | null> {
