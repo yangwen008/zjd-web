@@ -176,7 +176,7 @@ export default function RegionsPage() {
                   price={formatPrice(asset.price_year)}
                   gradient={GRADIENTS[i % GRADIENTS.length]}
                   imageUrl={getFirstImage(asset.images)}
-                  badge={(asset as any).publisher_role === 'project_publisher' ? ((asset as any).publisher_name || '交易所') : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')}
+                  badge={((asset as any).publisher_role === 'project_publisher' || (asset as any).publisher_name) ? '交易所' : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')}
                   certification={asset.certification}
                   href={`/asset/${asset.id}`}
                 />
@@ -208,7 +208,7 @@ export default function RegionsPage() {
                   price={formatPrice(asset.price_year)}
                   gradient={GRADIENTS[i % GRADIENTS.length]}
                   imageUrl={getFirstImage(asset.images)}
-                  badge={(asset as any).publisher_role === 'project_publisher' ? ((asset as any).publisher_name || '交易所') : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')}
+                  badge={((asset as any).publisher_role === 'project_publisher' || (asset as any).publisher_name) ? '交易所' : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')}
                   certification={asset.certification}
                   href={`/asset/${asset.id}`}
                 />
