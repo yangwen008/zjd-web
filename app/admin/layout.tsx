@@ -23,6 +23,7 @@ const NAV_GROUPS = [
   {
     title: '资产与业务',
     items: [
+      { icon: '📋', label: '所有资产', href: '/admin/assets' },
       { icon: '⚖️', label: '官方资产', href: '/admin/assets?source=official' },
       { icon: '🏛️', label: '村委资产', href: '/admin/assets?source=village' },
       { icon: '👤', label: '个人资产', href: '/admin/assets?source=ugc' },
