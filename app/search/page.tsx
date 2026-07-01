@@ -13,6 +13,7 @@ interface Asset {
   asset_type: string | null;
   source_type: string;
   views: number;
+  images: string | null;
 }
 
 const GRADIENTS = [
@@ -23,6 +24,20 @@ const GRADIENTS = [
   'from-lime-800 to-lime-600',
   'from-stone-800 to-stone-600',
 ];
+
+const SOURCE_BADGES: Record<string, string> = {
+  official: '官方',
+  village: '村委',
+  ugc: '个人',
+};
+
+function getFirstImage(images: string | null): string | undefined {
+  if (!images) return undefined;
+  try {
+    const arr = JSON.parse(images);
+    return Array.isArray(arr) && arr.length > 0 ? arr[0] : undefined;
+  } catch { return undefined; }
+}
 
 function formatPrice(price: number | null): string {
   if (!price) return '价格面议';
@@ -151,6 +166,8 @@ export default function SearchPage() {
                     views={asset.views}
                     price={formatPrice(asset.price_year)}
                     gradient={GRADIENTS[i % GRADIENTS.length]}
+                    imageUrl={getFirstImage(asset.images)}
+                    badge={SOURCE_BADGES[asset.source_type]}
                     href={`/asset/${asset.id}`}
                   />
                 ))
