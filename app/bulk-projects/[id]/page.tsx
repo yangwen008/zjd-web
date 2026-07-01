@@ -100,26 +100,68 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
               </div>
             )}
 
-            {/* Infra placeholder */}
+            {/* Infra from database */}
             <div className="bg-white rounded-xl border border-gray-100 p-6">
               <h2 className="font-bold text-gray-900 mb-4">基础设施配套</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  { icon: '⚡', label: '通电', status: '已通' },
-                  { icon: '💧', label: '自来水', status: '已通' },
-                  { icon: '📶', label: '网络', status: '5G覆盖' },
-                  { icon: '🚽', label: '污水化粪池', status: '已建' },
-                  { icon: '🛣️', label: '自建路', status: '已硬化' },
-                  { icon: '🏗️', label: '容积率', status: '≤1.5' },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <span className="text-xl">{item.icon}</span>
-                    <div>
-                      <div className="text-xs text-gray-400">{item.label}</div>
-                      <div className="text-sm font-medium text-gray-900">{item.status}</div>
+                {(() => {
+                  let infraList = [
+                    { icon: '⚡', label: '通电', status: '已通' },
+                    { icon: '💧', label: '自来水', status: '已通' },
+                    { icon: '📶', label: '网络', status: '5G覆盖' },
+                    { icon: '🚽', label: '污水化粪池', status: '已建' },
+                    { icon: '🔥', label: '天燃气', status: '已通' },
+                    { icon: '🛣️', label: '自建路', status: '已硬化' },
+                    { icon: '🏗️', label: '容积率', status: '≤1.5' },
+                  ];
+                  if (project.infra_details) {
+                    try {
+                      const parsed = JSON.parse(project.infra_details);
+                      if (parsed.infra && Array.isArray(parsed.infra) && parsed.infra.length > 0) {
+                        infraList = parsed.infra.map((item: any) => ({ icon: item.icon || '📌', label: item.label || '', status: item.status || '' }));
+                      }
+                    } catch {}
+                  }
+                  return infraList.map((item) => (
+                    <div key={item.label} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-xl">{item.icon}</span>
+                      <div>
+                        <div className="text-xs text-gray-400">{item.label}</div>
+                        <div className="text-sm font-medium text-gray-900">{item.status}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ));
+                })()}
+              </div>
+            </div>
+
+            {/* Environment from database */}
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <h2 className="font-bold text-gray-900 mb-4">环境指标</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {(() => {
+                  let envList = [
+                    { label: '舒适度', value: '±1级', icon: '🌡️' },
+                    { label: '空气质量', value: '51-100(良)', icon: '🌬️' },
+                    { label: '水质', value: 'II类', icon: '💧' },
+                    { label: '噪声指数', value: '20-40 dB', icon: '🔇' },
+                  ];
+                  if (project.infra_details) {
+                    try {
+                      const parsed = JSON.parse(project.infra_details);
+                      if (parsed.env && Array.isArray(parsed.env) && parsed.env.length > 0) {
+                        envList = parsed.env.map((item: any) => ({ icon: item.icon || '📌', label: item.label || '', value: item.value || '' }));
+                      }
+                    } catch {}
+                  }
+                  return envList.map((e) => (
+                    <div key={e.label} className="text-center p-3 bg-gray-50 rounded-lg">
+                      <div className="text-2xl mb-1">{e.icon}</div>
+                      <div className="text-xs text-gray-400">{e.label}</div>
+                      <div className="text-sm font-bold text-gray-900">{e.value}</div>
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
           </div>

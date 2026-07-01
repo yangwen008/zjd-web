@@ -485,6 +485,7 @@ export interface BulkProject {
   video_url: string | null;
   commercial_plan: string | null;
   cert_doc_url: string | null;
+  infra_details: string | null;
   gps_lat: number | null;
   gps_lng: number | null;
   contact_name: string | null;
