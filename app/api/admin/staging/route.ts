@@ -114,8 +114,9 @@ export async function POST(request: Request) {
     }
 
     if (action === 'import') {
-      const { id } = body as { id: number };
-      const asset = (body.asset || JSON.parse(body.data || '{}')) as Record<string, unknown>;
+      const b = body as { id: number; asset?: Record<string, unknown>; data?: string };
+      const asset = b.asset || JSON.parse(b.data || '{}') as Record<string, unknown>;
+      const { id } = b;
       const staging = await queryOne<{ status: string }>('SELECT status FROM staging_raw WHERE id = ?', id);
       if (!staging) return NextResponse.json({ success: false, error: 'Staging record not found' }, { status: 404 });
 
