@@ -60,7 +60,7 @@ async function pbkdf2Hash(password: string, saltHex: string): Promise<string> {
   );
   const salt = fromHex(saltHex);
   const hashBuffer = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: salt.buffer as ArrayBuffer, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
     keyMaterial, HASH_BYTES * 8
   );
   return toHex(hashBuffer);
@@ -90,7 +90,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
       'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']
     );
     const hashBuffer = await crypto.subtle.deriveBits(
-      { name: 'PBKDF2', salt: fromHex(saltHex), iterations: parseInt(iterations), hash: 'SHA-256' },
+      { name: 'PBKDF2', salt: fromHex(saltHex).buffer as ArrayBuffer, iterations: parseInt(iterations), hash: 'SHA-256' },
       keyMaterial, HASH_BYTES * 8
     );
     return toHex(hashBuffer) === expectedHash;
