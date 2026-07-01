@@ -122,30 +122,30 @@ export default function RegionsPage() {
         {/* 排序 + 搜索按钮 */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center space-x-2 text-sm">
-            {!searched ? (
+            <span className="text-gray-400">今日总浏览: <strong className="text-gray-900">{totalViews.toLocaleString()}</strong></span>
+            <span className="text-gray-300">|</span>
+            <button
+              onClick={() => setSortBy('views')}
+              className={`px-3 py-1 rounded-full text-xs transition-colors ${sortBy === 'views' ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              🔥 按点击量
+            </button>
+            <button
+              onClick={() => setSortBy('price')}
+              className={`px-3 py-1 rounded-full text-xs transition-colors ${sortBy === 'price' ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              💰 按起价
+            </button>
+            {searched && (
               <>
-                <span className="text-gray-400">今日总浏览: <strong className="text-gray-900">{totalViews.toLocaleString()}</strong></span>
                 <span className="text-gray-300">|</span>
                 <button
-                  onClick={() => setSortBy('views')}
-                  className={`px-3 py-1 rounded-full text-xs transition-colors ${sortBy === 'views' ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                  onClick={() => { setSearched(false); setSource(''); setProvince(''); setCity(''); setSearchQuery(''); }}
+                  className="text-xs text-gray-500 hover:text-gray-700"
                 >
-                  🔥 按点击量
-                </button>
-                <button
-                  onClick={() => setSortBy('price')}
-                  className={`px-3 py-1 rounded-full text-xs transition-colors ${sortBy === 'price' ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                >
-                  💰 按起价
+                  清除筛选
                 </button>
               </>
-            ) : (
-              <button
-                onClick={() => { setSearched(false); setSource(''); setProvince(''); setCity(''); setSearchQuery(''); }}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                ← 清除筛选，回到热门排行
-              </button>
             )}
           </div>
 
