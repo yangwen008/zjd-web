@@ -216,7 +216,7 @@ export default async function HomePage() {
                   <span className="text-2xl">🆕</span>
                   <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_latest_title')}</h2>
                 </div>
-                <Link href="/search" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_latest_subtitle')} →</Link>
+                <Link href="/search?sort=newest" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_latest_subtitle')} →</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {latestAssets.map((a) => {

@@ -37,19 +37,23 @@ export default function SearchPage() {
   const [results, setResults] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [sort, setSort] = useState('');
 
   // 首次加载自动搜索（从 URL 参数或默认加载全部）
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
     const s = params.get('source');
+    const sortParam = params.get('sort') || '';
     if (s) setSource(s);
     if (q) setSearchQuery(q);
+    if (sortParam) setSort(sortParam);
 
     // 构建查询参数
     const p = new URLSearchParams();
     if (s) p.set('source', s);
     if (q) p.set('search', q);
+    if (sortParam) p.set('sort', sortParam);
     p.set('limit', '20');
 
     setSearched(true);
@@ -71,6 +75,7 @@ export default function SearchPage() {
       if (province) params.set('province', province);
       if (city) params.set('city', city);
       if (q) params.set('search', q);
+      if (sort) params.set('sort', sort);
       params.set('limit', '20');
 
       const res = await fetch(`/api/assets?${params.toString()}`);

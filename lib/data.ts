@@ -151,7 +151,7 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
   }
 
   if (!countOnly) {
-    const orderBy = sort === 'price' ? 'price_year ASC' : 'views DESC';
+    const orderBy = sort === 'price' ? 'price_year ASC' : sort === 'newest' ? 'created_at DESC' : 'views DESC';
     sql += ` ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
     args.push(limitNum, (page - 1) * limitNum);
   }
