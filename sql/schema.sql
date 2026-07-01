@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS assets (
   user_id       INTEGER,           -- 发布者ID
   raw_html      TEXT,              -- 原始抓取HTML
   ai_extracted  TEXT,              -- AI提取的JSON
+  infra_details TEXT,              -- 基建配套+环境指标JSON
   created_at    TEXT DEFAULT (datetime('now')),
   updated_at    TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -299,6 +300,7 @@ CREATE TABLE IF NOT EXISTS bulk_projects (
   video_url         TEXT,
   commercial_plan   TEXT,
   cert_doc_url      TEXT,
+  infra_details     TEXT,              -- 基建配套+环境指标JSON
   gps_lat           REAL,
   gps_lng           REAL,
   contact_name      TEXT,
