@@ -62,16 +62,19 @@ export function getConfigCount(config: Record<string, string>, key: string, fall
 }
 
 // ============ 批量填充发布者名称 ============
-async function enrichPublisherName<T extends { user_id?: number | null; publisher_name?: string }>(assets: T[]): Promise<T[]> {
+async function enrichPublisherName<T extends { user_id?: number | null; publisher_name?: string; publisher_role?: string }>(assets: T[]): Promise<T[]> {
   const userIds = [...new Set(assets.map(a => a.user_id).filter(Boolean))];
   if (userIds.length === 0) return assets;
   const placeholders = userIds.map(() => '?').join(',');
-  const users = await query<{ id: number; nickname: string }>(
-    `SELECT id, nickname FROM users WHERE id IN (${placeholders})`, ...userIds
+  const users = await query<{ id: number; nickname: string; role: string }>(
+    `SELECT id, nickname, role FROM users WHERE id IN (${placeholders})`, ...userIds
   );
-  const userMap = new Map(users.map(u => [u.id, u.nickname]));
+  const userMap = new Map(users.map(u => [u.id, { nickname: u.nickname, role: u.role }]));
   for (const a of assets) {
-    if (a.user_id) a.publisher_name = userMap.get(a.user_id) || '';
+    if (a.user_id) {
+      const u = userMap.get(a.user_id);
+      if (u) { a.publisher_name = u.nickname; a.publisher_role = u.role; }
+    }
   }
   return assets;
 }
@@ -81,6 +84,7 @@ async function enrichPublisherName<T extends { user_id?: number | null; publishe
 export interface Asset {
   id: number;
   publisher_name?: string;
+  publisher_role?: string;
   title: string;
   description: string | null;
   location: string | null;

@@ -97,7 +97,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
               <div>
                 <div className="flex items-center space-x-2 mb-2">
                   <span className="text-xs bg-brand-green text-white px-2 py-0.5 rounded">
-                    {(asset as any).publisher_name || (asset.source_type === 'official' ? '官方原矿' : asset.source_type === 'village' ? '村委直营' : '个人发布')}
+                    {(asset as any).publisher_role === 'project_publisher' ? ((asset as any).publisher_name || '交易所') : (asset.source_type === 'official' ? '官方原矿' : asset.source_type === 'village' ? '村委直营' : '个人发布')}
                   </span>
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{asset.asset_type || '资产'}</span>
                 </div>

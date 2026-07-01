@@ -103,7 +103,7 @@ function toPropertyFormat(asset: Asset, defaultImage: string) {
     location: asset.province ? `${asset.province}·${asset.city || ''}` : '全国',
     type: `${asset.lease_years || 20}年期${asset.asset_type || '宅基地'}使用权`,
     imageUrl: getFirstImage(asset.images, defaultImage),
-    badge: (asset as any).publisher_name || (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人'),
+    badge: (asset as any).publisher_role === 'project_publisher' ? ((asset as any).publisher_name || '交易所') : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人'),
     certification: (asset as any).certification || 'uncertified',
   };
 }
