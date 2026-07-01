@@ -91,6 +91,10 @@ export default function AdminStagingPage() {
     if (!activeItem) return;
     try {
       const body: any = { action, id: activeItem.id };
+      if (action === 'delete') {
+        body.ids = [activeItem.id];
+        delete body.id;
+      }
       if (action === 'import') {
         try { body.asset = JSON.parse(editedData); } 
         catch { show('❌ JSON 格式错误，请检查'); return; }
@@ -109,8 +113,8 @@ export default function AdminStagingPage() {
       if (d.success) {
         const msgMap: Record<string, string> = {
           'import': '✅ 已修正并入库',
-          're-clean': '✅ 已重置为待清洗状态',
-          'discard': '✅ 已丢弃',
+          'retry': '✅ 已重置为待清洗状态',
+          'delete': '✅ 已丢弃',
           'update-data': '✅ 已保存修改'
         };
         show(msgMap[action] || '✅ 操作成功');
@@ -196,8 +200,8 @@ export default function AdminStagingPage() {
             </div>
             
             <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-2">
-              <button onClick={() => handleAction('re-clean')} className="px-3 py-2 text-xs bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors">🔄 重新清洗</button>
-              <button onClick={() => handleAction('discard')} className="px-3 py-2 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">🗑️ 丢弃数据</button>
+              <button onClick={() => handleAction('retry')} className="px-3 py-2 text-xs bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors">🔄 重新清洗</button>
+              <button onClick={() => handleAction('delete')} className="px-3 py-2 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">🗑️ 丢弃数据</button>
               <button onClick={() => handleAction('update-data')} className="col-span-2 px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">💾 仅保存修改</button>
               <button onClick={() => handleAction('import')} className="col-span-2 px-3 py-2.5 text-sm bg-brand-green text-white rounded-lg hover:bg-brand-light font-medium transition-colors shadow-sm">✅ {parsedArray.length > 1 ? `批量入库 (${parsedArray.length}条)` : '修正并入库'}</button>
             </div>
