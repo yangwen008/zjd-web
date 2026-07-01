@@ -83,7 +83,11 @@ function getFirstImage(images: string | null, defaultImage: string): string {
   if (!images) return defaultImage;
   try {
     const arr = JSON.parse(images);
-    return Array.isArray(arr) && arr.length > 0 ? arr[0] : defaultImage;
+    if (!Array.isArray(arr) || arr.length === 0) return defaultImage;
+    const first = arr[0];
+    // 兼容新格式 { url, thumb } 和旧格式纯字符串
+    if (typeof first === 'object' && first.thumb) return first.thumb;
+    return typeof first === 'object' ? first.url : first;
   } catch {
     return defaultImage;
   }

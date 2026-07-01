@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { compressImage, generateThumbnail, formatFileSize } from '@/lib/image-compress';
 
 const ASSET_TYPES = [
   { value: '宅基地', icon: '🏠' },
@@ -20,7 +21,7 @@ export default function PublishAssetPage() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [user, setUser] = useState<any>(null);
-  const [uploadedImages, setUploadedImages] = useState<{ preview: string; server: string }[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<{ preview: string; server: string; thumb?: string }[]>([]);
   const [uploadedVideos, setUploadedVideos] = useState<{ preview: string; server: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [orgName, setOrgName] = useState('');
@@ -198,7 +199,7 @@ export default function PublishAssetPage() {
     }
   };
 
-  // 图片上传
+  // 图片上传（自动压缩 + 生成缩略图）
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
@@ -207,24 +208,36 @@ export default function PublishAssetPage() {
 
     for (const file of files) {
       if (!file.type.startsWith('image/')) { show(`❌ ${file.name} 不是图片`); continue; }
-      if (file.size > 10 * 1024 * 1024) { show(`❌ ${file.name} 超过10MB`); continue; }
+      if (file.size > 20 * 1024 * 1024) { show(`❌ ${file.name} 超过20MB`); continue; }
 
-      const preview = URL.createObjectURL(file);
-      const result = await uploadFile(file);
-      if (result) {
-        newList.push({ preview, server: result.url });
-        setUploadedImages([...newList]);
-        setUploadErrors((prev) => prev.filter((e) => !e.includes(file.name)));
-        show(`✅ ${file.name} 上传成功`);
-      } else {
-        URL.revokeObjectURL(preview);
-        const errMsg = `${file.name} 上传失败，请检查网络后重试`;
-        setUploadErrors((prev) => [...prev, errMsg]);
-        show(`❌ ${errMsg}`, true);
+      try {
+        // 压缩原图（1200px）
+        const compressed = await compressImage(file, 1200, 0.8);
+        // 生成缩略图（400px）
+        const thumb = await generateThumbnail(file, 400);
+
+        // 上传压缩图
+        const result = await uploadFile(compressed.file);
+        // 上传缩略图
+        const thumbFile = new File([thumb.file], file.name.replace(/(\.[^.]+)$/, '_thumb$1'), { type: 'image/jpeg' });
+        const thumbResult = await uploadFile(thumbFile);
+
+        if (result) {
+          newList.push({ preview: URL.createObjectURL(compressed.file), server: result.url, thumb: thumbResult?.url || result.url });
+          setUploadedImages([...newList]);
+          setUploadErrors((prev) => prev.filter((err) => !err.includes(file.name)));
+          show(`✅ ${file.name} 压缩上传成功 (${formatFileSize(file.size)} → ${compressed.sizeKB}KB)`);
+        } else {
+          const errMsg = `${file.name} 上传失败，请检查网络后重试`;
+          setUploadErrors((prev) => [...prev, errMsg]);
+          show(`❌ ${errMsg}`, true);
+        }
+      } catch {
+        show(`❌ ${file.name} 压缩失败`);
       }
     }
     setUploading(false);
-    e.target.value = ''; // 重置 input 允许重复选择同文件
+    e.target.value = '';
   };
 
   // 视频上传
@@ -283,7 +296,7 @@ export default function PublishAssetPage() {
         body: JSON.stringify({
           target: 'asset',
           ...formData,
-          images: JSON.stringify(uploadedImages.map((i) => i.server)),
+          images: JSON.stringify(uploadedImages.map((i) => ({ url: i.server, thumb: i.thumb || i.server }))),
           video_url: uploadedVideos[0]?.server || '',
           infra_details: JSON.stringify({
             infra: infraItems.filter(i => i.enabled),

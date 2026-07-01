@@ -2,13 +2,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import RichTextEditor from '@/components/shared/RichTextEditor';
+import { compressImage, generateThumbnail, formatFileSize } from '@/lib/image-compress';
 
 export default function BulkProjectPublishPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [user, setUser] = useState<any>(null);
-  const [uploadedImages, setUploadedImages] = useState<{ preview: string; server: string }[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<{ preview: string; server: string; thumb?: string }[]>([]);
   const [uploadedVideo, setUploadedVideo] = useState<{ preview: string; server: string } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [commercialDoc, setCommercialDoc] = useState<{ name: string; url: string } | null>(null);
@@ -110,11 +111,15 @@ export default function BulkProjectPublishPage() {
     setUploading(true);
     const newList = [...uploadedImages];
     for (const file of files) {
-      if (!file.type.startsWith('image/') || file.size > 10 * 1024 * 1024) continue;
-      const preview = URL.createObjectURL(file);
-      const url = await uploadFile(file);
-      if (url) { newList.push({ preview, server: url }); setUploadedImages([...newList]); }
-      else { URL.revokeObjectURL(preview); }
+      if (!file.type.startsWith('image/') || file.size > 20 * 1024 * 1024) continue;
+      try {
+        const compressed = await compressImage(file, 1200, 0.8);
+        const thumb = await generateThumbnail(file, 400);
+        const url = await uploadFile(compressed.file);
+        const thumbFile = new File([thumb.file], file.name.replace(/(\.[^.]+)$/, '_thumb$1'), { type: 'image/jpeg' });
+        const thumbUrl = await uploadFile(thumbFile);
+        if (url) { newList.push({ preview: URL.createObjectURL(compressed.file), server: url, thumb: thumbUrl || url }); setUploadedImages([...newList]); }
+      } catch { /* skip */ }
     }
     setUploading(false);
     e.target.value = '';
@@ -167,7 +172,7 @@ export default function BulkProjectPublishPage() {
         body: JSON.stringify({
           target: 'bulk_project',
           ...formData,
-          images: JSON.stringify(uploadedImages.map((i) => i.server)),
+          images: JSON.stringify(uploadedImages.map((i) => ({ url: i.server, thumb: i.thumb || i.server }))),
           video_url: uploadedVideo?.server || '',
           commercial_plan_doc: commercialDoc?.url || '',
           cert_doc_url: certDoc?.url || '',

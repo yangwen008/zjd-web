@@ -26,19 +26,13 @@ const GRADIENTS = [
   'from-stone-800 to-stone-600',
 ];
 
+import { getFirstImage } from '@/lib/image-compress';
+
 const SOURCE_BADGES: Record<string, string> = {
   official: '官方',
   village: '村委',
   ugc: '个人',
 };
-
-function getFirstImage(images: string | null): string | undefined {
-  if (!images) return undefined;
-  try {
-    const arr = JSON.parse(images);
-    return Array.isArray(arr) && arr.length > 0 ? arr[0] : undefined;
-  } catch { return undefined; }
-}
 
 function formatPrice(price: number | null): string {
   if (!price) return '价格面议';
