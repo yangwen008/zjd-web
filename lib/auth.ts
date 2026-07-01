@@ -35,17 +35,79 @@ export interface Session {
 
 // ============ 密码工具 ============
 
+// ============ 密码工具 (PBKDF2 + salt，兼容旧 SHA-256) ============
+
+const PBKDF2_ITERATIONS = 100000;
+const SALT_BYTES = 16;
+const HASH_BYTES = 32;
+
+function toHex(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function fromHex(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
+}
+
+async function pbkdf2Hash(password: string, saltHex: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']
+  );
+  const salt = fromHex(saltHex);
+  const hashBuffer = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    keyMaterial, HASH_BYTES * 8
+  );
+  return toHex(hashBuffer);
+}
+
+/**
+ * 哈希密码。格式: pbkdf2:sha256:<iterations>:<salt_hex>:<hash_hex>
+ * 兼容旧的纯 SHA-256 哈希（verifyPassword 会自动处理）
+ */
 export async function hashPassword(password: string): Promise<string> {
+  const saltBytes = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
+  const saltHex = toHex(saltBytes.buffer);
+  const hashHex = await pbkdf2Hash(password, saltHex);
+  return `pbkdf2:sha256:${PBKDF2_ITERATIONS}:${saltHex}:${hashHex}`;
+}
+
+/**
+ * 验证密码。自动识别 PBKDF2 格式和旧 SHA-256 格式。
+ * 旧格式验证通过后会返回 true，调用方可选择升级哈希。
+ */
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  if (hash.startsWith('pbkdf2:')) {
+    const parts = hash.split(':');
+    if (parts.length !== 5) return false;
+    const [, , iterations, saltHex, expectedHash] = parts;
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']
+    );
+    const hashBuffer = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: fromHex(saltHex), iterations: parseInt(iterations), hash: 'SHA-256' },
+      keyMaterial, HASH_BYTES * 8
+    );
+    return toHex(hashBuffer) === expectedHash;
+  }
+  // 旧格式: 纯 SHA-256 (无 salt)
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  const legacyHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return legacyHash === hash;
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hash;
+/**
+ * 检查哈希是否为旧格式（需要升级）
+ */
+export function isLegacyHash(hash: string): boolean {
+  return !hash.startsWith('pbkdf2:');
 }
 
 export function validatePassword(password: string): { valid: boolean; reason?: string } {

@@ -27,8 +27,7 @@ export async function uploadToR2(
   });
 }
 
-// 获取 R2 公开访问 URL
-// TODO: 将占位域名替换为实际配置的 R2 公开域名
+// 获取 R2 文件的公开访问 URL (通过图片代理，不暴露 R2 桶)
 export function getR2PublicUrl(key: string): string {
-  return `https://pub-placeholder.r2.dev/${key}`;
+  return `/api/images/${key}`;
 }

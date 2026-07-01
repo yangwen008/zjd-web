@@ -2,26 +2,77 @@ export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
 import { execute, queryOne } from '@/lib/db';
+import { getUserFromRequest } from '@/lib/auth';
 
-// POST /api/unlock - 创建解锁任务
+// POST /api/unlock - 解锁资产联系方式
 export async function POST(request: Request) {
   try {
-    const { assetId, wechatOpenid }: any = await request.json();
+    const { assetId } = await request.json() as { assetId: number };
 
-    const result = await execute(
-      'INSERT INTO unlock_tasks (asset_id, wechat_openid, status) VALUES (?, ?, ?)',
-      assetId, wechatOpenid, 'pending'
+    if (!assetId) {
+      return NextResponse.json({ success: false, error: 'assetId required' }, { status: 400 });
+    }
+
+    // 校验用户登录
+    const user = await getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ success: false, error: '请先登录' }, { status: 401 });
+    }
+
+    // 查询资产
+    const asset = await queryOne<{ id: number; contact_phone: string | null; contact_name: string | null; title: string }>(
+      'SELECT id, contact_phone, contact_name, title FROM assets WHERE id = ? AND status = ?',
+      assetId, 'approved'
     );
+    if (!asset) {
+      return NextResponse.json({ success: false, error: '资产不存在或未上架' }, { status: 404 });
+    }
 
+    // 检查是否已解锁（防重复）
+    const existing = await queryOne<{ id: number; result_data: string }>(
+      'SELECT id, result_data FROM unlock_tasks WHERE asset_id = ? AND user_id = ? AND status = ?',
+      assetId, user.id, 'done'
+    );
+    if (existing) {
+      return NextResponse.json({
+        success: true,
+        taskId: existing.id,
+        data: existing.result_data ? JSON.parse(existing.result_data) : null,
+        alreadyUnlocked: true,
+      });
+    }
+
+    // 创建解锁任务
+    const result = await execute(
+      'INSERT INTO unlock_tasks (asset_id, user_id, status, created_at) VALUES (?, ?, ?, datetime("now"))',
+      assetId, user.id, 'pending'
+    );
     const taskId = result.meta?.last_row_id;
 
-    // 异步处理 (实际部署中使用 Cloudflare Queue)
+    // 写入解锁结果（联系方式）
+    const resultData = JSON.stringify({
+      contact_name: asset.contact_name || '未提供',
+      contact_phone: asset.contact_phone || '未提供',
+      asset_title: asset.title,
+      unlocked_at: new Date().toISOString(),
+    });
+
     await execute(
-      'UPDATE unlock_tasks SET status = ?, completed_at = datetime("now") WHERE id = ?',
-      'done', taskId
+      'UPDATE unlock_tasks SET status = ?, result_data = ?, completed_at = datetime("now") WHERE id = ?',
+      'done', resultData, taskId
     );
 
-    return NextResponse.json({ success: true, taskId });
+    // 创建线索记录（让资产发布者知道谁感兴趣）
+    await execute(
+      'INSERT INTO leads (asset_id, user_id, unlock_type, status, created_at) VALUES (?, ?, ?, ?, datetime("now"))',
+      assetId, user.id, 'phone', 'new'
+    );
+
+    return NextResponse.json({
+      success: true,
+      taskId,
+      data: { contact_name: asset.contact_name, contact_phone: asset.contact_phone },
+    });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }

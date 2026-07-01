@@ -1,7 +1,8 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { queryOne } from '@/lib/db';
-import { hashPassword, verifyPassword, createSession, checkLoginAttempts, recordLoginAttempt, logLoginEvent, validatePassword, type User } from '@/lib/auth';
+import { hashPassword, verifyPassword, isLegacyHash, createSession, checkLoginAttempts, recordLoginAttempt, logLoginEvent, validatePassword, type User } from '@/lib/auth';
+import { execute } from '@/lib/db';
 import { checkAndEnforceRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
@@ -39,6 +40,14 @@ export async function POST(request: Request) {
       await recordLoginAttempt(phone, false);
       await logLoginEvent({ phone, userId: user.id, success: false, ip, userAgent, reason: '密码错误' });
       return NextResponse.json({ success: false, error: `手机号或密码错误（剩余${attemptCheck.remaining - 1}次机会）` }, { status: 401 });
+    }
+
+    // 旧 SHA-256 哈希自动升级为 PBKDF2
+    if (isLegacyHash(user.password_hash)) {
+      try {
+        const newHash = await hashPassword(password);
+        await execute('UPDATE users SET password_hash = ? WHERE id = ?', newHash, user.id);
+      } catch (e) { console.warn('Password hash upgrade failed:', e); }
     }
 
     if (user.status === 'banned') {
