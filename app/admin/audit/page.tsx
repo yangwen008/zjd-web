@@ -312,7 +312,6 @@ export default function AdminAuditPage() {
           </div>
         </div>
       )}
-    </div>
 
     {/* 资产详情预览弹窗 */}
     {previewAsset && (
