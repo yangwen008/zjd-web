@@ -101,6 +101,7 @@ export interface AssetFilters {
   priceMin?: number;
   priceMax?: number;
   search?: string;
+  sort?: string; // views | price
   page?: number;
   limit?: number;
   featured?: boolean;
@@ -109,7 +110,7 @@ export interface AssetFilters {
 function buildAssetQuery(params: AssetFilters, countOnly = false) {
   const {
     source, province, areaMin, areaMax,
-    priceMin, priceMax, search,
+    priceMin, priceMax, search, sort,
     page = 1, limit = 20, featured,
   } = params;
 
@@ -147,7 +148,8 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
   }
 
   if (!countOnly) {
-    sql += ' ORDER BY views DESC LIMIT ? OFFSET ?';
+    const orderBy = sort === 'price' ? 'price_year ASC' : 'views DESC';
+    sql += ` ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
     args.push(limitNum, (page - 1) * limitNum);
   }
 

@@ -8,12 +8,13 @@ export async function GET(request: Request) {
   const source = searchParams.get('source') || undefined;
   const province = searchParams.get('province') || undefined;
   const search = searchParams.get('search') || undefined;
+  const sort = searchParams.get('sort') || 'views'; // views | price
   const page = parseInt(searchParams.get('page') || '1');
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
 
   try {
     const [results, total] = await Promise.all([
-      getAssets({ source, province, search, page, limit }),
+      getAssets({ source, province, search, sort, page, limit }),
       getAssetsCount({ source, province, search }),
     ]);
 
