@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import AssetCard from '@/components/shared/AssetCard';
 import FilterPanel from '@/components/shared/FilterPanel';
+import { getFirstImage } from '@/lib/image-compress';
 
 interface Asset {
   id: number;
@@ -13,6 +14,8 @@ interface Asset {
   asset_type: string | null;
   source_type: string;
   views: number;
+  images: string | null;
+  certification?: string;
 }
 
 const GRADIENTS = [
@@ -172,6 +175,9 @@ export default function RegionsPage() {
                   views={asset.views}
                   price={formatPrice(asset.price_year)}
                   gradient={GRADIENTS[i % GRADIENTS.length]}
+                  imageUrl={getFirstImage(asset.images)}
+                  badge={asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人'}
+                  certification={asset.certification}
                   href={`/asset/${asset.id}`}
                 />
               ))}
@@ -201,6 +207,9 @@ export default function RegionsPage() {
                   views={asset.views}
                   price={formatPrice(asset.price_year)}
                   gradient={GRADIENTS[i % GRADIENTS.length]}
+                  imageUrl={getFirstImage(asset.images)}
+                  badge={asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人'}
+                  certification={asset.certification}
                   href={`/asset/${asset.id}`}
                 />
               ))}
