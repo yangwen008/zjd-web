@@ -150,7 +150,17 @@ function transformRecord(record) {
   };
 }
 
-async function saveToStaging(items) {
+async function getSystemRecipeId() {
+  const res = await fetch(`${CF_API_URL}/api/scrape`, {
+    headers: { 'Authorization': `Bearer ${CF_API_TOKEN}` },
+  });
+  const data = await res.json();
+  const recipes = data.recipes || [];
+  const sys = recipes.find(r => r.name === '系统内置采集器');
+  return sys?.id || null;
+}
+
+async function saveToStaging(items, recipeId) {
   const res = await fetch(`${CF_API_URL}/api/scrape`, {
     method: 'POST',
     headers: {
@@ -159,7 +169,7 @@ async function saveToStaging(items) {
     },
     body: JSON.stringify({
       action: 'save-raw',
-      recipeId: 0, // 0 = 系统内置采集器
+      recipeId: recipeId,
       rawData: items,
     }),
   });
@@ -210,7 +220,10 @@ async function main() {
   } else {
     console.log('💾 保存到暂存区...');
     try {
-      const result = await saveToStaging(totalItems);
+      const recipeId = await getSystemRecipeId();
+      if (!recipeId) { console.error('❌ 未找到系统内置采集器配方，请先在后台创建'); process.exit(1); }
+      console.log(`   使用配方 ID: ${recipeId}`);
+      const result = await saveToStaging(totalItems, recipeId);
       if (result.success) {
         console.log('✅ 保存成功，请到后台「暂存数据清洗」页面审核入库');
       } else {
