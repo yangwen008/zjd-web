@@ -344,7 +344,8 @@ export default function AdminBulkProjectsPage() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center space-x-2">
-                    <button onClick={() => handleEdit(p)} className="text-xs text-brand-green hover:underline">编辑</button>
+                    <a href={`/bulk-projects/${p.id}`} target="_blank" className="text-xs text-brand-green hover:underline">查看</a>
+                    <button onClick={() => handleEdit(p)} className="text-xs text-blue-600 hover:underline">编辑</button>
                     {p.status === 'pending' && (
                       <>
                         <button onClick={() => handleStatusChange(p.id, 'approved')} className="text-xs text-green-600 hover:underline">批准</button>
