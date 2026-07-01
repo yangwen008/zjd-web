@@ -162,13 +162,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-6">
             
             {/* 🌟 【唯一修改点】：将原来的文字 Logo 替换为您上传的图片 Logo */}
-            <Link href="/dashboard" className="flex items-center gap-2 group">
+            <Link href="/" className="flex items-center gap-2 group">
               <img 
                 src="/logo.png" 
                 alt="zjd.cn" 
                 className="w-8 h-8 object-contain drop-shadow-sm group-hover:scale-105 transition-transform" 
               />
-              <span className="font-bold text-gray-800 text-base tracking-tight hidden sm:block">宅基地计划</span>
+              <span className="font-bold text-gray-800 text-base tracking-tight hidden sm:block">宅基地交易所</span>
             </Link>
             
             <div className="h-5 w-px bg-gray-200 hidden sm:block"></div>
