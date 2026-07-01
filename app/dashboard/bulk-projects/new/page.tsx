@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import RichTextEditor from '@/components/shared/RichTextEditor';
 
 export default function BulkProjectPublishPage() {
   const router = useRouter();
@@ -9,6 +10,8 @@ export default function BulkProjectPublishPage() {
   const [user, setUser] = useState<any>(null);
   const [uploadedImages, setUploadedImages] = useState<{ preview: string; server: string }[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [commercialDoc, setCommercialDoc] = useState<{ name: string; url: string } | null>(null);
+  const [certDoc, setCertDoc] = useState<{ name: string; url: string } | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -138,6 +141,8 @@ export default function BulkProjectPublishPage() {
           target: 'bulk_project',
           ...formData,
           images: JSON.stringify(uploadedImages.map((i) => i.server)),
+          commercial_plan_doc: commercialDoc?.url || '',
+          cert_doc_url: certDoc?.url || '',
           infra_details: JSON.stringify({
             infra: infraItems.filter(i => i.enabled),
             env: envItems.filter(e => e.enabled),
@@ -212,9 +217,57 @@ export default function BulkProjectPublishPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">商业计划（选填）</label>
-            <textarea name="commercial_plan" value={formData.commercial_plan} onChange={handleChange} rows={3}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
-              placeholder="简述商业模式、预期收益、合作方式等..." />
+            <RichTextEditor
+              value={formData.commercial_plan}
+              onChange={(val) => setFormData({ ...formData, commercial_plan: val })}
+              placeholder="简述商业模式、预期收益、合作方式等..."
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">商业计划书附件（选填）</label>
+            {commercialDoc ? (
+              <div className="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <span className="text-green-600 text-sm">📄 {commercialDoc.name}</span>
+                <button type="button" onClick={() => setCommercialDoc(null)} className="text-xs text-red-500 hover:underline">删除</button>
+              </div>
+            ) : (
+              <label className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer transition-colors text-sm ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <span>📎</span>
+                <span className="text-gray-600">上传商业计划书（PDF/DOC）</span>
+                <input type="file" accept=".pdf,.doc,.docx" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setUploading(true);
+                  const url = await uploadFile(file);
+                  if (url) setCommercialDoc({ name: file.name, url });
+                  setUploading(false);
+                  e.target.value = '';
+                }} className="hidden" />
+              </label>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">确权证书附件（选填）</label>
+            {certDoc ? (
+              <div className="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <span className="text-green-600 text-sm">📋 {certDoc.name}</span>
+                <button type="button" onClick={() => setCertDoc(null)} className="text-xs text-red-500 hover:underline">删除</button>
+              </div>
+            ) : (
+              <label className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-dashed border-gray-300 hover:border-brand-green cursor-pointer transition-colors text-sm ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <span>📎</span>
+                <span className="text-gray-600">上传确权证书（PDF/图片）</span>
+                <input type="file" accept=".pdf,image/*" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setUploading(true);
+                  const url = await uploadFile(file);
+                  if (url) setCertDoc({ name: file.name, url });
+                  setUploading(false);
+                  e.target.value = '';
+                }} className="hidden" />
+              </label>
+            )}
           </div>
         </div>
 
