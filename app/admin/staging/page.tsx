@@ -127,7 +127,12 @@ export default function AdminStagingPage() {
   // ==========================================
   if (activeItem) {
     let parsedData: any = {};
-    try { parsedData = JSON.parse(editedData); } catch {}
+    let parsedArray: any[] = [];
+    try {
+      const parsed = JSON.parse(editedData);
+      if (Array.isArray(parsed)) { parsedArray = parsed; parsedData = parsed[0] || {}; }
+      else { parsedData = parsed; parsedArray = [parsed]; }
+    } catch {}
     const statusInfo = STATUS_LABELS[activeItem.status] || STATUS_LABELS.raw;
 
     return (
@@ -173,7 +178,7 @@ export default function AdminStagingPage() {
 
           {/* 右栏：预览与操作 */}
           <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col overflow-hidden">
-            <h3 className="font-bold text-gray-700 mb-3 text-sm flex items-center">👁️ 入库预览</h3>
+            <h3 className="font-bold text-gray-700 mb-3 text-sm flex items-center">👁️ 入库预览 {parsedArray.length > 1 && <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">共 {parsedArray.length} 条</span>}</h3>
             <div className="flex-1 overflow-auto space-y-3 text-sm bg-gray-50 rounded-lg p-3 border border-gray-100">
               <div className="flex"><span className="text-gray-500 w-16 flex-shrink-0">标题:</span> <span className="font-medium text-gray-900">{parsedData.title || '-'}</span></div>
               <div className="flex"><span className="text-gray-500 w-16 flex-shrink-0">区域:</span> <span>{[parsedData.province, parsedData.city].filter(Boolean).join(' ') || '-'}</span></div>
@@ -194,7 +199,7 @@ export default function AdminStagingPage() {
               <button onClick={() => handleAction('re-clean')} className="px-3 py-2 text-xs bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors">🔄 重新清洗</button>
               <button onClick={() => handleAction('discard')} className="px-3 py-2 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">🗑️ 丢弃数据</button>
               <button onClick={() => handleAction('update-data')} className="col-span-2 px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">💾 仅保存修改</button>
-              <button onClick={() => handleAction('import')} className="col-span-2 px-3 py-2.5 text-sm bg-brand-green text-white rounded-lg hover:bg-brand-light font-medium transition-colors shadow-sm">✅ 修正并入库</button>
+              <button onClick={() => handleAction('import')} className="col-span-2 px-3 py-2.5 text-sm bg-brand-green text-white rounded-lg hover:bg-brand-light font-medium transition-colors shadow-sm">✅ {parsedArray.length > 1 ? `批量入库 (${parsedArray.length}条)` : '修正并入库'}</button>
             </div>
           </div>
         </div>

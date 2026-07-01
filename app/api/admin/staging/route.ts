@@ -114,23 +114,33 @@ export async function POST(request: Request) {
     }
 
     if (action === 'import') {
-      const b = body as { id: number; asset?: Record<string, unknown>; data?: string };
-      const asset = b.asset || JSON.parse(b.data || '{}') as Record<string, unknown>;
+      const b = body as { id: number; asset?: Record<string, unknown> | Record<string, unknown>[]; data?: string };
+      let rawAsset = b.asset || JSON.parse(b.data || '{}');
       const { id } = b;
       const staging = await queryOne<{ status: string }>('SELECT status FROM staging_raw WHERE id = ?', id);
       if (!staging) return NextResponse.json({ success: false, error: 'Staging record not found' }, { status: 404 });
 
-      await execute(
-        `INSERT INTO assets (title, description, location, province, city, district, area_mu, price_year, asset_type, source_type, contact_name, contact_phone, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
-        asset.title || 'Untitled', asset.description || null, asset.location || null,
-        asset.province || null, asset.city || null, asset.district || null,
-        asset.area_mu || null, asset.price_year || null, asset.asset_type || null,
-        asset.source_type || 'official', asset.contact_name || null, asset.contact_phone || null
-      );
+      // 支持单条或数组批量入库
+      const assets = Array.isArray(rawAsset) ? rawAsset : [rawAsset];
+      let imported = 0;
+
+      for (const asset of assets) {
+        const a = asset as Record<string, unknown>;
+        if (!a.title) continue; // 跳过无标题的
+        await execute(
+          `INSERT INTO assets (title, description, location, province, city, district, area_mu, price_year, lease_years, asset_type, source_type, source_url, contact_name, contact_phone, certification, status, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+          a.title || 'Untitled', a.description || null, a.location || null,
+          a.province || null, a.city || null, a.district || null,
+          a.area_mu || null, a.price_year || null, a.lease_years || null,
+          a.asset_type || null, a.source_type || 'official', a.source_url || null,
+          a.contact_name || null, a.contact_phone || null, a.certification || 'uncertified'
+        );
+        imported++;
+      }
 
       await execute("UPDATE staging_raw SET status = 'imported' WHERE id = ?", id);
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, imported });
     }
 
     if (action === 'delete') {
