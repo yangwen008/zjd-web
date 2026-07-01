@@ -87,6 +87,65 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: '发布成功，等待审核' });
     }
 
+    // ==========================================
+    // 分支 2：发布大宗路演项目 (project_publisher / admin / superadmin)
+    // ==========================================
+    if (target === 'bulk_project') {
+      // 权限校验
+      const allowedRoles = ['project_publisher', 'admin', 'superadmin'];
+      if (!allowedRoles.includes(user.role)) {
+        return NextResponse.json({ success: false, error: '无权发布大宗项目' }, { status: 403 });
+      }
+
+      if (!body.title || !body.province) {
+        return NextResponse.json({ success: false, error: '标题和省份为必填项' }, { status: 400 });
+      }
+
+      const location = [body.province, body.city, body.district, body.location].filter(Boolean).join('');
+
+      let imagesJson = '[]';
+      if (body.images) {
+        if (typeof body.images === 'string' && body.images.startsWith('[')) {
+          imagesJson = body.images;
+        } else if (typeof body.images === 'string') {
+          const urls = body.images.split(',').filter((u: string) => u.trim() !== '');
+          imagesJson = JSON.stringify(urls);
+        }
+      }
+
+      await execute(
+        `INSERT INTO bulk_projects
+        (title, code, description, location, province, city, district, area_mu, area_sqm, price_total, price_start,
+         yield_rate, lease_years, certification, planning_use, images, commercial_plan, gps_lat, gps_lng,
+         contact_name, contact_phone, user_id, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+        body.title,
+        body.code || null,
+        body.description || '',
+        location,
+        body.province,
+        body.city || '',
+        body.district || '',
+        body.area_mu ? parseFloat(body.area_mu) : null,
+        body.area_sqm ? parseFloat(body.area_sqm) : null,
+        body.price_total ? parseFloat(body.price_total) : null,
+        body.price_start ? parseFloat(body.price_start) : null,
+        body.yield_rate ? parseFloat(body.yield_rate) : null,
+        body.lease_years ? parseInt(body.lease_years) : null,
+        body.certification || 'uncertified',
+        body.planning_use || null,
+        imagesJson,
+        body.commercial_plan || null,
+        body.gps_lat ? parseFloat(body.gps_lat) : null,
+        body.gps_lng ? parseFloat(body.gps_lng) : null,
+        body.contact_name || '',
+        body.contact_phone || '',
+        user.id,
+      );
+
+      return NextResponse.json({ success: true, message: '大宗项目发布成功，等待审核' });
+    }
+
     return NextResponse.json({ success: false, error: '未知的发布类型' }, { status: 400 });
 
   } catch (error: any) {

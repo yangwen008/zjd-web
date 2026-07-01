@@ -7,7 +7,8 @@ import RegionSelector from '@/components/shared/RegionSelector';
 const ROLES = [
   { key: 'user', label: '普通用户', icon: '👤', desc: '浏览、收藏、发布闲置资产', needReview: false },
   { key: 'broker', label: '合伙人', icon: '🤝', desc: '发布房源、查看客户线索', needReview: true },
-  { key: 'village_org', label: '村集体', icon: '🏛️', desc: '发布村委直发资产、查看线索', needReview: true },
+  { key: 'village_org', label: '村集体', icon: '🏛️', desc: '发布村委直发资产、查看线索', needReview: true, needLicense: true },
+  { key: 'project_publisher', label: '大宗用户', icon: '🏢', desc: '发布大宗路演项目', needReview: true },
 ];
 
 export default function RegisterPage() {
@@ -33,6 +34,17 @@ export default function RegisterPage() {
 
   const handleNext = () => {
     setError('');
+    // Step1→Step2: 选了角色后进入信息填写
+    setStep(2);
+  };
+
+  const handleBack = () => {
+    setError('');
+    setStep(1);
+  };
+
+  const validateAndSubmit = () => {
+    setError('');
     if (!phone || !password || !nickname) { setError('请填写完整信息'); return; }
     if (!/^1[3-9]\d{9}$/.test(phone)) { setError('手机号格式不正确'); return; }
     if (password.length < 8) { setError('密码至少8位'); return; }
@@ -40,7 +52,7 @@ export default function RegisterPage() {
     if (!/[a-z]/.test(password)) { setError('密码需包含小写字母'); return; }
     if (!/[0-9]/.test(password)) { setError('密码需包含数字'); return; }
     if (password !== confirmPwd) { setError('两次密码不一致'); return; }
-    setStep(2);
+    handleSubmit();
   };
 
   const handleSubmit = async () => {
@@ -108,16 +120,51 @@ export default function RegisterPage() {
                   {step > s ? '✓' : s}
                 </div>
                 <span className={`text-sm ${step >= s ? 'text-gray-900' : 'text-gray-400'}`}>
-                  {s === 1 ? '基本信息' : '选择身份'}
+                  {s === 1 ? '选择身份' : '填写信息'}
                 </span>
                 {s < 2 && <div className={`w-12 h-0.5 ${step > s ? 'bg-[#2C4C3B]' : 'bg-gray-200'}`} />}
               </div>
             ))}
           </div>
 
-          {/* Step 1: Basic info */}
+          {/* Step 1: Role selection (先选身份) */}
           {step === 1 && (
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                {ROLES.map((r) => (
+                  <button
+                    key={r.key}
+                    onClick={() => setRoleApply(r.key)}
+                    className={`p-4 rounded-xl border-2 text-center transition-all ${
+                      roleApply === r.key
+                        ? 'border-[#2C4C3B] bg-[#2C4C3B]/5'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">{r.icon}</div>
+                    <div className="text-sm font-bold text-gray-900">{r.label}</div>
+                    <div className="text-xs text-gray-500 mt-1">{r.desc}</div>
+                    {r.needReview && <div className="text-xs text-orange-500 mt-1">需审核</div>}
+                  </button>
+                ))}
+              </div>
+
+              {selectedRole?.needReview && (
+                <div className="bg-orange-50 text-orange-700 text-sm px-4 py-3 rounded-xl border border-orange-200">
+                  ⏳ {selectedRole.label}账号需要管理员审核，审核通过后即可登录使用。
+                </div>
+              )}
+
+              <button onClick={handleNext} className="w-full bg-[#2C4C3B] hover:bg-[#1E3529] text-white py-3 rounded-xl font-medium transition-colors">
+                下一步
+              </button>
+            </div>
+          )}
+
+          {/* Step 2: Basic info + Role-specific fields */}
+          {step === 2 && (
+            <div className="space-y-4">
+              {/* 基本信息 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">手机号</label>
                 <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="请输入手机号" maxLength={11}
@@ -139,39 +186,10 @@ export default function RegisterPage() {
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#2C4C3B] focus:ring-1 focus:ring-[#2C4C3B]" />
               </div>
 
-              {error && <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-xl border border-red-200">{error}</div>}
-
-              <button onClick={handleNext} className="w-full bg-[#2C4C3B] hover:bg-[#1E3529] text-white py-3 rounded-xl font-medium transition-colors">
-                下一步
-              </button>
-            </div>
-          )}
-
-          {/* Step 2: Role selection */}
-          {step === 2 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                {ROLES.map((r) => (
-                  <button
-                    key={r.key}
-                    onClick={() => setRoleApply(r.key)}
-                    className={`p-4 rounded-xl border-2 text-center transition-all ${
-                      roleApply === r.key
-                        ? 'border-[#2C4C3B] bg-[#2C4C3B]/5'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="text-2xl mb-1">{r.icon}</div>
-                    <div className="text-sm font-bold text-gray-900">{r.label}</div>
-                    <div className="text-xs text-gray-500 mt-1">{r.desc}</div>
-                    {r.needReview && <div className="text-xs text-orange-500 mt-1">需审核</div>}
-                  </button>
-                ))}
-              </div>
-
-              {/* Broker fields */}
+              {/* 角色专属字段 */}
               {roleApply === 'broker' && (
-                <div className="space-y-3 pt-2">
+                <div className="space-y-3 pt-2 border-t border-gray-100">
+                  <p className="text-sm font-medium text-gray-700">🤝 合伙人信息</p>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">负责区域 *</label>
                     <RegionSelector
@@ -197,13 +215,26 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              {/* Village fields */}
               {roleApply === 'village_org' && (
-                <div className="pt-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">村委/机构名称 *</label>
-                  <input type="text" value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="如：余村村委会"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#2C4C3B]" />
-                  <p className="text-xs text-gray-400 mt-2">注册后需上传村委授权书，管理员审核通过后即可发布资产。</p>
+                <div className="space-y-3 pt-2 border-t border-gray-100">
+                  <p className="text-sm font-medium text-gray-700">🏛️ 村集体信息</p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">村委/机构名称 *</label>
+                    <input type="text" value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="如：余村村委会"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#2C4C3B]" />
+                  </div>
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+                    <p className="text-xs text-blue-700">📋 注册后需上传村委授权书，管理员审核通过后即可发布「村委直发」资产。</p>
+                  </div>
+                </div>
+              )}
+
+              {roleApply === 'project_publisher' && (
+                <div className="pt-2 border-t border-gray-100">
+                  <p className="text-sm font-medium text-gray-700 mb-2">🏢 大宗项目信息</p>
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+                    <p className="text-xs text-blue-700">📋 审核通过后，您可以在用户后台发布大宗路演项目（含面积、收益率、商业计划等专属字段）。</p>
+                  </div>
                 </div>
               )}
 
@@ -216,10 +247,10 @@ export default function RegisterPage() {
               {error && <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-xl border border-red-200">{error}</div>}
 
               <div className="flex space-x-3">
-                <button onClick={() => setStep(1)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-medium transition-colors">
+                <button onClick={handleBack} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-medium transition-colors">
                   上一步
                 </button>
-                <button onClick={handleSubmit} disabled={loading} className="flex-1 bg-[#2C4C3B] hover:bg-[#1E3529] text-white py-3 rounded-xl font-medium transition-colors disabled:opacity-50">
+                <button onClick={validateAndSubmit} disabled={loading} className="flex-1 bg-[#2C4C3B] hover:bg-[#1E3529] text-white py-3 rounded-xl font-medium transition-colors disabled:opacity-50">
                   {loading ? '注册中...' : '完成注册'}
                 </button>
               </div>

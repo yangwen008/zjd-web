@@ -23,3 +23,4 @@ npm-debug.log*
 # Cloudflare
 .dev.vars
 screenshot*.png
+tsconfig.tsbuildinfo

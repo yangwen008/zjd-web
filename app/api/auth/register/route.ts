@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     // 确定角色和状态
-    const validRoles = ['user', 'broker', 'village_org'];
+    const validRoles = ['user', 'broker', 'village_org', 'project_publisher'];
     const applyRole = validRoles.includes(role_apply || '') ? role_apply : 'user';
     const needsReview = applyRole !== 'user'; // broker 和 village_org 需要审核
     const status = needsReview ? 'pending' : 'active';
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         pending: true,
-        message: `注册成功！您的${applyRole === 'broker' ? '合伙人' : '村集体'}账号正在审核中，审核通过后即可登录。`,
+        message: `注册成功！您的${applyRole === 'broker' ? '合伙人' : applyRole === 'village_org' ? '村集体' : '大宗用户'}账号正在审核中，审核通过后即可登录。`,
       });
     }
 

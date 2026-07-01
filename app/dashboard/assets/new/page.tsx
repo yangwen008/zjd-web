@@ -23,6 +23,7 @@ export default function PublishAssetPage() {
   const [uploadedImages, setUploadedImages] = useState<{ preview: string; server: string }[]>([]);
   const [uploadedVideos, setUploadedVideos] = useState<{ preview: string; server: string }[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [orgName, setOrgName] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -287,8 +288,8 @@ export default function PublishAssetPage() {
   return (
     <div className="max-w-3xl mx-auto pb-20">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">🏠 发布闲置资产</h1>
-        <p className="text-sm text-gray-500 mt-1">填写信息后提交审核，通过后将在前台展示</p>
+        <h1 className="text-2xl font-bold text-gray-900">{user?.role === 'village_org' ? '🏛️ 发布村委直发资产' : '🏠 发布闲置资产'}</h1>
+        <p className="text-sm text-gray-500 mt-1">{user?.role === 'village_org' ? '村委直发资产将展示在前台「村集体直发专区」，需管理员审核' : '填写信息后提交审核，通过后将在前台展示'}</p>
       </div>
 
       {msg && (
@@ -300,7 +301,13 @@ export default function PublishAssetPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* ═══ 基础信息 ═══ */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
-          <h3 className="font-bold text-gray-800 border-b pb-2">📝 基础信息</h3>
+          <h3 className="font-bold text-gray-800 border-b pb-2">{user?.role === 'village_org' ? '🏛️ 村委直发资产信息' : '📝 基础信息'}</h3>
+
+          {user?.role === 'village_org' && (
+            <div className="bg-purple-50 border border-purple-100 rounded-lg p-3 mb-2">
+              <p className="text-xs text-purple-700">📋 您当前以「村集体」身份发布，资产将自动标记为「村委直发」，展示在前台「村集体直发专区」。</p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">资产标题 *</label>
