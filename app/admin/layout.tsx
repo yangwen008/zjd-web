@@ -23,10 +23,20 @@ const NAV_GROUPS = [
   {
     title: '资产与业务',
     items: [
-      { icon: '🏠', label: '资产审核', href: '/admin/assets' },
+      { icon: '⚖️', label: '官方资产', href: '/admin/assets?source=official' },
+      { icon: '🏛️', label: '村委资产', href: '/admin/assets?source=village' },
+      { icon: '👤', label: '个人资产', href: '/admin/assets?source=ugc' },
       { icon: '🏢', label: '大宗路演', href: '/admin/bulk-projects' },
+      { icon: '🤝', label: '合伙人管理', href: '/admin/brokers' },
       { icon: '💰', label: '行情数据', href: '/admin/market-data' },
       { icon: '📡', label: '基建评分', href: '/admin/infra-ratings' },
+    ],
+  },
+  {
+    title: '用户与配置',
+    items: [
+      { icon: '👥', label: '用户管理', href: '/admin/users' },
+      { icon: '⚙️', label: '全局配置', href: '/admin/config' },
     ],
   },
   {
@@ -36,14 +46,6 @@ const NAV_GROUPS = [
       { icon: '🏷️', label: '资产类型', href: '/admin/asset-types' },
       { icon: '🕷️', label: '爬虫管理', href: '/admin/scrapers' },
       { icon: '📥', label: '暂存数据', href: '/admin/staging' },
-    ],
-  },
-  {
-    title: '用户与配置',
-    items: [
-      { icon: '🤝', label: '合伙人管理', href: '/admin/brokers' },
-      { icon: '👥', label: '用户管理', href: '/admin/users' },
-      { icon: '⚙️', label: '全局配置', href: '/admin/config' },
     ],
   },
 ];

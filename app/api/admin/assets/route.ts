@@ -7,6 +7,7 @@ import type { Asset } from '@/lib/data';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
+  const source = searchParams.get('source');
   const search = searchParams.get('search');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
@@ -18,6 +19,11 @@ export async function GET(request: Request) {
   if (status && status !== 'all') {
     conditions.push('status = ?');
     args.push(status);
+  }
+
+  if (source) {
+    conditions.push('source_type = ?');
+    args.push(source);
   }
 
   if (search && search.trim()) {

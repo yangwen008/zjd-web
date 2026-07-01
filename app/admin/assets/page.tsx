@@ -37,6 +37,7 @@ export default function AdminAssetsPage() {
   const searchParams = useSearchParams();
   // 【修复点 2】：将默认筛选状态从 'all' 改为 'pending'，让审核员一进来只看到待审核资产
   const [filter, setFilter] = useState(searchParams.get('status') || 'all');
+  const [sourceFilter, setSourceFilter] = useState(searchParams.get('source') || '');
   const [search, setSearch] = useState('');
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +59,7 @@ export default function AdminAssetsPage() {
     try {
       const params = new URLSearchParams();
       if (status && status !== 'all') params.set('status', status);
+      if (sourceFilter) params.set('source', sourceFilter);
       if (search.trim()) params.set('search', search.trim());
       params.set('limit', '50');
       const res = await fetch(`/api/admin/assets?${params.toString()}`);
@@ -66,7 +68,7 @@ export default function AdminAssetsPage() {
     } catch { setAssets([]); } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchAssets(filter); }, [filter]);
+  useEffect(() => { fetchAssets(filter); }, [filter, sourceFilter]);
 
   const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3000); };
 
@@ -160,15 +162,24 @@ export default function AdminAssetsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">🏠 资产审核管理</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">🏠 资产管理</h1>
         <div className="flex items-center space-x-2">
           {['all', 'pending', 'approved', 'rejected'].map((f) => (
-            <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-xs rounded-full transition-colors ${filter === f ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            <button key={f} onClick={() => { setFilter(f); fetchAssets(f); }} className={`px-3 py-1.5 text-xs rounded-full transition-colors ${filter === f ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
               {f === 'all' ? '全部' : STATUS_LABELS[f] || f}
             </button>
           ))}
         </div>
+      </div>
+      {/* 来源筛选 */}
+      <div className="flex items-center space-x-2 mb-4">
+        <span className="text-xs text-gray-400">来源：</span>
+        {[{ key: '', label: '全部' }, { key: 'official', label: '⚖️ 官方' }, { key: 'village', label: '🏛️ 村委' }, { key: 'ugc', label: '👤 个人' }].map((s) => (
+          <button key={s.key} onClick={() => { setSourceFilter(s.key); }} className={`px-3 py-1 text-xs rounded-full transition-colors ${sourceFilter === s.key ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            {s.label}
+          </button>
+        ))}
       </div>
       
       {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
