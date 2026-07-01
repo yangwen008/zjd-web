@@ -22,6 +22,7 @@ interface Asset {
   images: string | null;
   video_url: string | null;
   certification: string;
+  featured: number;
 }
 
 const STATUS_LABELS: Record<string, string> = { approved: '已上架', pending: '待审核', rejected: '已拒绝', banned: '已封禁' };
