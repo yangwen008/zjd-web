@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 3 * * *'
   workflow_dispatch:
+    inputs:
+      recipe_id:
+        description: '指定配方ID（留空则运行所有启用的配方）'
+        required: false
+        default: ''
 
 jobs:
   scrape:
@@ -27,5 +32,6 @@ jobs:
       - name: Run scraper
         env:
           CF_API_URL: ${{ secrets.CF_API_URL }}
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_API_TOKEN: *** secrets.CF_API_TOKEN }}
+          RECIPE_ID: ${{ github.event.inputs.recipe_id }}
         run: node scrapers/catcher.js
