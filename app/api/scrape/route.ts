@@ -107,16 +107,36 @@ export async function POST(request: Request) {
     if (action === 'save-raw') {
       // 保存原始数据（带去重：同一 recipe 的相同数据不重复插入）
       const rawDataStr = JSON.stringify(body.rawData);
-      const existing = await queryOne<{ id: number }>(
-        'SELECT id FROM staging_raw WHERE recipe_id = ? AND raw_data = ? LIMIT 1',
-        body.recipeId, rawDataStr
-      );
-      if (existing) {
-        return NextResponse.json({ success: true, skipped: true, message: 'Data already exists' });
+      let recipeId = body.recipeId || null;
+      // 如果 recipeId 为 0，自动创建或查找系统内置采集器配方
+      if (!recipeId) {
+        let sysRecipe = await queryOne<{ id: number }>(
+          "SELECT id FROM scrapers_recipes WHERE name = '系统内置采集器' LIMIT 1"
+        );
+        if (!sysRecipe) {
+          const result = await execute(
+            `INSERT INTO scrapers_recipes (name, base_url, list_url, selectors, enabled, max_pages, pagination_type, schedule_cron)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            '系统内置采集器', 'https://www.cdaee.com', 'https://www.cdaee.com/inteligentsearch_new',
+            '{}', 1, 10, 'api', '0 3 * * *'
+          );
+          recipeId = result.meta?.last_row_id;
+        } else {
+          recipeId = sysRecipe.id;
+        }
+      }
+      if (recipeId) {
+        const existing = await queryOne<{ id: number }>(
+          'SELECT id FROM staging_raw WHERE recipe_id = ? AND raw_data = ? LIMIT 1',
+          recipeId, rawDataStr
+        );
+        if (existing) {
+          return NextResponse.json({ success: true, skipped: true, message: 'Data already exists' });
+        }
       }
       await execute(
         'INSERT INTO staging_raw (recipe_id, raw_data, status) VALUES (?, ?, ?)',
-        body.recipeId, rawDataStr, 'raw'
+        recipeId, rawDataStr, 'raw'
       );
       return NextResponse.json({ success: true });
     }
