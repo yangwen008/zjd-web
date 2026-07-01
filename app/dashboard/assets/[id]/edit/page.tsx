@@ -13,6 +13,7 @@ const ASSET_TYPES = [
   { value: '古村落', icon: '🏚️' },
   { value: '民宿群', icon: '🏡' },
   { value: '果园', icon: '🍊' },
+  { value: '种植', icon: '🌾' },
 ];
 
 export default function EditAssetPage() {

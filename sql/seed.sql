@@ -176,7 +176,8 @@ INSERT OR IGNORE INTO asset_types (name, icon, description, sort_order) VALUES
   ('商铺', '🏪', '沿街商铺经营权流转', 6),
   ('林盘', '🌿', '川西林盘保护性开发', 7),
   ('古村落', '🏚️', '整村保护性开发流转', 8),
-  ('民宿群', '🏡', '已建成民宿群整体流转', 9);
+  ('民宿群', '🏡', '已建成民宿群整体流转', 9),
+  ('种植', '🌾', '种植用地经营权流转', 10);
 
 -- 9. 大宗路演项目
 INSERT OR IGNORE INTO bulk_projects (title, code, description, location, province, city, district, area_mu, area_sqm, price_start, yield_rate, lease_years, certification, planning_use, images, gps_lat, gps_lng, contact_phone, contact_name, views, status, featured, user_id) VALUES
