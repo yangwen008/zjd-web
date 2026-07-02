@@ -6,6 +6,8 @@ import { notFound } from 'next/navigation';
 // ✅ 新增：导入我们刚才创建的轮播图客户端组件
 import MediaGallery from './media-gallery';
 import ContactCard from '@/components/shared/ContactCard';
+import BookingButton from '@/components/shared/BookingButton';
+import WxShareConfig from '@/components/shared/WxShareConfig';
 
 export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -73,9 +75,17 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     } catch {}
   }
 
+  const siteUrl = 'https://www.zjd.cn';
+  const shareImage = imageUrls.length > 0 ? `/api/images/${imageUrls[0]}` : '';
+
   return (
     <>
-     
+      <WxShareConfig
+        title={asset.title}
+        desc={asset.description || `${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`}
+        link={`${siteUrl}/asset/${asset.id}`}
+        imgUrl={shareImage ? `${siteUrl}${shareImage}` : `${siteUrl}/logo.png`}
+      />
       <main className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
@@ -162,6 +172,9 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
 
             {/* Sidebar */}
             <div className="space-y-4">
+              {/* 预约带看 */}
+              <BookingButton assetId={asset.id} assetTitle={asset.title} />
+
               {/* Contact + Attachments */}
               <ContactCard
                 phone={asset.contact_phone}

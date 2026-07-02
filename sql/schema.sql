@@ -94,6 +94,10 @@ CREATE TABLE IF NOT EXISTS users (
   broker_region TEXT,              -- 合伙人负责区域
   broker_specialties TEXT,         -- 合伙人擅长领域（JSON）
   broker_bio    TEXT,              -- 合伙人简介
+  wx_openid     TEXT,              -- 微信公众号OpenID
+  wx_unionid    TEXT,              -- 微信UnionID
+  wx_nickname   TEXT,              -- 微信昵称
+  wx_avatar     TEXT,              -- 微信头像
   created_at    TEXT DEFAULT (datetime('now')),
   updated_at    TEXT DEFAULT (datetime('now'))
 );
@@ -101,6 +105,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_openid ON users(openid);
 CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
+CREATE INDEX IF NOT EXISTS idx_users_wx_openid ON users(wx_openid);
+CREATE INDEX IF NOT EXISTS idx_users_wx_unionid ON users(wx_unionid);
 
 -- 3. 线索表 (买家解锁记录)
 CREATE TABLE IF NOT EXISTS leads (
@@ -437,3 +443,39 @@ CREATE TABLE IF NOT EXISTS login_logs (
 
 CREATE INDEX IF NOT EXISTS idx_login_logs_phone ON login_logs(phone);
 CREATE INDEX IF NOT EXISTS idx_login_logs_user ON login_logs(user_id);
+
+-- 25. 预约带看表
+CREATE TABLE IF NOT EXISTS appointments (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  asset_id      INTEGER NOT NULL,
+  user_id       INTEGER NOT NULL,
+  contact_name  TEXT,
+  contact_phone TEXT,
+  status        TEXT DEFAULT 'pending',  -- pending/confirmed/cancelled/completed
+  notes         TEXT,
+  created_at    TEXT DEFAULT (datetime('now')),
+  updated_at    TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(asset_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_appts_asset ON appointments(asset_id);
+CREATE INDEX IF NOT EXISTS idx_appts_user ON appointments(user_id);
+
+-- 26. 微信消息记录表
+CREATE TABLE IF NOT EXISTS wx_messages (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id       INTEGER,
+  openid        TEXT NOT NULL,
+  template_id   TEXT NOT NULL,
+  msg_type      TEXT NOT NULL,
+  content       TEXT,
+  status        TEXT DEFAULT 'sent',
+  msg_id        TEXT,
+  created_at    TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_wxmsg_openid ON wx_messages(openid);
+CREATE INDEX IF NOT EXISTS idx_wxmsg_type ON wx_messages(msg_type);

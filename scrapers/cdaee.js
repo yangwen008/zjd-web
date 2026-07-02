@@ -8,7 +8,7 @@
  *   node scrapers/cdaee.js --dry-run    # 预览不入库
  */
 
-const CF_API_URL = process.env.CF_API_URL || 'https://zjd-web.pages.dev';
+const CF_API_URL = process.env.CF_API_URL || 'https://www.zjd.cn';
 const CF_API_TOKEN = process.env.CF_API_TOKEN || '';
 
 const API_URL = 'https://www.cdaee.com/inteligentsearch_new/rest/esinteligentsearch/getFullTextDataNew';

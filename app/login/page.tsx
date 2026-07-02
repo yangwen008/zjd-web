@@ -101,12 +101,15 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-6 pt-6 border-t border-gray-100">
-            <button className="w-full flex items-center justify-center space-x-2 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <a
+              href="/api/auth/wx/login?redirect=/dashboard"
+              className="w-full flex items-center justify-center space-x-2 py-3 border border-green-200 rounded-xl hover:bg-green-50 transition-colors"
+            >
+              <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348z" />
               </svg>
-              <span className="text-sm text-gray-600">微信扫码登录（即将上线）</span>
-            </button>
+              <span className="text-sm text-green-700 font-medium">微信一键登录</span>
+            </a>
           </div>
         </div>
 

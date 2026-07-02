@@ -140,7 +140,8 @@ export function validateReferer(referer: string | null): boolean {
     return (
       url.hostname === 'zjd.cn' ||
       url.hostname === 'www.zjd.cn' ||
-      url.hostname.endsWith('.zjd-web.pages.dev')
+      url.hostname.endsWith('.zjd-web.pages.dev') ||
+      url.hostname === 'zjd-web.pages.dev'
     );
   } catch {
     return false;
