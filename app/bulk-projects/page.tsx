@@ -1,15 +1,35 @@
-export const runtime = 'edge';
-export const revalidate = 300;
+'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { getBulkProjects, getHomepageConfig } from '@/lib/data';
-import type { BulkProject } from '@/lib/data';
+
+interface BulkProject {
+  id: number;
+  title: string;
+  code: string | null;
+  description: string | null;
+  location: string | null;
+  province: string | null;
+  city: string | null;
+  area_mu: number | null;
+  area_sqm: number | null;
+  price_start: number | null;
+  yield_rate: number | null;
+  lease_years: number | null;
+  certification: string;
+  images: string | null;
+  views: number;
+}
 
 function getFirstImage(images: string | null): string {
   if (!images) return 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
   try {
     const arr = JSON.parse(images);
-    return Array.isArray(arr) && arr.length > 0 ? arr[0] : 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
+    if (Array.isArray(arr) && arr.length > 0) {
+      const first = arr[0];
+      return typeof first === 'object' && first.thumb ? first.thumb : (typeof first === 'object' ? first.url : first);
+    }
+    return 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
   } catch {
     return 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
   }
@@ -21,80 +41,166 @@ const CERT_BADGES: Record<string, { label: string; className: string }> = {
   uncertified: { label: '未确权', className: 'bg-gray-100 text-gray-600' },
 };
 
-export default async function BulkProjectsPage() {
-  const [projects, config] = await Promise.all([
-    getBulkProjects({ limit: 20 }).catch(() => [] as BulkProject[]),
-    getHomepageConfig().catch(() => ({})),
-  ]);
+export default function BulkProjectsPage() {
+  const [projects, setProjects] = useState<BulkProject[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchProjects = useCallback(async (p: number) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set('page', String(p));
+      params.set('limit', '16');
+      const res = await fetch(`/api/bulk-projects?${params.toString()}`);
+      const data: any = await res.json();
+      setProjects(data.data || []);
+      setTotal(data.pagination?.total || 0);
+      setTotalPages(data.pagination?.totalPages || 1);
+    } catch {
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProjects(page);
+  }, [page, fetchProjects]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
-    <>
-      <main className="pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <div className="flex items-center space-x-2 mb-2">
-              <span className="text-2xl">🏢</span>
-              <h1 className="text-3xl font-bold text-gray-900">大宗文旅项目及招商引资路演厅</h1>
-            </div>
-            <p className="text-gray-500">集约化、无历史产权争议的集体闲置资产，专供大B端连锁品牌、高资本康养集团。</p>
+    <main className="pt-20 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-2xl">🏢</span>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">大宗文旅项目及招商引资路演厅</h1>
           </div>
+          <p className="text-gray-500">集约化、无历史产权争议的集体闲置资产，专供大B端连锁品牌、高资本康养集团。</p>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {projects.length > 0 ? projects.map((p) => {
-              const cert = CERT_BADGES[p.certification] || CERT_BADGES.uncertified;
-              return (
-                <Link key={p.id} href={`/bulk-projects/${p.id}`} className="block bg-white rounded-xl border border-gray-100 overflow-hidden card-hover">
-                  <div className="h-48 bg-gradient-to-br from-brand-dark to-brand-green relative overflow-hidden">
-                    <img src={getFirstImage(p.images)} alt={p.title} className="w-full h-full object-cover opacity-80" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute top-4 left-4 flex items-center space-x-2">
-                      {p.code && <span className="bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-lg">{p.code}</span>}
-                      <span className={`text-xs font-bold px-2 py-1 rounded ${cert.className}`}>{cert.label}</span>
+        {/* 结果统计 */}
+        {total > 0 && (
+          <div className="mb-6 text-sm text-gray-400">
+            共 <strong className="text-gray-700">{total}</strong> 个大宗项目
+            {totalPages > 1 && <span>，第 {page}/{totalPages} 页</span>}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-center py-16 text-gray-400">
+            <div className="w-8 h-8 border-2 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p>加载中...</p>
+          </div>
+        ) : projects.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {projects.map((p) => {
+                const cert = CERT_BADGES[p.certification] || CERT_BADGES.uncertified;
+                return (
+                  <Link key={p.id} href={`/bulk-projects/${p.id}`} className="block bg-white rounded-xl border border-gray-100 overflow-hidden card-hover">
+                    <div className="h-48 bg-gradient-to-br from-brand-dark to-brand-green relative overflow-hidden">
+                      <img src={getFirstImage(p.images)} alt={p.title} className="w-full h-full object-cover opacity-80" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute top-4 left-4 flex items-center space-x-2">
+                        {p.code && <span className="bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-lg">{p.code}</span>}
+                        <span className={`text-xs font-bold px-2 py-1 rounded ${cert.className}`}>{cert.label}</span>
+                      </div>
+                      <div className="absolute bottom-4 left-4 text-white">
+                        <div className="text-xs opacity-80">{p.location || [p.province, p.city].filter(Boolean).join(' · ')}</div>
+                        <div className="text-xl font-bold">{p.title}</div>
+                      </div>
                     </div>
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <div className="text-xs opacity-80">{p.location || [p.province, p.city].filter(Boolean).join(' · ')}</div>
-                      <div className="text-xl font-bold">{p.title}</div>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <div className="grid grid-cols-3 gap-4 text-center mb-4">
-                      <div>
-                        <div className="text-xs text-gray-400">总面积</div>
-                        <div className="font-bold text-gray-900">
-                          {p.area_sqm ? `${p.area_sqm} ㎡` : (p.area_mu ? `${p.area_mu} 亩` : '-')}
+                    <div className="p-5">
+                      <div className="grid grid-cols-3 gap-4 text-center mb-4">
+                        <div>
+                          <div className="text-xs text-gray-400">总面积</div>
+                          <div className="font-bold text-gray-900">
+                            {p.area_sqm ? `${p.area_sqm} ㎡` : (p.area_mu ? `${p.area_mu} 亩` : '-')}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-400">年收益率</div>
+                          <div className="font-bold text-green-600">{p.yield_rate ? `${p.yield_rate}%` : '-'}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-400">流转期限</div>
+                          <div className="font-bold text-gray-900">{p.lease_years ? `${p.lease_years}年` : '-'}</div>
                         </div>
                       </div>
-                      <div>
-                        <div className="text-xs text-gray-400">年收益率</div>
-                        <div className="font-bold text-green-600">{p.yield_rate ? `${p.yield_rate}%` : '-'}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-400">流转期限</div>
-                        <div className="font-bold text-gray-900">{p.lease_years ? `${p.lease_years}年` : '-'}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                      <div>
-                        <div className="text-xs text-gray-400">起始价</div>
-                        <div className="text-lg font-bold text-gray-900">
-                          {p.price_start ? `¥${p.price_start}万/年起` : '价格面议'}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                        <div>
+                          <div className="text-xs text-gray-400">起始价</div>
+                          <div className="text-lg font-bold text-gray-900">
+                            {p.price_start ? `¥${p.price_start}万/年起` : '价格面议'}
+                          </div>
                         </div>
+                        <span className="text-sm text-brand-green font-medium">查看详情 →</span>
                       </div>
-                      <span className="text-sm text-brand-green font-medium">查看详情 →</span>
                     </div>
-                  </div>
-                </Link>
-              );
-            }) : (
-              <div className="col-span-2 text-center py-16 text-gray-400">
-                <div className="text-5xl mb-4">🏢</div>
-                <p className="text-lg">暂无大宗项目数据</p>
-                <p className="text-sm mt-2">请先在后台添加大宗路演项目</p>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* 分页 */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => handlePageChange(Math.max(1, page - 1))}
+                  disabled={page <= 1}
+                  className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  ← 上一页
+                </button>
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                  let p: number;
+                  if (totalPages <= 7) {
+                    p = i + 1;
+                  } else if (page <= 4) {
+                    p = i + 1;
+                  } else if (page >= totalPages - 3) {
+                    p = totalPages - 6 + i;
+                  } else {
+                    p = page - 3 + i;
+                  }
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => handlePageChange(p)}
+                      className={`w-9 h-9 text-sm rounded-lg ${
+                        page === p ? 'bg-brand-green text-white' : 'bg-white border border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
+                  disabled={page >= totalPages}
+                  className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  下一页 →
+                </button>
               </div>
             )}
+          </>
+        ) : (
+          <div className="text-center py-16 text-gray-400">
+            <div className="text-5xl mb-4">🏢</div>
+            <p className="text-lg">暂无大宗项目数据</p>
+            <p className="text-sm mt-2">请先在后台添加大宗路演项目</p>
           </div>
-        </div>
-      </main>
-    </>
+        )}
+      </div>
+    </main>
   );
 }

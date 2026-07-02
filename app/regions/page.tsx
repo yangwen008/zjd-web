@@ -62,12 +62,10 @@ export default function RegionsPage() {
       .finally(() => setHotLoading(false));
   }, [sortBy]);
 
-  // 页码变化时重新搜索
-  useEffect(() => {
-    if (searched) handleSearch();
-  }, [page]);
 
-  const handleSearch = async () => {
+
+  const handleSearchWithPage = async (p: number) => {
+    setPage(p);
     setLoading(true);
     setSearched(true);
     try {
@@ -77,7 +75,7 @@ export default function RegionsPage() {
       if (city) params.set('city', city);
       if (searchQuery.trim()) params.set('search', searchQuery.trim());
       params.set('limit', '30');
-      params.set('page', String(page));
+      params.set('page', String(p));
 
       const res = await fetch(`/api/assets?${params.toString()}`);
       const data: any = await res.json();
@@ -90,6 +88,8 @@ export default function RegionsPage() {
       setLoading(false);
     }
   };
+
+
 
   const totalViews = hotAssets.reduce((sum, a) => sum + a.views, 0);
   const displayAssets = searched ? results : hotAssets;
@@ -109,8 +109,8 @@ export default function RegionsPage() {
           showRegion
           province={province}
           city={city}
-          onProvinceChange={(v) => { setProvince(v); setCity(''); setPage(1); }}
-          onCityChange={(v) => { setCity(v); setPage(1); }}
+          onProvinceChange={(v) => { setProvince(v); setCity(''); setPage(1); if (searched) { setTimeout(() => handleSearchWithPage(1), 0); } }}
+          onCityChange={(v) => { setCity(v); setPage(1); if (searched) { setTimeout(() => handleSearchWithPage(1), 0); } }}
           showSearch
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
@@ -125,10 +125,10 @@ export default function RegionsPage() {
                 { key: 'ugc', label: '👤 UGC' },
               ],
               value: source,
-              onChange: (v) => { setSource(v); setPage(1); },
+              onChange: (v) => { setSource(v); setPage(1); if (searched) { setTimeout(() => handleSearchWithPage(1), 0); } },
             },
           ]}
-          resultCount={searched ? results.length : hotAssets.length}
+          resultCount={searched ? total : hotAssets.length}
           resultLabel="宗资产"
           className="mb-3"
         />
@@ -167,7 +167,7 @@ export default function RegionsPage() {
           </div>
 
           <button
-            onClick={handleSearch}
+            onClick={() => handleSearchWithPage(1)}
             disabled={loading}
             className="bg-brand-green hover:bg-brand-light text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
           >
@@ -201,7 +201,7 @@ export default function RegionsPage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-8">
                   <button
-                    onClick={() => { setPage(Math.max(1, page - 1)); }}
+                    onClick={() => handleSearchWithPage(Math.max(1, page - 1))}
                     disabled={page <= 1}
                     className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
                   >← 上一页</button>
@@ -212,11 +212,11 @@ export default function RegionsPage() {
                     else if (page >= totalPages - 3) p = totalPages - 6 + i;
                     else p = page - 3 + i;
                     return (
-                      <button key={p} onClick={() => setPage(p)} className={`w-9 h-9 text-sm rounded-lg ${page === p ? 'bg-brand-green text-white' : 'bg-white border border-gray-200 hover:bg-gray-50'}`}>{p}</button>
+                      <button key={p} onClick={() => handleSearchWithPage(p)} className={`w-9 h-9 text-sm rounded-lg ${page === p ? 'bg-brand-green text-white' : 'bg-white border border-gray-200 hover:bg-gray-50'}`}>{p}</button>
                     );
                   })}
                   <button
-                    onClick={() => { setPage(Math.min(totalPages, page + 1)); }}
+                    onClick={() => handleSearchWithPage(Math.min(totalPages, page + 1))}
                     disabled={page >= totalPages}
                     className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
                   >下一页 →</button>

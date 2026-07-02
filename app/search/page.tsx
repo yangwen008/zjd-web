@@ -88,11 +88,10 @@ export default function SearchPage() {
     if (s) p.set('source', s);
     if (q) p.set('search', q);
     if (sortParam) p.set('sort', sortParam);
-    p.set('limit', '20');
+    p.set('limit', '30');
 
     setSearched(true);
     setLoading(true);
-    p.set('limit', '30');
     fetch(`/api/assets?${p.toString()}`)
       .then((r) => r.json())
       .then((d: any) => { setResults(d.data || []); setTotal(d.pagination?.total || 0); setTotalPages(d.pagination?.totalPages || 1); })
@@ -100,8 +99,10 @@ export default function SearchPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleSearch = async (query?: string) => {
+  const handleSearch = async (query?: string, resetPage?: number) => {
     const q = query || searchQuery;
+    const currentPage = resetPage ?? page;
+    if (resetPage) setPage(resetPage);
     setLoading(true);
     setSearched(true);
     try {
@@ -112,7 +113,7 @@ export default function SearchPage() {
       if (q) params.set('search', q);
       if (sort) params.set('sort', sort);
       params.set('limit', '30');
-      params.set('page', String(page));
+      params.set('page', String(currentPage));
 
       const res = await fetch(`/api/assets?${params.toString()}`);
       const data: any = await res.json();
@@ -174,7 +175,7 @@ export default function SearchPage() {
               </div>
             )}
             <button
-              onClick={() => { setPage(1); handleSearch(); }}
+              onClick={() => { setPage(1); handleSearch(undefined, 1); }}
               disabled={loading}
               className="bg-brand-green hover:bg-brand-light text-white px-8 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
@@ -216,7 +217,7 @@ export default function SearchPage() {
             <div className="flex items-center justify-center gap-2 mt-8">
               <button
                 onClick={() => handlePageChange(Math.max(1, page - 1))}
-                disabled={page <= 1
+                disabled={page <= 1}
                 className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
               >
                 ← 上一页
@@ -235,7 +236,7 @@ export default function SearchPage() {
                 return (
                   <button
                     key={p}
-                    onClick={() => handlePageChange(p)
+                    onClick={() => handlePageChange(p)}
                     className={`w-9 h-9 text-sm rounded-lg ${
                       page === p ? 'bg-brand-green text-white' : 'bg-white border border-gray-200 hover:bg-gray-50'
                     }`}
@@ -246,7 +247,7 @@ export default function SearchPage() {
               })}
               <button
                 onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
-                disabled={page >= totalPages
+                disabled={page >= totalPages}
                 className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
               >
                 下一页 →
