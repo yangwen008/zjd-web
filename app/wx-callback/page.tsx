@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 
-import { NextResponse } from 'next/server';
+import { redirect } from 'next/navigation';
 
 /**
  * 微信 OAuth 回调页面
@@ -10,7 +10,7 @@ import { NextResponse } from 'next/server';
 export default async function WxCallbackPage({ searchParams }: { searchParams: Promise<{ code?: string; state?: string; redirect?: string }> }) {
   const params = await searchParams;
   const code = params.code;
-  const redirect = params.redirect || '/';
+  const redirectPath = params.redirect || '/';
 
   if (!code) {
     return (
@@ -26,5 +26,5 @@ export default async function WxCallbackPage({ searchParams }: { searchParams: P
   }
 
   // 重定向到 Route Handler，由它完成 token 换取、用户注册、cookie 设置
-  return NextResponse.redirect(`/api/auth/wx/callback?code=${code}&redirect=${encodeURIComponent(redirect)}`);
+  redirect(`/api/auth/wx/callback?code=${code}&redirect=${encodeURIComponent(redirectPath)}`);
 }
