@@ -44,6 +44,9 @@ export default function RegionsPage() {
   const [results, setResults] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   // 热门排行状态
   const [hotAssets, setHotAssets] = useState<Asset[]>([]);
@@ -52,12 +55,17 @@ export default function RegionsPage() {
 
   // 加载热门资产
   useEffect(() => {
-    fetch(`/api/assets?limit=20${sortBy === 'price' ? '&sort=price' : ''}`)
+    fetch(`/api/assets?limit=30${sortBy === 'price' ? '&sort=price' : ''}`)
       .then((r) => r.json())
       .then((d: any) => setHotAssets(d.data || []))
       .catch(() => {})
       .finally(() => setHotLoading(false));
   }, [sortBy]);
+
+  // 页码变化时重新搜索
+  useEffect(() => {
+    if (searched) handleSearch();
+  }, [page]);
 
   const handleSearch = async () => {
     setLoading(true);
@@ -69,10 +77,13 @@ export default function RegionsPage() {
       if (city) params.set('city', city);
       if (searchQuery.trim()) params.set('search', searchQuery.trim());
       params.set('limit', '30');
+      params.set('page', String(page));
 
       const res = await fetch(`/api/assets?${params.toString()}`);
       const data: any = await res.json();
       setResults(data.data || []);
+      setTotal(data.pagination?.total || 0);
+      setTotalPages(data.pagination?.totalPages || 1);
     } catch {
       setResults([]);
     } finally {
@@ -98,8 +109,8 @@ export default function RegionsPage() {
           showRegion
           province={province}
           city={city}
-          onProvinceChange={(v) => { setProvince(v); setCity(''); }}
-          onCityChange={setCity}
+          onProvinceChange={(v) => { setProvince(v); setCity(''); setPage(1); }}
+          onCityChange={(v) => { setCity(v); setPage(1); }}
           showSearch
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
@@ -114,7 +125,7 @@ export default function RegionsPage() {
                 { key: 'ugc', label: '👤 UGC' },
               ],
               value: source,
-              onChange: setSource,
+              onChange: (v) => { setSource(v); setPage(1); },
             },
           ]}
           resultCount={searched ? results.length : hotAssets.length}
@@ -122,10 +133,13 @@ export default function RegionsPage() {
           className="mb-3"
         />
 
-        {/* 排序 + 搜索按钮 */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-sm">
-            <span className="text-gray-400">今日总浏览: <strong className="text-gray-900">{totalViews.toLocaleString()}</strong></span>
+        {/* 排序 + 搜索按钮 + 结果统计 */}
+        <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center flex-wrap gap-2 text-sm">
+            {searched && total > 0 && (
+              <span className="text-gray-400">共 <strong className="text-gray-700">{total}</strong> 条结果{totalPages > 1 && <>，第 {page}/{totalPages} 页</>}</span>
+            )}
+            {!searched && <span className="text-gray-400">今日总浏览: <strong className="text-gray-900">{totalViews.toLocaleString()}</strong></span>}
             <span className="text-gray-300">|</span>
             <button
               onClick={() => setSortBy('views')}
@@ -165,23 +179,50 @@ export default function RegionsPage() {
         {searched ? (
           // 搜索结果
           results.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {results.map((asset, i) => (
-                <AssetCard
-                  key={asset.id}
-                  rank={i + 1}
-                  title={asset.title}
-                  subtitle={asset.location || asset.asset_type || ''}
-                  views={asset.views}
-                  price={formatPrice(asset.price_year)}
-                  gradient={GRADIENTS[i % GRADIENTS.length]}
-                  imageUrl={getFirstImage(asset.images)}
-                  badge={((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')}
-                  certification={asset.certification}
-                  href={`/asset/${asset.id}`}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {results.map((asset, i) => (
+                  <AssetCard
+                    key={asset.id}
+                    rank={i + 1}
+                    title={asset.title}
+                    subtitle={asset.location || asset.asset_type || ''}
+                    views={asset.views}
+                    price={formatPrice(asset.price_year)}
+                    gradient={GRADIENTS[i % GRADIENTS.length]}
+                    imageUrl={getFirstImage(asset.images)}
+                    badge={((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')}
+                    certification={asset.certification}
+                    href={`/asset/${asset.id}`}
+                  />
+                ))}
+              </div>
+              {/* 分页 */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => { setPage(Math.max(1, page - 1)); }}
+                    disabled={page <= 1}
+                    className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                  >← 上一页</button>
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    let p: number;
+                    if (totalPages <= 7) p = i + 1;
+                    else if (page <= 4) p = i + 1;
+                    else if (page >= totalPages - 3) p = totalPages - 6 + i;
+                    else p = page - 3 + i;
+                    return (
+                      <button key={p} onClick={() => setPage(p)} className={`w-9 h-9 text-sm rounded-lg ${page === p ? 'bg-brand-green text-white' : 'bg-white border border-gray-200 hover:bg-gray-50'}`}>{p}</button>
+                    );
+                  })}
+                  <button
+                    onClick={() => { setPage(Math.min(totalPages, page + 1)); }}
+                    disabled={page >= totalPages}
+                    className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                  >下一页 →</button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-16 text-gray-400">
               <div className="text-5xl mb-4">🔍</div>
