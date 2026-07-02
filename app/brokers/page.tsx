@@ -107,7 +107,7 @@ export default function BrokersPage() {
       <div className="mb-8">
         <div className="flex items-center space-x-2 mb-2">
           <span className="text-2xl">🌾</span>
-          <h1 className="text-3xl font-bold text-gray-900">全国核验实名&ldquo;农房合伙人&rdquo;名录墙</h1>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900">全国核验实名&ldquo;农房合伙人&rdquo;名录墙</h1>
         </div>
         <p className="text-gray-500">通过地面合伙人陪同签约、法务鉴证，打通乡村房产流转最后一公里。</p>
         <p className="text-sm text-gray-400 mt-1">共 {total.toLocaleString()} 位合伙人</p>
@@ -183,7 +183,7 @@ export default function BrokersPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-100">
           <div className="flex items-center gap-2 text-xs text-gray-400">
             <span className="w-2 h-2 bg-brand-green rounded-full"></span>
             <span>
@@ -194,7 +194,7 @@ export default function BrokersPage() {
               {' → '}{total} 位合伙人
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs text-gray-400">排序：</span>
             {[
               { key: 'show_count' as const, label: '带看量↓' },
@@ -229,35 +229,36 @@ export default function BrokersPage() {
                 href={`/brokers/${b.id}`}
                 className="block bg-white rounded-xl p-5 border border-gray-100 hover:border-brand-green/30 hover:shadow-md transition-all"
               >
-                <div className="flex items-center space-x-5">
-                  <div className="w-14 h-14 rounded-full bg-brand-green/10 flex items-center justify-center text-2xl flex-shrink-0">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-brand-green/10 flex items-center justify-center text-xl md:text-2xl flex-shrink-0">
                     {b.avatar_url ? (
-                      <img src={b.avatar_url} alt={b.name} className="w-14 h-14 rounded-full object-cover" />
+                      <img src={b.avatar_url} alt={b.name} className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover" />
                     ) : '👨‍🌾'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-bold text-gray-900 text-lg">{b.name}</span>
+                    <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mb-1">
+                      <span className="font-bold text-gray-900 text-base md:text-lg">{b.name}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${ratingStyle.className}`}>
                         {ratingStyle.label}
                       </span>
-                      <span className="text-sm text-gray-400">📍 {b.region}</span>
+                      <span className="text-xs text-gray-400">📍 {b.region}</span>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500 mb-1">
+                    <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs md:text-sm text-gray-500 mb-1">
                       <span>带看 <strong className="text-gray-700">{b.show_count}</strong> 次</span>
                       <span>好评率 <strong className="text-brand-green">{b.good_rate}%</strong></span>
-                      <span>入驻 {new Date(b.created_at).getFullYear()}</span>
+                      <span className="hidden sm:inline">入驻 {new Date(b.created_at).getFullYear()}</span>
                     </div>
-                    {b.bio && <div className="text-xs text-gray-400 truncate">{b.bio}</div>}
+                    {b.bio && <div className="text-xs text-gray-400 line-clamp-2">{b.bio}</div>}
                     {specs.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
-                        {specs.map((s) => (
+                        {specs.slice(0, 3).map((s) => (
                           <span key={s} className="bg-brand-green/10 text-brand-green text-xs px-2 py-0.5 rounded-full">{s}</span>
                         ))}
+                        {specs.length > 3 && <span className="text-xs text-gray-400">+{specs.length - 3}</span>}
                       </div>
                     )}
                   </div>
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right flex-shrink-0 hidden sm:block">
                     <div className="text-sm font-bold text-brand-green">查看主页 →</div>
                   </div>
                 </div>

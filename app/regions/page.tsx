@@ -89,7 +89,7 @@ export default function RegionsPage() {
 
         {/* 标题 */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">🔥 热点寻源大厅</h1>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">🔥 热点寻源大厅</h1>
           <p className="text-gray-500">实时观测全网投资商、买家的点击行为，按访问量自动加权降序推荐。支持多维筛选、全文检索。</p>
         </div>
 

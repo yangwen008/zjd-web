@@ -251,7 +251,8 @@ export default async function HomePage() {
         {/* 行情数据详细表格（动态） */}
         <section className="bg-gray-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            {/* 桌面端：表格 */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">{getConfigValue(config, 'section_market_title')}</h3>
                 <div className="flex items-center space-x-1 text-xs text-green-500">
@@ -309,6 +310,46 @@ export default async function HomePage() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            {/* 移动端：卡片 */}
+            <div className="md:hidden">
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="font-bold text-gray-900 text-sm">{getConfigValue(config, 'section_market_title')}</h3>
+                <div className="flex items-center space-x-1 text-xs text-green-500">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span>CONNECTED</span>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                {marketData.length > 0 ? marketData.map((row) => (
+                  <div key={row.province} className="bg-gray-50 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{regionEmojis[row.province] || '📍'}</span>
+                        <span className="font-medium text-gray-900 text-sm">{row.province}</span>
+                      </div>
+                      <span className="font-bold text-brand-green">¥{row.median_price}万</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div className="text-xs text-gray-400">存量</div>
+                        <div className="text-sm font-medium">{row.total_listings?.toLocaleString() || 0}宗</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-400">涨跌</div>
+                        <div className={`text-sm font-medium ${getChangeStyle(row.change_pct)}`}>{getChangeText(row.change_pct)}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-400">砍价</div>
+                        <div className={`text-sm font-medium ${getBargainColor(row.bargain_space)}`}>{row.bargain_space}%</div>
+                      </div>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-center py-8 text-gray-400">暂无行情数据</div>
+                )}
               </div>
             </div>
           </div>

@@ -105,7 +105,7 @@ export default function SearchPage() {
           <div className="mb-8">
             <div className="flex items-center space-x-2 mb-2">
               <span className="text-2xl">🔍</span>
-              <h1 className="text-3xl font-bold text-gray-900">资产搜索引擎</h1>
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900">资产搜索引擎</h1>
             </div>
           </div>
 

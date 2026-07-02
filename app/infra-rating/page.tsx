@@ -57,12 +57,13 @@ export default async function InfraRatingPage() {
           <div className="mb-8">
             <div className="flex items-center space-x-2 mb-2">
               <span className="text-2xl">🛰️</span>
-              <h1 className="text-3xl font-bold text-gray-900">全国乡村新基建硬核指标排行榜</h1>
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900">全国乡村新基建硬核指标排行榜</h1>
             </div>
             <p className="text-gray-500">覆盖 5G 基站抖动、新能源快充覆盖、电网冗余度，专为数字游民及投资企业提供防断电断网客观指南。</p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          {/* 桌面端：表格 */}
+          <div className="hidden md:block bg-white rounded-xl border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -93,6 +94,37 @@ export default async function InfraRatingPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* 移动端：卡片 */}
+          <div className="md:hidden space-y-3">
+            {ratings.length > 0 ? ratings.map((r, i) => (
+              <Link key={r.id} href={`/infra-rating/${r.id}`} className="block bg-white rounded-xl border border-gray-100 p-4 hover:border-brand-green/30 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-bold text-lg ${getRankColor(i + 1)}`}>{getRankDisplay(i + 1)}</span>
+                    <span className="font-bold text-gray-900">{r.region}</span>
+                  </div>
+                  <span className={`${getGradeBg(r.overall_grade)} px-2 py-0.5 rounded text-xs font-bold`}>{r.overall_grade}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <div className="text-xs text-gray-400">5G延迟</div>
+                    <div className={`text-sm font-bold ${getSignalColor(r.signal_5g_ms)}`}>{r.signal_5g_ms}ms</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <div className="text-xs text-gray-400">医院车程</div>
+                    <div className={`text-sm font-bold ${getHospitalColor(r.hospital_min)}`}>{r.hospital_min}分钟</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <div className="text-xs text-gray-400">电网冗余</div>
+                    <div className={`text-sm font-bold ${getGridColor(r.grid_redundancy)}`}>{r.grid_redundancy}%</div>
+                  </div>
+                </div>
+              </Link>
+            )) : (
+              <div className="text-center py-12 text-gray-400">暂无基建数据</div>
+            )}
           </div>
         </div>
       </main>
