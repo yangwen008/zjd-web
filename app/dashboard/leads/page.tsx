@@ -26,7 +26,12 @@ export default function MyLeadsPage() {
   function parseNotes(notes: string | null): { name?: string; phone?: string; note?: string } {
     if (!notes) return {};
     try {
-      return JSON.parse(notes);
+      const parsed = JSON.parse(notes);
+      return {
+        name: parsed.name || parsed.contact_name,
+        phone: parsed.phone || parsed.contact_phone,
+        note: parsed.note || parsed.notes,
+      };
     } catch {
       return { note: notes };
     }
