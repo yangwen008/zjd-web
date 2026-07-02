@@ -99,6 +99,15 @@ export interface Asset {
   updated_at: string;
 }
 
+// 补充发布者信息（SQL已通过LEFT JOIN获取，此处仅作安全兜底）
+function enrichPublisherName(assets: Asset[]): Asset[] {
+  return assets.map(a => ({
+    ...a,
+    publisher_name: (a as any).publisher_name || '平台',
+    publisher_role: (a as any).publisher_role || 'user',
+  }));
+}
+
 export interface AssetFilters {
   source?: string;
   province?: string;
