@@ -17,16 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!asset) return { title: '资产详情' };
 
   const siteUrl = 'https://zjd.cn';
-  let imageUrl = `${siteUrl}/logo.png`;
-  try {
-    if (asset.images) {
-      const imgs = JSON.parse(asset.images);
-      if (imgs.length > 0) {
-        const first = typeof imgs[0] === 'object' ? imgs[0].url : imgs[0];
-        imageUrl = first.startsWith('http') ? first : `${siteUrl}/api/images/${first}`;
-      }
-    }
-  } catch {}
+  const imageUrl = `${siteUrl}/logo.png`;
 
   const desc = asset.description
     ? asset.description.substring(0, 100)
