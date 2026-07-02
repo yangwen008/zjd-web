@@ -45,6 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const pathname = usePathname();
 
@@ -84,8 +85,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-[#F9F9F8] flex">
       
+      {/* 移动端遮罩层 */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/40 z-30 md:hidden" 
+          onClick={() => setMobileMenuOpen(false)} 
+        />
+      )}
+
       {/* ================= 左侧 Sidebar ================= */}
-      <aside className={`${collapsed ? 'w-16' : 'w-56'} bg-white border-r border-gray-100 transition-all duration-300 flex flex-col fixed top-0 bottom-0 left-0 z-30 h-screen`}>
+      <aside className={`${
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0 ${collapsed ? 'md:w-16' : 'md:w-56'} w-64 bg-white border-r border-gray-100 transition-all duration-300 flex flex-col fixed top-0 bottom-0 left-0 z-40 h-screen`}>
         <div className="h-16 flex items-center px-4 border-b border-gray-100">
           {!collapsed && (
             <div className="flex items-center space-x-3 w-full truncate">
@@ -121,6 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.href}
                 href={item.href!}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`relative flex items-center space-x-3 px-4 py-2.5 text-sm transition-colors ${
                   isActive
                     ? 'bg-brand-green/5 text-brand-green font-medium'
@@ -137,10 +149,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="p-3 border-t border-gray-100 space-y-1">
           <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="w-full flex items-center justify-center py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            onClick={() => {
+              setCollapsed(!collapsed);
+              setMobileMenuOpen(false);
+            }}
+            className="w-full hidden md:flex items-center justify-center py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
           >
             {collapsed ? '→' : '← 收起'}
+          </button>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="w-full md:hidden flex items-center justify-center py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            ✕ 关闭菜单
           </button>
           <Link
             href="/"
@@ -153,13 +174,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* ================= 右侧主区域 ================= */}
-      <div className={`flex-1 flex flex-col min-h-screen ${collapsed ? 'ml-16' : 'ml-56'} transition-all duration-300`}>
+      <div className={`flex-1 flex flex-col min-h-screen ${collapsed ? 'md:ml-16' : 'md:ml-56'} ml-0 transition-all duration-300`}>
         
         {/* Topbar */}
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
-          <div className="flex items-center gap-6">
-            
-            {/* 🌟 【唯一修改点】：将原来的文字 Logo 替换为您上传的图片 Logo */}
+        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 sticky top-0 z-20 shadow-sm">
+          <div className="flex items-center gap-3 md:gap-6">
+            {/* 移动端汉堡菜单 */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
             <Link href="/" className="flex items-center gap-2 group">
               <img 
                 src="/logo.png" 
