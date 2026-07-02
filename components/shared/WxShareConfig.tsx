@@ -34,7 +34,7 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
     script.onload = () => {
       // 获取 JSSDK 签名
       fetch(`/api/wx/jssdk?url=${encodeURIComponent(window.location.href.split('#')[0])}`)
-        .then(r => r.json())
+        .then(r => r.json() as Promise<any>)
         .then(data => {
           if (!data.success) return;
 
