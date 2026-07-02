@@ -6,7 +6,7 @@ export interface CloudflareEnv {
   DB: D1Database;
   R2: R2Bucket;
   GEMINI_API_KEY: string;
-  ZJD_SITE_URL: string;
+  // ZJD_SITE_URL 已移除，域名硬编码在代码中
   ADMIN_PASSWORD: string;
   SIGNING_SECRET: string;
 }

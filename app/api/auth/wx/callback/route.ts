@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: false, error: 'Missing code parameter' }, { status: 400 });
   }
 
-  const siteUrl = (process.env as Record<string, string>).ZJD_SITE_URL || 'https://zjd.cn';
+  const siteUrl = 'https://zjd.cn';
 
   try {
     // 1. 用 code 换 token
