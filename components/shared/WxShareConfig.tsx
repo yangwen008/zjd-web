@@ -17,8 +17,8 @@ interface WxShareConfigProps {
  *   <WxShareConfig
  *     title="资产标题"
  *     desc="资产描述"
- *     link="https://www.zjd.cn/asset/123"
- *     imgUrl="https://www.zjd.cn/api/images/xxx.jpg"
+ *     link="https://zjd.cn/asset/123"
+ *     imgUrl="https://zjd.cn/api/images/xxx.jpg"
  *   />
  */
 export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConfigProps) {

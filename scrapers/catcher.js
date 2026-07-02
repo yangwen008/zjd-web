@@ -10,7 +10,7 @@
 const { chromium } = require('playwright');
 
 // 从环境变量获取配置
-const CF_API_URL = process.env.CF_API_URL || 'https://www.zjd.cn';
+const CF_API_URL = process.env.CF_API_URL || 'https://zjd.cn';
 const CF_API_TOKEN = process.env.CF_API_TOKEN || '';
 
 // 请求重试工具

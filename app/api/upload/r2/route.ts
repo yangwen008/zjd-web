@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       success: true, 
       uploadUrl: `/api/upload/r2/direct?key=${encodeURIComponent(key)}`,
       key,
-      publicUrl: `https://www.zjd.cn/api/images/${key}`
+      publicUrl: `https://zjd.cn/api/images/${key}`
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });

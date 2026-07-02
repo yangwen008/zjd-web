@@ -75,7 +75,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     } catch {}
   }
 
-  const siteUrl = 'https://www.zjd.cn';
+  const siteUrl = 'https://zjd.cn';
   const shareImage = imageUrls.length > 0 ? `/api/images/${imageUrls[0]}` : '';
 
   return (
