@@ -22,7 +22,7 @@ export default function BookingButton({ assetId, assetTitle }: BookingButtonProp
       try {
         // 检查登录
         const meRes = await fetch('/api/auth/me');
-        const meData = await meRes.json();
+        const meData = await meRes.json() as any;
         if (!meData.success) {
           setLoggedIn(false);
           return;
@@ -35,7 +35,7 @@ export default function BookingButton({ assetId, assetTitle }: BookingButtonProp
 
         // 检查是否已预约
         const bookRes = await fetch(`/api/appointments?assetId=${assetId}`);
-        const bookData = await bookRes.json();
+        const bookData = await bookRes.json() as any;
         if (bookData.success && bookData.data) {
           setBooked(true);
         }
@@ -66,7 +66,7 @@ export default function BookingButton({ assetId, assetTitle }: BookingButtonProp
           notes: form.notes,
         }),
       });
-      const data = await res.json();
+      const data = await res.json() as any;
       if (data.success) {
         setBooked(true);
         setShowForm(false);
