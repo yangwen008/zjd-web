@@ -102,7 +102,7 @@ export default function LoginPage() {
 
           <div className="mt-6 pt-6 border-t border-gray-100">
             <a
-              href="/api/auth/wx/login?redirect=/dashboard"
+              href="/api/auth/wx/login?redirect=/"
               className="w-full flex items-center justify-center space-x-2 py-3 border border-green-200 rounded-xl hover:bg-green-50 transition-colors"
             >
               <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
