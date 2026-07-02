@@ -31,7 +31,7 @@ export default function Navbar() {
   const navLinks = [
     { href: '/regions', label: '🔥 热点寻源' },
     { href: '/search?sort=newest', label: '🆕 最新资产' },
-    { href: '/search?source=village', label: '🏛️ 村委直发' },
+    { href: '/village', label: '🏛️ 村委直发' },
     { href: '/market-index', label: '📊 流转大盘' },
     { href: '/bulk-projects', label: '🏢 大宗路演' },
     { href: '/infra-rating', label: '🛰️ 隐居基建' },

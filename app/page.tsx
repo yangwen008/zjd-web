@@ -385,7 +385,7 @@ export default async function HomePage() {
                 <span className="text-2xl">🏛️</span>
                 <h2 className="text-2xl font-bold text-gray-900">{getConfigValue(config, 'section_village_title')}</h2>
               </div>
-              <Link href="/search?source=village" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_village_subtitle')} →</Link>
+              <Link href="/village" className="text-sm text-[#1a4731] hover:underline font-medium">{getConfigValue(config, 'section_village_subtitle')} →</Link>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {villageProjects.map((p) => (
