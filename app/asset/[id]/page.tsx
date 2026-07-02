@@ -1,13 +1,56 @@
 export const runtime = 'edge';
 export const revalidate = 60; // 1分钟缓存
 
+import type { Metadata } from 'next';
 import { getAssetById, getAssets, getHomepageConfig, incrementViews } from '@/lib/data';
 import { notFound } from 'next/navigation';
-// ✅ 新增：导入我们刚才创建的轮播图客户端组件
 import MediaGallery from './media-gallery';
 import ContactCard from '@/components/shared/ContactCard';
 import BookingButton from '@/components/shared/BookingButton';
 import WxShareConfig from '@/components/shared/WxShareConfig';
+import ShareButton from '@/components/shared/ShareButton';
+
+// 动态 OG 元数据 - 微信分享抓取用
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const asset = await getAssetById(id).catch(() => null);
+  if (!asset) return { title: '资产详情' };
+
+  const siteUrl = 'https://zjd.cn';
+  let imageUrl = `${siteUrl}/logo.png`;
+  try {
+    if (asset.images) {
+      const imgs = JSON.parse(asset.images);
+      if (imgs.length > 0) {
+        const first = typeof imgs[0] === 'object' ? imgs[0].url : imgs[0];
+        imageUrl = first.startsWith('http') ? first : `${siteUrl}/api/images/${first}`;
+      }
+    }
+  } catch {}
+
+  const desc = asset.description
+    ? asset.description.substring(0, 100)
+    : `${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`;
+
+  return {
+    title: `${asset.title} - zjd.cn`,
+    description: desc,
+    openGraph: {
+      title: asset.title,
+      description: desc,
+      url: `${siteUrl}/asset/${asset.id}`,
+      images: [{ url: imageUrl, width: 800, height: 600 }],
+      type: 'website',
+      locale: 'zh_CN',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: asset.title,
+      description: desc,
+      images: [imageUrl],
+    },
+  };
+}
 
 export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -174,6 +217,13 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
             <div className="space-y-4">
               {/* 预约带看 */}
               <BookingButton assetId={asset.id} assetTitle={asset.title} />
+
+              {/* 一键分享 */}
+              <ShareButton
+                title={asset.title}
+                text={`${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`}
+                url={`https://zjd.cn/asset/${asset.id}`}
+              />
 
               {/* Contact + Attachments */}
               <ContactCard
