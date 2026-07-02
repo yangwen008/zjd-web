@@ -24,6 +24,7 @@ function getWxConfig(): WxConfig {
 interface TokenCache {
   access_token: string;
   expires_at: string;
+  updated_at?: string;
 }
 
 /**
@@ -39,7 +40,7 @@ export async function getAccessToken(): Promise<string> {
   );
 
   if (cached) {
-    const updatedAt = new Date(cached.updated_at || cached.expires_at).getTime();
+    const updatedAt = new Date(cached.expires_at).getTime();
     const now = Date.now();
     // 有效期 2 小时，提前 5 分钟刷新
     if (now - updatedAt < 115 * 60 * 1000) {
