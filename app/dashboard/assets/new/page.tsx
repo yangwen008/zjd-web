@@ -508,7 +508,8 @@ export default function PublishAssetPage() {
                       const shares = e.target.value;
                       const py = parseFloat(formData.price_year);
                       const s = parseInt(shares);
-                      setFormData({\                        ...formData,
+                      setFormData({
+                        ...formData,
                         invest_total_shares: shares,
                         invest_share_price: (py > 0 && s > 0) ? (py / s).toFixed(2) : formData.invest_share_price,
                       });
