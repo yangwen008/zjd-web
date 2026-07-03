@@ -15,6 +15,9 @@ export default function HeroSection({ totalAssets = '104,281', todayNew = '142' 
   const handleSearch = () => {
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      // 无关键词也跳转，触发地理位置智能推荐
+      router.push('/search');
     }
   };
 
@@ -48,7 +51,7 @@ export default function HeroSection({ totalAssets = '104,281', todayNew = '142' 
               </svg>
               <input 
                 type="text" 
-                placeholder="输入你想隐居的城市、地块特色或寻找本地合伙人..." 
+                placeholder="搜索资产、合伙人、大宗项目… 输入城市名优先展示本地内容" 
                 className="w-full outline-none text-gray-700 placeholder-gray-400 bg-transparent"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
