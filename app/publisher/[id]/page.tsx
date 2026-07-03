@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!publisher) return { title: '发布者资料' };
   return {
     title: `${publisher.nickname} - 发布者资料 | zjd.cn`,
-    description: publisher.broker_bio || publisher.org_name || `${publisher.nickname}的发布者主页`,
+    description: publisher.bio || publisher.broker_bio || publisher.org_name || `${publisher.nickname}的发布者主页`,
   };
 }
 
@@ -139,10 +139,10 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
               )}
 
               {/* 简介 */}
-              {publisher.broker_bio && (
+              {(publisher.bio || publisher.broker_bio) && (
                 <div className="mb-3">
-                  <div className="text-xs text-gray-400 mb-1">个人简介</div>
-                  <p className="text-sm text-gray-600 leading-relaxed">{publisher.broker_bio}</p>
+                  <div className="text-xs text-gray-400 mb-1">{publisher.role === 'broker' ? '个人简介' : '机构介绍'}</div>
+                  <p className="text-sm text-gray-600 leading-relaxed">{publisher.bio || publisher.broker_bio}</p>
                 </div>
               )}
 

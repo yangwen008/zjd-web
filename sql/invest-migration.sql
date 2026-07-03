@@ -38,3 +38,6 @@ CREATE TABLE IF NOT EXISTS investments (
 CREATE INDEX IF NOT EXISTS idx_invest_asset ON investments(asset_id, asset_type);
 CREATE INDEX IF NOT EXISTS idx_invest_user ON investments(user_id);
 CREATE INDEX IF NOT EXISTS idx_invest_status ON investments(status);
+
+-- 4. users 表增加 bio 字段（机构/村委介绍）
+ALTER TABLE users ADD COLUMN bio TEXT;

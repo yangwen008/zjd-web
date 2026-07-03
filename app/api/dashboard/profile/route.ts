@@ -25,6 +25,7 @@ export async function GET(request: Request) {
         broker_region: user.broker_region,
         broker_specialties: user.broker_specialties,
         broker_bio: user.broker_bio,
+        bio: user.bio,
         org_name: user.org_name,
         org_license: user.org_license,
       },
@@ -45,6 +46,7 @@ export async function PUT(request: Request) {
       broker_region?: string;
       broker_specialties?: string;
       broker_bio?: string;
+      bio?: string;
       org_name?: string;
       org_license?: string;
     };
@@ -57,6 +59,7 @@ export async function PUT(request: Request) {
     if (body.broker_region !== undefined) { updates.push('broker_region = ?'); args.push(body.broker_region); }
     if (body.broker_specialties !== undefined) { updates.push('broker_specialties = ?'); args.push(body.broker_specialties); }
     if (body.broker_bio !== undefined) { updates.push('broker_bio = ?'); args.push(body.broker_bio); }
+    if (body.bio !== undefined) { updates.push('bio = ?'); args.push(body.bio); }
     if (body.org_name !== undefined) { updates.push('org_name = ?'); args.push(body.org_name); }
     if (body.org_license !== undefined) { updates.push('org_license = ?'); args.push(body.org_license); }
 

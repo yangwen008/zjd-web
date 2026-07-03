@@ -6,6 +6,7 @@ interface UserInfo {
   id: number; nickname: string; phone: string; role: string; role_label: string;
   avatar_url: string | null; verified: number; permissions: string[];
   broker_region?: string; broker_specialties?: string; broker_bio?: string;
+  bio?: string;
   org_name?: string; org_license?: string;
 }
 
@@ -29,6 +30,7 @@ export default function ProfilePage() {
   // 村集体/机构专属
   const [orgName, setOrgName] = useState('');
   const [orgLicense, setOrgLicense] = useState('');
+  const [bio, setBio] = useState('');
 
   useEffect(() => {
     fetch('/api/dashboard/profile')
@@ -44,6 +46,7 @@ export default function ProfilePage() {
           setBrokerBio(u.broker_bio || '');
           setOrgName(u.org_name || '');
           setOrgLicense(u.org_license || '');
+          setBio(u.bio || '');
         }
       })
       .finally(() => setLoading(false));
@@ -118,6 +121,11 @@ export default function ProfilePage() {
       if (['village_org', 'broker', 'project_publisher'].includes(user?.role || '')) {
         body.org_name = orgName;
         body.org_license = orgLicense;
+      }
+
+      // 机构/村委介绍
+      if (['village_org', 'project_publisher'].includes(user?.role || '')) {
+        body.bio = bio;
       }
 
       const res = await fetch('/api/dashboard/profile', {
@@ -237,6 +245,25 @@ export default function ProfilePage() {
             {user.role === 'village_org' ? '🏛️ 村集体信息' : user.role === 'project_publisher' ? '🏢 机构信息' : '📋 资质信息'}
           </h2>
           <div className="space-y-4">
+            {/* 机构/村委介绍 */}
+            {['village_org', 'project_publisher'].includes(user.role) && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {user.role === 'village_org' ? '村委介绍' : '机构介绍'}
+                </label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-brand-green resize-none"
+                  placeholder={user.role === 'village_org'
+                    ? '介绍村委基本情况、管辖范围、可流转资产概况等...'
+                    : '介绍公司/机构背景、主营业务、成功案例等...'}
+                />
+                <p className="text-xs text-gray-400 mt-1">将展示在您的发布者主页，帮助买家了解您</p>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {user.role === 'village_org' ? '村委/机构名称' : '机构/公司名称'}

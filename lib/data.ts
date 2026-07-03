@@ -604,6 +604,7 @@ export interface PublisherProfile {
   broker_region: string | null;
   broker_specialties: string | null;
   broker_bio: string | null;
+  bio: string | null;
   created_at: string;
   asset_count: number;
   total_views: number;
@@ -612,7 +613,7 @@ export interface PublisherProfile {
 export async function getPublisherProfile(id: number | string): Promise<PublisherProfile | null> {
   return queryOne<PublisherProfile>(
     `SELECT u.id, u.nickname, u.avatar_url, u.role, u.org_name, u.org_license,
-            u.verified, u.broker_region, u.broker_specialties, u.broker_bio, u.created_at,
+            u.verified, u.broker_region, u.broker_specialties, u.broker_bio, u.bio, u.created_at,
             (SELECT COUNT(*) FROM assets WHERE user_id = u.id AND status = 'approved') as asset_count,
             (SELECT COALESCE(SUM(views), 0) FROM assets WHERE user_id = u.id AND status = 'approved') as total_views
      FROM users u WHERE u.id = ? AND u.status = 'active'`,

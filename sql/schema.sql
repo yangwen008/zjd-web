@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS users (
   broker_region TEXT,              -- 合伙人负责区域
   broker_specialties TEXT,         -- 合伙人擅长领域（JSON）
   broker_bio    TEXT,              -- 合伙人简介
+  bio           TEXT,              -- 机构/村委介绍
   wx_openid     TEXT,              -- 微信公众号OpenID
   wx_unionid    TEXT,              -- 微信UnionID
   wx_nickname   TEXT,              -- 微信昵称

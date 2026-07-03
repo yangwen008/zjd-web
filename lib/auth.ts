@@ -21,6 +21,7 @@ export interface User {
   broker_region: string | null;
   broker_specialties: string | null;
   broker_bio: string | null;
+  bio: string | null;
   last_login_at: string | null;
   created_at: string;
   updated_at: string;
