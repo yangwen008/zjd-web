@@ -140,7 +140,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
         title={asset.title}
         desc={asset.description || `${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`}
         link={`${siteUrl}/asset/${asset.id}`}
-        imgUrl={shareImage ? `${siteUrl}${shareImage}` : `${siteUrl}/logo.png`}
+        imgUrl={shareImage || `${siteUrl}/logo.png`
       />
       <main className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
