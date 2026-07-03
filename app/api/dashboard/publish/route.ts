@@ -74,7 +74,7 @@ export async function POST(request: Request) {
          asset_type, source_type, images, video_url, infra_details, certification, gps_lat, gps_lng, contact_name, contact_phone,
          invest_enabled, invest_total_shares, invest_share_price, invest_min_shares,
          user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         body.description || '',
         location,
@@ -152,7 +152,7 @@ export async function POST(request: Request) {
          contact_name, contact_phone,
          invest_enabled, invest_total_shares, invest_share_price, invest_min_shares,
          user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         code || null,
         body.description || '',
