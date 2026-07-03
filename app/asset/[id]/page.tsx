@@ -153,7 +153,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
             <span className="text-gray-700">{asset.title}</span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{ alignItems: 'start' }}>
             {/* Main content */}
             <div className="lg:col-span-2 space-y-6">
               

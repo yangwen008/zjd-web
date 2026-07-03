@@ -82,7 +82,7 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
           <span className="text-gray-700">{project.title}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{ alignItems: 'start' }}>
           {/* Main */}
           <div className="lg:col-span-2 space-y-6">
             {/* Media Gallery */}
