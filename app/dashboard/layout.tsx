@@ -23,6 +23,7 @@ const MENU_ITEMS = [
   { icon: '📋', label: '我的线索', href: '/dashboard/leads', roles: ['broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
   { divider: true, roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
   { icon: '❤️', label: '我的收藏', href: '/dashboard/favorites', roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
+  { icon: '💰', label: '我的参投', href: '/dashboard/investments', roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
   { icon: '👤', label: '个人资料', href: '/dashboard/profile', roles: ['user', 'broker', 'village_org', 'data_editor', 'project_publisher', 'admin', 'superadmin'] },
 ];
 

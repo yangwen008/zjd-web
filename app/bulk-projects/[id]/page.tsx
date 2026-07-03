@@ -6,6 +6,7 @@ import { getBulkProjectById, getBulkProjects, incrementBulkViews } from '@/lib/d
 import type { BulkProject } from '@/lib/data';
 import MediaGallery from '@/app/asset/[id]/media-gallery';
 import ContactCard from '@/components/shared/ContactCard';
+import InvestCard from '@/components/shared/InvestCard';
 
 function getFirstImage(images: string | null): string {
   if (!images) return 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
@@ -189,6 +190,18 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
                 浏览量: {project.views.toLocaleString()}
               </div>
             </div>
+
+            {/* 参投认购 */}
+            <InvestCard
+              assetId={project.id}
+              assetType="bulk_project"
+              assetTitle={project.title}
+              investEnabled={!!(project as any).invest_enabled}
+              totalShares={(project as any).invest_total_shares || 0}
+              sharePrice={(project as any).invest_share_price || 0}
+              minShares={(project as any).invest_min_shares || 1}
+              soldShares={(project as any).invest_sold_shares || 0}
+            />
 
             {/* Contact + Attachments */}
             <ContactCard

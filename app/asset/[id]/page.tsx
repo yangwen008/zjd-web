@@ -9,6 +9,7 @@ import ContactCard from '@/components/shared/ContactCard';
 import BookingButton from '@/components/shared/BookingButton';
 import WxShareConfig from '@/components/shared/WxShareConfig';
 import ShareButton from '@/components/shared/ShareButton';
+import InvestCard from '@/components/shared/InvestCard';
 
 // 动态 OG 元数据 - 微信分享抓取用
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -215,6 +216,18 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
             <div className="space-y-4">
               {/* 预约带看 */}
               <BookingButton assetId={asset.id} assetTitle={asset.title} />
+
+              {/* 参投认购 */}
+              <InvestCard
+                assetId={asset.id}
+                assetType="asset"
+                assetTitle={asset.title}
+                investEnabled={!!asset.invest_enabled}
+                totalShares={asset.invest_total_shares || 0}
+                sharePrice={asset.invest_share_price || 0}
+                minShares={asset.invest_min_shares || 1}
+                soldShares={asset.invest_sold_shares || 0}
+              />
 
               {/* 一键分享 */}
               <ShareButton

@@ -61,13 +61,20 @@ export async function POST(request: Request) {
         sourceType = 'village';
       }
 
-      // 7. 执行插入
+      // 7. 参投设置
+      const invest_enabled = body.invest_enabled ? 1 : 0;
+      const invest_total_shares = body.invest_total_shares ? parseInt(body.invest_total_shares) : null;
+      const invest_share_price = body.invest_share_price ? parseFloat(body.invest_share_price) : null;
+      const invest_min_shares = body.invest_min_shares ? parseInt(body.invest_min_shares) : 1;
+
+      // 8. 执行插入
       await execute(
         `INSERT INTO assets
         (title, description, location, province, city, district, address, area_mu, price_year, price_total, lease_years,
          asset_type, source_type, images, video_url, infra_details, certification, gps_lat, gps_lng, contact_name, contact_phone,
+         invest_enabled, invest_total_shares, invest_share_price, invest_min_shares,
          user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         body.description || '',
         location,
@@ -89,6 +96,10 @@ export async function POST(request: Request) {
         gps_lng,
         body.contact_name || '',
         body.contact_phone || '',
+        invest_enabled,
+        invest_total_shares,
+        invest_share_price,
+        invest_min_shares,
         user.id,
       );
 
@@ -129,12 +140,19 @@ export async function POST(request: Request) {
         }
       }
 
+      const invest_enabled = body.invest_enabled ? 1 : 0;
+      const invest_total_shares = body.invest_total_shares ? parseInt(body.invest_total_shares) : null;
+      const invest_share_price = body.invest_share_price ? parseFloat(body.invest_share_price) : null;
+      const invest_min_shares = body.invest_min_shares ? parseInt(body.invest_min_shares) : 1;
+
       await execute(
         `INSERT INTO bulk_projects
         (title, code, description, location, province, city, district, area_mu, area_sqm, price_total, price_start,
          yield_rate, lease_years, certification, planning_use, images, commercial_plan, commercial_plan_doc, cert_doc_url, infra_details, gps_lat, gps_lng,
-         contact_name, contact_phone, user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         contact_name, contact_phone,
+         invest_enabled, invest_total_shares, invest_share_price, invest_min_shares,
+         user_id, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         code || null,
         body.description || '',
@@ -159,6 +177,10 @@ export async function POST(request: Request) {
         body.gps_lng ? parseFloat(body.gps_lng) : null,
         body.contact_name || '',
         body.contact_phone || '',
+        invest_enabled,
+        invest_total_shares,
+        invest_share_price,
+        invest_min_shares,
         user.id,
       );
 

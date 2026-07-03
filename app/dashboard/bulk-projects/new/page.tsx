@@ -36,6 +36,10 @@ export default function BulkProjectPublishPage() {
     contact_phone: '',
     gps_lat: '',
     gps_lng: '',
+    invest_enabled: false,
+    invest_total_shares: '',
+    invest_share_price: '',
+    invest_min_shares: '1',
   });
 
   const [provinceList, setProvinceList] = useState<string[]>([]);
@@ -476,6 +480,60 @@ export default function BulkProjectPublishPage() {
             )}
             <span className="text-xs text-gray-400 ml-2">MP4/WebM，≤ 100MB</span>
           </div>
+        </div>
+
+        {/* ═══ 参投设置 ═══ */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold text-gray-800 border-b pb-2">💰 参投设置（选填）</h3>
+          <p className="text-xs text-gray-400 -mt-2">开启后用户可认购该项目的部分份额</p>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.invest_enabled}
+              onChange={(e) => setFormData({ ...formData, invest_enabled: e.target.checked })}
+              className="w-4 h-4 text-brand-green rounded focus:ring-brand-green"
+            />
+            <span className="text-sm font-medium text-gray-700">开放参投</span>
+          </label>
+
+          {formData.invest_enabled && (
+            <div className="grid grid-cols-3 gap-4 pt-2">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">总份数</label>
+                <input
+                  type="number"
+                  value={formData.invest_total_shares}
+                  onChange={(e) => setFormData({ ...formData, invest_total_shares: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green"
+                  placeholder="如 10"
+                  min="2"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">每份单价（万）</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={formData.invest_share_price}
+                  onChange={(e) => setFormData({ ...formData, invest_share_price: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green"
+                  placeholder="如 3.3"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">最低起投</label>
+                <input
+                  type="number"
+                  value={formData.invest_min_shares}
+                  onChange={(e) => setFormData({ ...formData, invest_min_shares: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green"
+                  placeholder="1"
+                  min="1"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 联系方式 */}

@@ -95,6 +95,11 @@ export interface Asset {
   ai_extracted: string | null;
   infra_details: string | null;
   certification: string;
+  invest_enabled: number;
+  invest_total_shares: number | null;
+  invest_share_price: number | null;
+  invest_min_shares: number;
+  invest_sold_shares: number;
   created_at: string;
   updated_at: string;
 }
@@ -526,6 +531,11 @@ export interface BulkProject {
   status: string;
   featured: number;
   user_id: number | null;
+  invest_enabled: number;
+  invest_total_shares: number | null;
+  invest_share_price: number | null;
+  invest_min_shares: number;
+  invest_sold_shares: number;
   created_at: string;
   updated_at: string;
 }

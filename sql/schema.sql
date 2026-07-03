@@ -34,6 +34,11 @@ CREATE TABLE IF NOT EXISTS assets (
   ai_extracted  TEXT,              -- AI提取的JSON
   infra_details TEXT,              -- 基建配套+环境指标JSON
   certification TEXT DEFAULT 'uncertified', -- 确权状态: certified/uncertified/pending
+  invest_enabled      INTEGER DEFAULT 0,    -- 是否开放参投
+  invest_total_shares INTEGER,              -- 总份数
+  invest_share_price  REAL,                 -- 每份单价(万)
+  invest_min_shares   INTEGER DEFAULT 1,    -- 最低起投份数
+  invest_sold_shares  INTEGER DEFAULT 0,    -- 已认购份数
   created_at    TEXT DEFAULT (datetime('now')),
   updated_at    TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -317,6 +322,11 @@ CREATE TABLE IF NOT EXISTS bulk_projects (
   status            TEXT DEFAULT 'pending',
   featured          INTEGER DEFAULT 0,
   user_id           INTEGER,
+  invest_enabled      INTEGER DEFAULT 0,
+  invest_total_shares INTEGER,
+  invest_share_price  REAL,
+  invest_min_shares   INTEGER DEFAULT 1,
+  invest_sold_shares  INTEGER DEFAULT 0,
   created_at        TEXT DEFAULT (datetime('now')),
   updated_at        TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -479,3 +489,25 @@ CREATE TABLE IF NOT EXISTS wx_messages (
 
 CREATE INDEX IF NOT EXISTS idx_wxmsg_openid ON wx_messages(openid);
 CREATE INDEX IF NOT EXISTS idx_wxmsg_type ON wx_messages(msg_type);
+
+-- 27. 拼单认购记录表
+CREATE TABLE IF NOT EXISTS investments (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  asset_id      INTEGER NOT NULL,
+  asset_type    TEXT NOT NULL DEFAULT 'asset',
+  user_id       INTEGER NOT NULL,
+  shares        INTEGER NOT NULL,
+  amount        REAL,
+  status        TEXT DEFAULT 'pending',
+  notes         TEXT,
+  contact_name  TEXT,
+  contact_phone TEXT,
+  created_at    TEXT DEFAULT (datetime('now')),
+  updated_at    TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(asset_id, asset_type, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_invest_asset ON investments(asset_id, asset_type);
+CREATE INDEX IF NOT EXISTS idx_invest_user ON investments(user_id);
+CREATE INDEX IF NOT EXISTS idx_invest_status ON investments(status);
