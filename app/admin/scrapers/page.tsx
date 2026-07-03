@@ -102,7 +102,13 @@ export default function AdminScrapersPage() {
         <h1 className="text-2xl font-bold text-gray-900">🕷️ 爬虫采集站管理</h1>
         <button onClick={() => { setShowForm(!showForm); setEditId(null); setForm(emptyForm); }} className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm">{showForm ? '取消' : '+ 新增采集站'}</button>
       </div>
-      {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
+      {msg && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className={`${msg.startsWith('✅') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} px-8 py-4 rounded-xl shadow-2xl text-sm font-medium`}>
+                  {msg}
+                </div>
+              </div>
+            )}
 
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">

@@ -153,7 +153,13 @@ export default function AdminStagingPage() {
           </button>
         </div>
         
-        {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
+        {msg && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className={`${msg.startsWith('✅') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} px-8 py-4 rounded-xl shadow-2xl text-sm font-medium`}>
+                  {msg}
+                </div>
+              </div>
+            )}
 
         <div className="flex-1 grid grid-cols-3 gap-4 min-h-0">
           {/* 左栏：原始数据 */}
@@ -220,7 +226,13 @@ export default function AdminStagingPage() {
         <h1 className="text-2xl font-bold text-gray-900">📥 暂存数据清洗</h1>
       </div>
       
-      {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
+      {msg && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className={`${msg.startsWith('✅') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} px-8 py-4 rounded-xl shadow-2xl text-sm font-medium`}>
+                  {msg}
+                </div>
+              </div>
+            )}
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">

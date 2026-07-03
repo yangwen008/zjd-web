@@ -237,10 +237,12 @@ export default function AdminBrokersPage() {
       </div>
 
       {message && (
-        <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${message.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-          {message}
-        </div>
-      )}
+              <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className={`${message.startsWith('✅') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} px-8 py-4 rounded-xl shadow-2xl text-sm font-medium`}>
+                  {message}
+                </div>
+              </div>
+            )}
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <table className="w-full text-sm">

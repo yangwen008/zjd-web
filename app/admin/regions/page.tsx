@@ -143,7 +143,13 @@ export default function AdminRegionsPage() {
         <h1 className="text-2xl font-bold text-gray-900">🗺️ 行政区划管理</h1>
         <button onClick={() => { setShowForm(!showForm); setEditId(null); setForm(emptyForm); }} className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm">{showForm ? '取消' : '+ 新增区划'}</button>
       </div>
-      {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
+      {msg && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className={`${msg.startsWith('✅') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} px-8 py-4 rounded-xl shadow-2xl text-sm font-medium`}>
+                  {msg}
+                </div>
+              </div>
+            )}
 
       <div className="flex items-center space-x-2 mb-4">
         {[{ key: '', label: '树形视图' }, { key: 'province', label: '省级' }, { key: 'city', label: '市级' }, { key: 'district', label: '区县' }].map((f) => (

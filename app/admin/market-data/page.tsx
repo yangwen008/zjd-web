@@ -63,7 +63,13 @@ export default function AdminMarketDataPage() {
         <h1 className="text-2xl font-bold text-gray-900">💰 行情数据管理</h1>
         <button onClick={() => { setShowForm(!showForm); setEditId(null); setForm({ province: '', median_price: '', change_pct: '', bargain_space: '', total_listings: '' }); }} className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm">{showForm ? '取消' : '+ 新增省份'}</button>
       </div>
-      {msg && <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{msg}</div>}
+      {msg && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className={`${msg.startsWith('✅') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} px-8 py-4 rounded-xl shadow-2xl text-sm font-medium`}>
+                  {msg}
+                </div>
+              </div>
+            )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
