@@ -35,7 +35,7 @@ export default function Navbar() {
     { href: '/market-index', label: '📊 流转大盘' },
     { href: '/bulk-projects', label: '🏢 大宗路演' },
     { href: '/infra-rating', label: '🛰️ 隐居基建' },
-    { href: '/brokers', label: '🌾 金牌合伙人' },
+    { href: '/brokers', label: '🤝 合伙人' },
   ];
 
   const roleDashboardLabel: Record<string, string> = {
