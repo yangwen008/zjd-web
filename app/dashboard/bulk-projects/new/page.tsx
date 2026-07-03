@@ -250,9 +250,11 @@ export default function BulkProjectPublishPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">项目描述 *</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} required rows={4}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
-              placeholder="详细描述项目亮点、权属情况、周边配套、投资回报预期等..." />
+            <RichTextEditor
+              value={formData.description}
+              onChange={(val) => setFormData({ ...formData, description: val })}
+              placeholder="详细描述项目亮点、权属情况、周边配套、投资回报预期等..."
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">商业计划（选填）</label>

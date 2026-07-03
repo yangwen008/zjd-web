@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const imageUrl = `${siteUrl}/logo.png`;
 
   const desc = asset.description
-    ? asset.description.substring(0, 100)
+    ? asset.description.replace(/<[^>]*>/g, '').substring(0, 100)
     : `${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`;
 
   return {
@@ -177,7 +177,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
               {asset.description && (
                 <div className="bg-white rounded-xl border border-gray-100 p-6">
                   <h2 className="font-bold text-gray-900 mb-3">资产描述</h2>
-                  <p className="text-gray-600 text-sm leading-relaxed">{asset.description}</p>
+                  <div className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: asset.description }} />
                 </div>
               )}
 

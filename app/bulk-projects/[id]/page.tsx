@@ -91,7 +91,7 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
             {project.description && (
               <div className="bg-white rounded-xl border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 mb-3">项目描述</h2>
-                <p className="text-gray-600 text-sm leading-relaxed">{project.description}</p>
+                <div className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: project.description }} />
               </div>
             )}
 

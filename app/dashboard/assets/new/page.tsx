@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { compressImage, generateThumbnail, formatFileSize } from '@/lib/image-compress';
+import RichTextEditor from '@/components/shared/RichTextEditor';
 
 const ASSET_TYPES = [
   { value: '宅基地', icon: '🏠' },
@@ -365,9 +366,11 @@ export default function PublishAssetPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">详细描述 *</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} required rows={4}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
-              placeholder="描述资产亮点、周边环境、交通情况、适合用途等..." />
+            <RichTextEditor
+              value={formData.description}
+              onChange={(val) => setFormData({ ...formData, description: val })}
+              placeholder="描述资产亮点、周边环境、交通情况、适合用途等..."
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
