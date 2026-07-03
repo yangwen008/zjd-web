@@ -50,7 +50,7 @@ export default function HeroSection({ totalAssets = '104,281', todayNew = '142' 
               </svg>
               <input 
                 type="text" 
-                placeholder="搜索资产、合伙人、大宗项目… 输入城市名优先展示本地内容" 
+                placeholder="输入你想隐居的城市、地块特色或寻找本地合伙人..." 
                 className="w-full outline-none text-gray-700 placeholder-gray-400 bg-transparent"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
