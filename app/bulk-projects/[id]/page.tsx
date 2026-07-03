@@ -201,7 +201,7 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             {/* Price card */}
             <div className="bg-white rounded-xl border border-gray-100 p-6">
               <div className="text-center mb-4">
