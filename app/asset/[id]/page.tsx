@@ -261,12 +261,6 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                 url={`https://zjd.cn/asset/${asset.id}`}
               />
 
-              {/* Contact + Attachments */}
-              <ContactCard
-                phone={asset.contact_phone}
-                name={asset.contact_name}
-              />
-
               {/* 发布者信息 */}
               {asset.user_id && (
                 <a href={`/publisher/${asset.user_id}`} className="block bg-white rounded-xl border border-gray-100 p-5 card-hover">
@@ -296,6 +290,12 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   </div>
                 </a>
               )}
+
+              {/* Contact + Attachments */}
+              <ContactCard
+                phone={asset.contact_phone}
+                name={asset.contact_name}
+              />
 
               {/* Similar assets */}
               {similarFiltered.length > 0 && (

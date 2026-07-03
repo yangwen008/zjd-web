@@ -29,7 +29,7 @@ export default function ContactCard({ phone, name, attachments = [] }: ContactCa
   const maskedPhone = phone ? phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '****';
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6 sticky top-24">
+    <div className="bg-white rounded-xl border border-gray-100 p-6">
       {/* 联系方式 */}
       <div className="text-center mb-4">
         <div className="text-3xl mb-2">🔐</div>

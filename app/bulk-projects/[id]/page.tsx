@@ -230,16 +230,6 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
               soldShares={(project as any).invest_sold_shares || 0}
             />
 
-            {/* Contact + Attachments */}
-            <ContactCard
-              phone={project.contact_phone}
-              name={project.contact_name}
-              attachments={[
-                { label: '商业计划书', icon: '📄', url: (project as any).commercial_plan_doc || null, type: 'doc' },
-                { label: '确权证书', icon: '📋', url: project.cert_doc_url || null, type: 'cert' },
-              ]}
-            />
-
             {/* 发布者信息 */}
             {project.user_id && (
               <a href={`/publisher/${project.user_id}`} className="block bg-white rounded-xl border border-gray-100 p-5 card-hover">
@@ -259,6 +249,16 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
                 </div>
               </a>
             )}
+
+            {/* Contact + Attachments */}
+            <ContactCard
+              phone={project.contact_phone}
+              name={project.contact_name}
+              attachments={[
+                { label: '商业计划书', icon: '📄', url: (project as any).commercial_plan_doc || null, type: 'doc' },
+                { label: '确权证书', icon: '📋', url: project.cert_doc_url || null, type: 'cert' },
+              ]}
+            />
 
             {/* Similar */}
             {similar.length > 0 && (
