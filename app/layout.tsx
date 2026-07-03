@@ -23,12 +23,24 @@ export async function generateMetadata(): Promise<Metadata> {
         description: config.footer_about || '乡村资产数字化绿色流转中枢。',
         type: 'website',
         locale: 'zh_CN',
+        images: [{ url: 'https://zjd.cn/logo.png', width: 512, height: 512 }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'zjd.cn - 乡村闲置资产数字交易所',
+        description: config.footer_about || '乡村资产数字化绿色流转中枢。',
+        images: ['https://zjd.cn/logo.png'],
       },
     };
   } catch {
     return {
       title: 'zjd.cn - 乡村闲置资产数字交易所',
       description: '乡村资产数字化绿色流转中枢。',
+      openGraph: {
+        title: 'zjd.cn - 乡村闲置资产数字交易所',
+        description: '乡村资产数字化绿色流转中枢。',
+        images: [{ url: 'https://zjd.cn/logo.png', width: 512, height: 512 }],
+      },
     };
   }
 }
