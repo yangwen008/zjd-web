@@ -200,6 +200,26 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
               ]}
             />
 
+            {/* 发布者信息 */}
+            {project.user_id && (
+              <a href={`/publisher/${project.user_id}`} className="block bg-white rounded-xl border border-gray-100 p-5 card-hover">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-400">
+                    {(project as any).publisher_name?.charAt(0) || '?'}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-gray-900">{(project as any).publisher_name || '平台'}</span>
+                      {((project as any).publisher_role === 'project_publisher') && (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">交易所</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-0.5">查看发布者资料 →</div>
+                  </div>
+                </div>
+              </a>
+            )}
+
             {/* Similar */}
             {similar.length > 0 && (
               <div className="bg-white rounded-xl border border-gray-100 p-6">

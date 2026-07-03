@@ -148,6 +148,13 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900">{asset.title}</h1>
                 <p className="text-gray-500 mt-1">{asset.location || [asset.province, asset.city, asset.district].filter(Boolean).join(' · ')}</p>
+                {asset.user_id && (
+                  <a href={`/publisher/${asset.user_id}`} className="inline-flex items-center gap-1.5 mt-2 text-sm text-gray-500 hover:text-brand-green transition-colors">
+                    <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">{(asset as any).publisher_name?.charAt(0) || '?'}</span>
+                    <span>{(asset as any).publisher_name || '平台'}</span>
+                    <span className="text-xs text-gray-300">· 查看资料 →</span>
+                  </a>
+                )}
               </div>
 
               {/* Key metrics */}
@@ -221,6 +228,32 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                 phone={asset.contact_phone}
                 name={asset.contact_name}
               />
+
+              {/* 发布者信息 */}
+              {asset.user_id && (
+                <a href={`/publisher/${asset.user_id}`} className="block bg-white rounded-xl border border-gray-100 p-5 card-hover">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-400">
+                      {(asset as any).publisher_name?.charAt(0) || '?'}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900">{(asset as any).publisher_name || '平台'}</span>
+                        {((asset as any).publisher_role === 'project_publisher') && (
+                          <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">交易所</span>
+                        )}
+                        {((asset as any).publisher_role === 'village_org') && (
+                          <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">村集体</span>
+                        )}
+                        {((asset as any).publisher_role === 'broker') && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">合伙人</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-0.5">查看发布者资料 →</div>
+                    </div>
+                  </div>
+                </a>
+              )}
 
               {/* Similar assets */}
               {similarFiltered.length > 0 && (

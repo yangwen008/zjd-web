@@ -565,7 +565,7 @@ export async function getBulkProjectsCount(params: BulkProjectFilters = {}): Pro
 
 export async function getBulkProjectById(id: number | string): Promise<BulkProject | null> {
   return queryOne<BulkProject>(
-    'SELECT * FROM bulk_projects WHERE id = ? AND status = ?',
+    'SELECT bp.*, u.nickname as publisher_name, u.role as publisher_role FROM bulk_projects bp LEFT JOIN users u ON bp.user_id = u.id WHERE bp.id = ? AND bp.status = ?',
     id, 'approved'
   );
 }
@@ -579,4 +579,43 @@ export async function getFeaturedBulkProjects(limit: number = 2): Promise<BulkPr
 
 export async function incrementBulkViews(id: number | string): Promise<void> {
   await queryOne('UPDATE bulk_projects SET views = views + 1 WHERE id = ?', id);
+}
+
+// ============ 发布者资料 ============
+
+export interface PublisherProfile {
+  id: number;
+  nickname: string;
+  avatar_url: string | null;
+  role: string;
+  org_name: string | null;
+  org_license: string | null;
+  verified: number;
+  broker_region: string | null;
+  broker_specialties: string | null;
+  broker_bio: string | null;
+  created_at: string;
+  asset_count: number;
+  total_views: number;
+}
+
+export async function getPublisherProfile(id: number | string): Promise<PublisherProfile | null> {
+  return queryOne<PublisherProfile>(
+    `SELECT u.id, u.nickname, u.avatar_url, u.role, u.org_name, u.org_license,
+            u.verified, u.broker_region, u.broker_specialties, u.broker_bio, u.created_at,
+            (SELECT COUNT(*) FROM assets WHERE user_id = u.id AND status = 'approved') as asset_count,
+            (SELECT COALESCE(SUM(views), 0) FROM assets WHERE user_id = u.id AND status = 'approved') as total_views
+     FROM users u WHERE u.id = ? AND u.status = 'active'`,
+    id
+  );
+}
+
+export async function getPublisherAssets(userId: number | string, limit: number = 12): Promise<Asset[]> {
+  return query<Asset>(
+    `SELECT a.*, u.nickname as publisher_name, u.role as publisher_role
+     FROM assets a LEFT JOIN users u ON a.user_id = u.id
+     WHERE a.user_id = ? AND a.status = 'approved'
+     ORDER BY a.featured DESC, a.created_at DESC LIMIT ?`,
+    userId, limit
+  );
 }
