@@ -83,7 +83,7 @@ function AssetCard({ item }: { item: SearchResult }) {
           {item.location && <p className="text-xs text-gray-500 mb-3 flex items-center gap-1">📍 {item.location}</p>}
           <div className="flex items-center justify-between">
             <span className="text-[#1a4731] font-bold text-lg">{item.price}</span>
-            {extra.area_mu && <span className="text-xs text-gray-400">{extra.area_mu}亩</span>}
+            {extra.area_mu != null && <span className="text-xs text-gray-400">{String(extra.area_mu)}亩</span>}
           </div>
         </div>
       </div>
@@ -144,7 +144,7 @@ function BulkCard({ item }: { item: SearchResult }) {
             <span className="px-2 py-0.5 rounded text-xs font-bold bg-orange-600 text-white">大宗路演</span>
             {extra.certification === 'certified' && <span className="px-2 py-0.5 rounded text-xs font-bold bg-green-500 text-white">✓ 已确权</span>}
           </div>
-          {extra.code && <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-0.5 rounded font-mono">{extra.code}</div>}
+          {extra.code != null && <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-0.5 rounded font-mono">{String(extra.code)}</div>}
           <div className="absolute bottom-3 right-3 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">👁 {item.views.toLocaleString()}</div>
         </div>
         <div className="p-4">
@@ -154,8 +154,8 @@ function BulkCard({ item }: { item: SearchResult }) {
           <div className="flex items-center justify-between">
             <span className="text-[#1a4731] font-bold text-lg">{item.price}</span>
             <div className="flex gap-2 text-xs text-gray-400">
-              {extra.area_mu && <span>{extra.area_mu}亩</span>}
-              {extra.yield_rate && <span className="text-green-600">{extra.yield_rate}%收益</span>}
+              {extra.area_mu != null && <span>{String(extra.area_mu)}亩</span>}
+              {extra.yield_rate != null && <span className="text-green-600">{String(extra.yield_rate)}%收益</span>}
             </div>
           </div>
         </div>
