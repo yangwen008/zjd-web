@@ -107,7 +107,7 @@ function BulkCardStyled({ item, rank }: { item: SearchResult; rank: number }) {
         <div className="flex items-start justify-between mb-2">
           <div>
             <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm mb-2 inline-block">🏢 大宗路演</span>
-            {extra.code && <span className="ml-2 text-xs text-white/60 font-mono">{String(extra.code)}</span>}
+            {extra.code != null && <span className="ml-2 text-xs text-white/60 font-mono">{String(extra.code)}</span>}
           </div>
           {extra.certification === 'certified' && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-green-400/30">✓ 已确权</span>
