@@ -18,7 +18,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!asset) return { title: '资产详情' };
 
   const siteUrl = 'https://zjd.cn';
-  const imageUrl = `${siteUrl}/logo.png`;
+
+  // 取资产第一张图片作为 OG 图片，无图时用 logo
+  let imageUrl = `${siteUrl}/logo.png`;
+  if (asset.images) {
+    try {
+      const arr = JSON.parse(asset.images);
+      if (Array.isArray(arr) && arr.length > 0) {
+        const first = arr[0];
+        const rawUrl = typeof first === 'object' ? (first.url || first.thumb || '') : first;
+        if (rawUrl) {
+          imageUrl = rawUrl.startsWith('http') ? rawUrl : `${siteUrl}/api/images/${rawUrl}`;
+        }
+      }
+    } catch {}
+  }
 
   const desc = asset.description
     ? asset.description.replace(/<[^>]*>/g, '').substring(0, 100)
@@ -111,7 +125,11 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
   }
 
   const siteUrl = 'https://zjd.cn';
-  const shareImage = imageUrls.length > 0 ? `/api/images/${imageUrls[0]}` : '';
+  // 取第一张图片的原始 URL（兼容 {url,thumb} 和纯字符串格式）
+  const firstImageRaw = imageUrls.length > 0
+    ? (typeof imageUrls[0] === 'object' ? (imageUrls[0] as any).url || (imageUrls[0] as any).thumb || '' : imageUrls[0])
+    : '';
+  const shareImage = firstImageRaw ? `/api/images/${firstImageRaw}` : '';
 
   return (
     <>
