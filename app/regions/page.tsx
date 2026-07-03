@@ -52,15 +52,23 @@ export default function RegionsPage() {
   const [hotAssets, setHotAssets] = useState<Asset[]>([]);
   const [hotLoading, setHotLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'views' | 'price'>('views');
+  const [hotPage, setHotPage] = useState(1);
+  const [hotTotal, setHotTotal] = useState(0);
+  const [hotTotalPages, setHotTotalPages] = useState(1);
 
   // 加载热门资产
   useEffect(() => {
-    fetch(`/api/assets?limit=30${sortBy === 'price' ? '&sort=price' : ''}`)
+    setHotLoading(true);
+    fetch(`/api/assets?limit=30&page=${hotPage}${sortBy === 'price' ? '&sort=price' : ''}`)
       .then((r) => r.json())
-      .then((d: any) => setHotAssets(d.data || []))
+      .then((d: any) => {
+        setHotAssets(d.data || []);
+        setHotTotal(d.pagination?.total || 0);
+        setHotTotalPages(d.pagination?.totalPages || 1);
+      })
       .catch(() => {})
       .finally(() => setHotLoading(false));
-  }, [sortBy]);
+  }, [sortBy, hotPage]);
 
 
 
@@ -128,7 +136,7 @@ export default function RegionsPage() {
               onChange: (v) => { setSource(v); setPage(1); if (searched) { setTimeout(() => handleSearchWithPage(1), 0); } },
             },
           ]}
-          resultCount={searched ? total : hotAssets.length}
+          resultCount={searched ? total : hotTotal}
           resultLabel="宗资产"
           className="mb-3"
         />
@@ -139,16 +147,20 @@ export default function RegionsPage() {
             {searched && total > 0 && (
               <span className="text-gray-400">共 <strong className="text-gray-700">{total}</strong> 条结果{totalPages > 1 && <>，第 {page}/{totalPages} 页</>}</span>
             )}
-            {!searched && <span className="text-gray-400">今日总浏览: <strong className="text-gray-900">{totalViews.toLocaleString()}</strong></span>}
+            {!searched && <>
+              <span className="text-gray-400">共 <strong className="text-gray-900">{hotTotal}</strong> 条结果{hotTotalPages > 1 && <>，第 {hotPage}/{hotTotalPages} 页</>}</span>
+              <span className="text-gray-300">|</span>
+              <span className="text-gray-400">今日总浏览: <strong className="text-gray-900">{totalViews.toLocaleString()}</strong></span>
+            </>}
             <span className="text-gray-300">|</span>
             <button
-              onClick={() => setSortBy('views')}
+              onClick={() => { setSortBy('views'); setHotPage(1); }}
               className={`px-3 py-1 rounded-full text-xs transition-colors ${sortBy === 'views' ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               🔥 按点击量
             </button>
             <button
-              onClick={() => setSortBy('price')}
+              onClick={() => { setSortBy('price'); setHotPage(1); }}
               className={`px-3 py-1 rounded-full text-xs transition-colors ${sortBy === 'price' ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               💰 按起价
@@ -238,23 +250,49 @@ export default function RegionsPage() {
               <p>加载中...</p>
             </div>
           ) : hotAssets.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hotAssets.map((asset, i) => (
-                <AssetCard
-                  key={asset.id}
-                  rank={i + 1}
-                  title={asset.title}
-                  subtitle={asset.location || asset.asset_type || ''}
-                  views={asset.views}
-                  price={formatPrice(asset.price_year)}
-                  gradient={GRADIENTS[i % GRADIENTS.length]}
-                  imageUrl={getFirstImage(asset.images)}
-                  badge={((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')}
-                  certification={asset.certification}
-                  href={`/asset/${asset.id}`}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {hotAssets.map((asset, i) => (
+                  <AssetCard
+                    key={asset.id}
+                    rank={(hotPage - 1) * 30 + i + 1}
+                    title={asset.title}
+                    subtitle={asset.location || asset.asset_type || ''}
+                    views={asset.views}
+                    price={formatPrice(asset.price_year)}
+                    gradient={GRADIENTS[i % GRADIENTS.length]}
+                    imageUrl={getFirstImage(asset.images)}
+                    badge={((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')}
+                    certification={asset.certification}
+                    href={`/asset/${asset.id}`}
+                  />
+                ))}
+              </div>
+              {hotTotalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => { setHotPage(Math.max(1, hotPage - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    disabled={hotPage <= 1}
+                    className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                  >← 上一页</button>
+                  {Array.from({ length: Math.min(hotTotalPages, 7) }, (_, i) => {
+                    let p: number;
+                    if (hotTotalPages <= 7) p = i + 1;
+                    else if (hotPage <= 4) p = i + 1;
+                    else if (hotPage >= hotTotalPages - 3) p = hotTotalPages - 6 + i;
+                    else p = hotPage - 3 + i;
+                    return (
+                      <button key={p} onClick={() => { setHotPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`w-9 h-9 text-sm rounded-lg ${hotPage === p ? 'bg-brand-green text-white' : 'bg-white border border-gray-200 hover:bg-gray-50'}`}>{p}</button>
+                    );
+                  })}
+                  <button
+                    onClick={() => { setHotPage(Math.min(hotTotalPages, hotPage + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    disabled={hotPage >= hotTotalPages}
+                    className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                  >下一页 →</button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-16 text-gray-400">
               <div className="text-5xl mb-4">🔥</div>
