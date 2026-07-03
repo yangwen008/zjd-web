@@ -210,9 +210,11 @@ export default function BulkProjectPublishPage() {
       </div>
 
       {msg && (
-        <div className={`mb-4 px-4 py-3 rounded-lg text-sm sticky top-20 z-50 ${
-          msg.startsWith('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-        }`}>{msg}</div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className={`${msg.startsWith('✅') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} px-8 py-4 rounded-xl shadow-2xl text-sm font-medium`}>
+            {msg}
+          </div>
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
