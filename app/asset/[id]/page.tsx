@@ -269,7 +269,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
 
               {/* 发布者信息 */}
               {asset.user_id && (
-                <a href={`/publisher/${asset.user_id}`} className="block bg-white rounded-xl border border-gray-100 p-5 card-hover">
+                <a href={`/publisher/${asset.user_id}`} className="block bg-white rounded-xl border border-gray-100 p-5 card-hover sticky top-24">
                   <div className="flex items-center space-x-3">
                     {(asset as any).publisher_avatar ? (
                       <img src={(asset as any).publisher_avatar} alt="" className="w-12 h-12 rounded-full object-cover" />
