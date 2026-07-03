@@ -148,11 +148,11 @@ export async function POST(request: Request) {
       await execute(
         `INSERT INTO bulk_projects
         (title, code, description, location, province, city, district, area_mu, area_sqm, price_total, price_start,
-         yield_rate, lease_years, certification, planning_use, images, commercial_plan, commercial_plan_doc, cert_doc_url, infra_details, gps_lat, gps_lng,
+         yield_rate, lease_years, certification, planning_use, images, video_url, commercial_plan, commercial_plan_doc, cert_doc_url, infra_details, gps_lat, gps_lng,
          contact_name, contact_phone,
          invest_enabled, invest_total_shares, invest_share_price, invest_min_shares,
          user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         code || null,
         body.description || '',
@@ -169,6 +169,7 @@ export async function POST(request: Request) {
         body.certification || 'uncertified',
         body.planning_use || null,
         imagesJson,
+        body.video_url || null,
         body.commercial_plan || null,
         body.commercial_plan_doc || null,
         body.cert_doc_url || null,
