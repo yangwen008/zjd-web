@@ -227,7 +227,7 @@ export default function SmartSearchPage() {
         views={item.views}
         price={item.price || '价格面议'}
         gradient={GRADIENTS[index % GRADIENTS.length]}
-        imageUrl={item.image}
+        imageUrl={item.image || undefined}
         badge={item.badge || undefined}
         certification={extra.certification as string}
         href={`/asset/${item.id}`}
