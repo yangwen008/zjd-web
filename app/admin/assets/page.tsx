@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import RichTextEditor from '@/components/shared/RichTextEditor';
 
 interface Asset {
   id: number;
@@ -301,7 +302,7 @@ export default function AdminAssetsPage() {
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">流转年限</label><input type="number" value={formData.lease_years || ''} onChange={(e) => setFormData({...formData, lease_years: parseInt(e.target.value)})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
               </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">资产类型</label><input type="text" value={formData.asset_type || ''} onChange={(e) => setFormData({...formData, asset_type: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">描述</label><textarea value={formData.description || ''} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">描述</label><RichTextEditor value={formData.description || ''} onChange={(val) => setFormData({...formData, description: val})} placeholder="描述资产亮点、周边环境、交通情况等..." /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">确权状态</label>
                 <select value={(formData as any).certification || 'uncertified'} onChange={(e) => setFormData({...formData, certification: e.target.value} as any)} className="w-full px-3 py-2 border border-gray-200 rounded-lg">
                   <option value="uncertified">❌ 未确权</option>

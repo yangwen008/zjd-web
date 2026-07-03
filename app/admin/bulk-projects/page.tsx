@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import RichTextEditor from '@/components/shared/RichTextEditor';
 
 interface BulkProject {
   id: number;
@@ -290,7 +291,7 @@ export default function AdminBulkProjectsPage() {
           </div>
           <div className="mb-4">
             <label className="block text-xs font-medium text-gray-500 mb-1">项目描述</label>
-            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
+            <RichTextEditor value={form.description} onChange={(val) => setForm({ ...form, description: val })} placeholder="详细描述项目亮点、权属情况、周边配套等..." />
           </div>
           <div className="mb-4">
             <label className="block text-xs font-medium text-gray-500 mb-1">确权证书URL</label>
