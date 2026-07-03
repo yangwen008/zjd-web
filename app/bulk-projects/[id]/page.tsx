@@ -1,9 +1,36 @@
 export const runtime = 'edge';
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getBulkProjectById, getBulkProjects, incrementBulkViews } from '@/lib/data';
 import type { BulkProject } from '@/lib/data';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const project = await getBulkProjectById(id).catch(() => null);
+  if (!project) return { title: '大宗项目详情' };
+
+  const siteUrl = 'https://zjd.cn';
+  let imageUrl = `${siteUrl}/logo.png`;
+  if (project.images) {
+    try {
+      const arr = JSON.parse(project.images);
+      if (Array.isArray(arr) && arr.length > 0) {
+        const first = arr[0];
+        const rawUrl = typeof first === 'object' ? (first.url || first.thumb || '') : first;
+        if (rawUrl) imageUrl = rawUrl.startsWith('http') ? rawUrl : `${siteUrl}/api/images/${rawUrl}`;
+      }
+    } catch {}
+  }
+  const desc = project.description ? project.description.replace(/<[^>]*>/g, '').substring(0, 100) : project.title;
+
+  return {
+    title: `${project.title} - zjd.cn`,
+    description: desc,
+    openGraph: { title: project.title, description: desc, url: `${siteUrl}/bulk-projects/${project.id}`, images: [{ url: imageUrl, width: 800, height: 600 }], type: 'website', locale: 'zh_CN' },
+  };
+}
 import MediaGallery from '@/app/asset/[id]/media-gallery';
 import ContactCard from '@/components/shared/ContactCard';
 import InvestCard from '@/components/shared/InvestCard';
