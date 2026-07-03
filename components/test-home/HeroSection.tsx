@@ -14,10 +14,9 @@ export default function HeroSection({ totalAssets = '104,281', todayNew = '142' 
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/smart-search?q=${encodeURIComponent(searchQuery.trim())}`);
     } else {
-      // 无关键词也跳转，触发地理位置智能推荐
-      router.push('/search');
+      router.push('/smart-search');
     }
   };
 
