@@ -15,7 +15,7 @@ export default function BulkProjectCard({ project }: { project: BulkProjectCardD
       <div className="mb-4">
         <div className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium inline-block mb-2">{project.code}</div>
         <h3 className="text-xl font-bold text-gray-900 mb-2">{project.title}</h3>
-        <p className="text-sm text-gray-600 line-clamp-2">{project.description}</p>
+        <p className="text-sm text-gray-600 line-clamp-2">{project.description.replace(/<[^>]*>/g, '')}</p>
       </div>
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg p-3 border border-gray-200">

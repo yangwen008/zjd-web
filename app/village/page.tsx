@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { getFirstImage } from '@/lib/image-compress';
+import { stripHtml } from '@/lib/utils';
 
 interface Asset {
   id: number;
@@ -108,7 +109,7 @@ export default function VillagePage() {
                         {asset.contact_name && (
                           <div className="text-sm text-gray-600 mb-3"><span className="font-medium">联系人：</span>{asset.contact_name}</div>
                         )}
-                        <p className="text-sm text-gray-500 mb-4 line-clamp-3">{asset.description || '村委直发，产权清晰，流转合规。'}</p>
+                        <p className="text-sm text-gray-500 mb-4 line-clamp-3">{stripHtml(asset.description) || '村委直发，产权清晰，流转合规。'}</p>
                       </div>
                       <div className="flex items-center justify-between">
                         <div>

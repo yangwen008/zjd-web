@@ -2,6 +2,12 @@
 
 import { query, queryOne, type D1Database } from './db';
 
+// 去除 HTML 标签，返回纯文本
+export function stripHtml(html: string | null | undefined): string {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').trim();
+}
+
 // 加密电话号码 (简单遮罩)
 export function maskPhone(phone: string): string {
   if (!phone || phone.length < 7) return '****';

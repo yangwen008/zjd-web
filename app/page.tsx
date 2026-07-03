@@ -9,6 +9,7 @@ import InfraRatingCard from "@/components/test-home/InfraRatingCard";
 import BrokerCard from "@/components/test-home/BrokerCard";
 import CTASection from "@/components/test-home/CTASection";
 
+import { stripHtml } from '@/lib/utils';
 import { 
   getHotAssets, 
   getMarketData, 
@@ -115,7 +116,7 @@ function toVillageFormat(asset: Asset, defaultImage: string) {
     id: asset.id.toString(),
     title: asset.title,
     contact: asset.contact_name || '村委负责人',
-    description: asset.description || '【村委官方直招】已完成林地及基本农田交叉排查。',
+    description: stripHtml(asset.description) || '【村委官方直招】已完成林地及基本农田交叉排查。',
     price: formatPrice(asset.price_year) + '/年',
     imageUrl: getFirstImage(asset.images, defaultImage)
   };
@@ -127,7 +128,7 @@ function toBulkFormat(bp: BulkProject) {
     id: bp.id.toString(),
     code: bp.code || `ZJD-${bp.id.toString().padStart(3, '0')}`,
     title: bp.title,
-    description: bp.description || '包含完整空间、宽敞院落。权属已归属乡村经济合作社。',
+    description: stripHtml(bp.description) || '包含完整空间、宽敞院落。权属已归属乡村经济合作社。',
     area: bp.area_sqm ? `约${bp.area_sqm}㎡` : (bp.area_mu ? `约${Math.round(bp.area_mu * 666.7)}㎡` : '-'),
     yieldRate: bp.yield_rate ? `${bp.yield_rate}%` : '-',
     price: bp.price_start ? `¥${bp.price_start}万/年起` : '价格面议',
