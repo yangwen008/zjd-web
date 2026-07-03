@@ -61,23 +61,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '您已提交过认购意向，请勿重复提交' }, { status: 400 });
     }
 
-    // 防超额：乐观锁 — 原子更新，仅当剩余份数足够时才成功
-    const remaining = asset.invest_total_shares - asset.invest_sold_shares;
-    if (shares > remaining) {
-      return NextResponse.json({ success: false, error: `仅剩 ${remaining} 份可认购` }, { status: 400 });
-    }
-
     const amount = shares * (asset.invest_share_price || 0);
 
-    // 原子更新已认购份数（乐观锁）
-    const updateResult = await execute(
-      `UPDATE ${table} SET invest_sold_shares = invest_sold_shares + ? WHERE id = ? AND invest_sold_shares + ? <= invest_total_shares`,
-      shares, assetId, shares
+    // 允许超额认购，防止恶意占位
+    await execute(
+      `UPDATE ${table} SET invest_sold_shares = invest_sold_shares + ? WHERE id = ?`,
+      shares, assetId
     );
-
-    if (!updateResult.meta?.changes || updateResult.meta.changes === 0) {
-      return NextResponse.json({ success: false, error: '认购份数不足，请重新选择' }, { status: 400 });
-    }
 
     // 写入认购记录
     await execute(
@@ -93,10 +83,15 @@ export async function POST(request: Request) {
       `认购${shares}份，金额${amount}万${notes ? '，备注：' + notes : ''}`
     );
 
+    // 查询最新认购数（可能已超额）
+    const updated = await queryOne<{ invest_sold_shares: number }>(
+      `SELECT invest_sold_shares FROM ${table} WHERE id = ?`, assetId
+    );
+
     return NextResponse.json({
       success: true,
       message: '认购意向已提交，发布者将尽快联系您',
-      data: { shares, amount, remaining: remaining - shares },
+      data: { shares, amount, sold: updated?.invest_sold_shares || 0, total: asset.invest_total_shares },
     });
   } catch (error: any) {
     if (error.message?.includes('Rate limit')) {

@@ -65,6 +65,8 @@ export default function InvestCard({
     }
   };
 
+  const isOver = soldShares > totalShares;
+  const overPct = isOver ? Math.round(((soldShares - totalShares) / totalShares) * 100) : 0;
   const progressPct = Math.min((soldShares / totalShares) * 100, 100);
 
   return (
@@ -78,30 +80,26 @@ export default function InvestCard({
         <div className="flex items-center gap-2 mb-2">
           <div className="flex-1 bg-gray-100 rounded-full h-2.5">
             <div
-              className={`h-2.5 rounded-full transition-all ${isFull ? 'bg-gray-400' : 'bg-brand-green'}`}
+              className={`h-2.5 rounded-full transition-all ${isOver ? 'bg-orange-500' : 'bg-brand-green'}`}
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <span className="text-xs text-gray-500 whitespace-nowrap">{soldShares}/{totalShares}</span>
+          <span className={`text-xs whitespace-nowrap ${isOver ? 'text-orange-600 font-medium' : 'text-gray-500'}`}>
+            {soldShares}/{totalShares}{isOver && ` (超额${overPct}%)`}
+          </span>
         </div>
-        {isFull ? (
-          <div className="text-center py-2">
-            <span className="text-sm text-gray-400">✅ 认购已满</span>
-            <div className="text-xs text-gray-300 mt-1">如有退出将重新开放</div>
-          </div>
-        ) : (
-          <>
-            <div className="text-xs text-gray-400 mb-3">
-              剩余 <strong className="text-gray-700">{remaining}</strong> 份 · 最低起投 {minShares} 份
-            </div>
-            <button
-              onClick={() => { setShowModal(true); setMsg(null); setSubmitted(false); }}
-              className="w-full bg-brand-green hover:bg-brand-light text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
-            >
-              我要参投 →
-            </button>
-          </>
-        )}
+        <div className="text-xs text-gray-400 mb-3">
+          {isOver
+            ? <span className="text-orange-600">已超额认购，仍可提交意向</span>
+            : <>最低起投 {minShares} 份</>
+          }
+        </div>
+        <button
+          onClick={() => { setShowModal(true); setMsg(null); setSubmitted(false); }}
+          className="w-full bg-brand-green hover:bg-brand-light text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
+        >
+          我要参投 →
+        </button>
       </div>
 
       {/* 参投弹窗 */}
@@ -118,7 +116,7 @@ export default function InvestCard({
               <div className="flex-1 bg-gray-100 rounded-full h-2">
                 <div className="bg-brand-green h-2 rounded-full" style={{ width: `${progressPct}%` }} />
               </div>
-              <span className="text-xs text-gray-500">{soldShares}/{totalShares} 份</span>
+              <span className={`text-xs ${isOver ? 'text-orange-600 font-medium' : 'text-gray-500'}`}>{soldShares}/{totalShares} 份{isOver && ' · 已超额'}</span>
             </div>
 
             {submitted ? (
@@ -142,12 +140,12 @@ export default function InvestCard({
                       value={shares}
                       onChange={(e) => {
                         const v = parseInt(e.target.value) || minShares;
-                        setShares(Math.max(minShares, Math.min(remaining, v)));
+                        setShares(Math.max(minShares, v));
                       }}
                       className="w-20 text-center text-lg font-bold border border-gray-200 rounded-lg py-2 outline-none focus:border-brand-green"
                     />
                     <button
-                      onClick={() => setShares(Math.min(remaining, shares + 1))}
+                      onClick={() => setShares(shares + 1)}
                       className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-lg hover:bg-gray-50"
                     >+</button>
                     <div className="text-sm text-gray-500 ml-2">
