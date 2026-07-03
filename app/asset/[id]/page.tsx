@@ -129,7 +129,10 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
   const firstImageRaw = imageUrls.length > 0
     ? (typeof imageUrls[0] === 'object' ? (imageUrls[0] as any).url || (imageUrls[0] as any).thumb || '' : imageUrls[0])
     : '';
-  const shareImage = firstImageRaw ? `/api/images/${firstImageRaw}` : '';
+  // 绝对 URL 直接用，相对路径走代理
+  const shareImage = firstImageRaw
+    ? (firstImageRaw.startsWith('http') ? firstImageRaw : `${siteUrl}/api/images/${firstImageRaw}`)
+    : '';
 
   return (
     <>
