@@ -150,8 +150,12 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                 <h1 className="text-2xl font-bold text-gray-900">{asset.title}</h1>
                 <p className="text-gray-500 mt-1">{asset.location || [asset.province, asset.city, asset.district].filter(Boolean).join(' · ')}</p>
                 {asset.user_id && (
-                  <a href={`/publisher/${asset.user_id}`} className="inline-flex items-center gap-1.5 mt-2 text-sm text-gray-500 hover:text-brand-green transition-colors">
-                    <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">{(asset as any).publisher_name?.charAt(0) || '?'}</span>
+                  <a href={`/publisher/${asset.user_id}`} className="inline-flex items-center gap-2 mt-2 text-sm text-gray-500 hover:text-brand-green transition-colors">
+                    {(asset as any).publisher_avatar ? (
+                      <img src={(asset as any).publisher_avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
+                    ) : (
+                      <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">{(asset as any).publisher_name?.charAt(0) || '?'}</span>
+                    )}
                     <span>{(asset as any).publisher_name || '平台'}</span>
                     <span className="text-xs text-gray-300">· 查看资料 →</span>
                   </a>
@@ -213,7 +217,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-4">
+            <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
               {/* 预约带看 */}
               <BookingButton assetId={asset.id} assetTitle={asset.title} />
 
@@ -246,9 +250,13 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
               {asset.user_id && (
                 <a href={`/publisher/${asset.user_id}`} className="block bg-white rounded-xl border border-gray-100 p-5 card-hover">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-400">
-                      {(asset as any).publisher_name?.charAt(0) || '?'}
-                    </div>
+                    {(asset as any).publisher_avatar ? (
+                      <img src={(asset as any).publisher_avatar} alt="" className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-400">
+                        {(asset as any).publisher_name?.charAt(0) || '?'}
+                      </div>
+                    )}
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-gray-900">{(asset as any).publisher_name || '平台'}</span>

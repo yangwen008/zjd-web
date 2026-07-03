@@ -67,6 +67,7 @@ export interface Asset {
   id: number;
   publisher_name?: string;
   publisher_role?: string;
+  publisher_avatar?: string;
   title: string;
   description: string | null;
   location: string | null;
@@ -110,6 +111,7 @@ function enrichPublisherName(assets: Asset[]): Asset[] {
     ...a,
     publisher_name: (a as any).publisher_name || '平台',
     publisher_role: (a as any).publisher_role || 'user',
+    publisher_avatar: (a as any).publisher_avatar || null,
   }));
 }
 
@@ -196,7 +198,7 @@ export async function getAssetsCount(params: AssetFilters = {}): Promise<number>
 
 export async function getAssetById(id: number | string): Promise<Asset | null> {
   return queryOne<Asset>(
-    'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.id = ? AND a.status = ?',
+    'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role, u.avatar_url as publisher_avatar FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.id = ? AND a.status = ?',
     id, 'approved'
   );
 }
