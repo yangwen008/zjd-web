@@ -44,6 +44,7 @@ export default function BulkProjectPublishPage() {
 
   const [provinceList, setProvinceList] = useState<string[]>([]);
   const [cityList, setCityList] = useState<string[]>([]);
+  const [districtList, setDistrictList] = useState<string[]>([]);
 
   // 基建配套 & 环境指标（默认全选）
   const [infraItems, setInfraItems] = useState([
@@ -84,12 +85,20 @@ export default function BulkProjectPublishPage() {
   }, []);
 
   useEffect(() => {
-    if (!formData.province) { setCityList([]); return; }
+    if (!formData.province) { setCityList([]); setDistrictList([]); return; }
     fetch(`/api/regions?level=city&province=${encodeURIComponent(formData.province)}`)
       .then(r => r.json())
       .then((d: any) => setCityList((d.data || []).map((c: any) => c.name)))
       .catch(() => {});
   }, [formData.province]);
+
+  useEffect(() => {
+    if (!formData.province || !formData.city) { setDistrictList([]); return; }
+    fetch(`/api/regions?level=district&province=${encodeURIComponent(formData.province)}&city=${encodeURIComponent(formData.city)}`)
+      .then(r => r.json())
+      .then((d: any) => setDistrictList((d.data || []).map((c: any) => c.name)))
+      .catch(() => {});
+  }, [formData.province, formData.city]);
 
   const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 5000); };
 
@@ -322,7 +331,7 @@ export default function BulkProjectPublishPage() {
         {/* 地址 */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
           <h3 className="font-bold text-gray-800 border-b pb-2">📍 项目地址</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">省份 *</label>
               <select value={formData.province} onChange={e => setFormData({ ...formData, province: e.target.value, city: '', district: '' })}
@@ -337,6 +346,14 @@ export default function BulkProjectPublishPage() {
                 disabled={!formData.province} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg">
                 <option value="">{formData.province ? '请选择城市' : '请先选择省份'}</option>
                 {cityList.map(name => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">区县</label>
+              <select value={formData.district} onChange={e => setFormData({ ...formData, district: e.target.value })}
+                disabled={!formData.city} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg">
+                <option value="">{formData.city ? '请选择区县' : '请先选择城市'}</option>
+                {districtList.map(name => <option key={name} value={name}>{name}</option>)}
               </select>
             </div>
           </div>
