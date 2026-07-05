@@ -40,7 +40,9 @@ jobs:
           RECIPE_ID: ${{ github.event.inputs.recipe_id }}
         run: |
           SCRAPER="${{ github.event.inputs.scraper || 'catcher' }}"
-          if [ "$SCRAPER" = "tuliu" ]; then
+          if [ "$SCRAPER" = "jutubao" ]; then
+            node scrapers/jutubao.js --type=nongfang --pages=5
+          elif [ "$SCRAPER" = "tuliu" ]; then
             node scrapers/tuliu-nongfang.js --pages=5
           elif [ "$SCRAPER" = "cdaee" ]; then
             node scrapers/cdaee.js

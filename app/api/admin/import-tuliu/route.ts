@@ -43,9 +43,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '缺少 items 数组' }, { status: 400 });
     }
 
-    // 获取土流网来源账号
+    // 获取来源账号（支持土流网和聚土网）
     const sourceAccount = await queryOne<{ user_id: number }>(
-      `SELECT user_id FROM source_accounts WHERE name LIKE '%土流网%' AND enabled = 1 LIMIT 1`
+      `SELECT user_id FROM source_accounts WHERE (name LIKE '%土流网%' OR name LIKE '%聚土网%') AND enabled = 1 LIMIT 1`
     );
     const defaultUserId = sourceAccount?.user_id || user.id;
 
