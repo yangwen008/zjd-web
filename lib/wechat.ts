@@ -5,6 +5,13 @@ import { queryOne, execute } from './db';
 
 // ============ 配置 ============
 
+// 微信 API 代理（国内服务器反代，解决 Cloudflare Workers IP 白名单问题）
+const WX_API_PROXY = 'http://112.44.253.201:9090/weixin-proxy';
+
+function wxApiUrl(path: string): string {
+  return `${WX_API_PROXY}${path}`;
+}
+
 interface WxConfig {
   appId: string;
   appSecret: string;
@@ -48,8 +55,8 @@ export async function getAccessToken(): Promise<string> {
     }
   }
 
-  // 重新获取
-  const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.appId}&secret=${config.appSecret}`;
+  // 重新获取（通过国内代理）
+  const url = wxApiUrl(`/cgi-bin/token?grant_type=client_credential&appid=${config.appId}&secret=${config.appSecret}`);
   const res = await fetch(url);
   const data = await res.json() as { access_token?: string; errcode?: number; errmsg?: string };
 
@@ -104,7 +111,7 @@ export function getOAuthUrl(redirectUri: string, state: string, scope: 'snsapi_b
  */
 export async function getOAuthToken(code: string): Promise<WxOAuthToken> {
   const config = getWxConfig();
-  const url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${config.appId}&secret=${config.appSecret}&code=${code}&grant_type=authorization_code`;
+  const url = wxApiUrl(`/sns/oauth2/access_token?appid=${config.appId}&secret=${config.appSecret}&code=${code}&grant_type=authorization_code`);
   const res = await fetch(url);
   const data = await res.json() as WxOAuthToken & { errcode?: number; errmsg?: string };
 
@@ -119,7 +126,7 @@ export async function getOAuthToken(code: string): Promise<WxOAuthToken> {
  * 获取微信用户信息（需要 scope=snsapi_userinfo）
  */
 export async function getWxUserInfo(accessToken: string, openid: string): Promise<WxUserInfo> {
-  const url = `https://api.weixin.qq.com/sns/userinfo?access_token=${accessToken}&openid=${openid}&lang=zh_CN`;
+  const url = wxApiUrl(`/sns/userinfo?access_token=${accessToken}&openid=${openid}&lang=zh_CN`);
   const res = await fetch(url);
   const data = await res.json() as WxUserInfo & { errcode?: number; errmsg?: string };
 
@@ -135,7 +142,7 @@ export async function getWxUserInfo(accessToken: string, openid: string): Promis
  */
 export async function refreshOAuthToken(refreshToken: string): Promise<WxOAuthToken> {
   const config = getWxConfig();
-  const url = `https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=${config.appId}&grant_type=refresh_token&refresh_token=${refreshToken}`;
+  const url = wxApiUrl(`/sns/oauth2/refresh_token?appid=${config.appId}&grant_type=refresh_token&refresh_token=${refreshToken}`);
   const res = await fetch(url);
   return await res.json() as WxOAuthToken;
 }
@@ -162,7 +169,7 @@ interface SendTemplateMessageParams {
  */
 export async function sendTemplateMessage(params: SendTemplateMessageParams): Promise<{ msgid?: string; errcode?: number }> {
   const accessToken = await getAccessToken();
-  const url = `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${accessToken}`;
+  const url = wxApiUrl(`/cgi-bin/message/template/send?access_token=${accessToken}`);
 
   const res = await fetch(url, {
     method: 'POST',
@@ -280,7 +287,7 @@ async function getJsapiTicket(): Promise<string> {
 
   // 重新获取
   const ticketRes = await fetch(
-    `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`
+    wxApiUrl(`/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`)
   );
   const ticketData = await ticketRes.json() as { ticket?: string; errcode?: number; errmsg?: string };
 
@@ -342,7 +349,7 @@ interface MenuButton {
  */
 export async function createMenu(buttons: MenuButton[]): Promise<{ errcode: number; errmsg: string }> {
   const accessToken = await getAccessToken();
-  const url = `https://api.weixin.qq.com/cgi-bin/menu/create?access_token=${accessToken}`;
+  const url = wxApiUrl(`/cgi-bin/menu/create?access_token=${accessToken}`);
 
   const res = await fetch(url, {
     method: 'POST',
