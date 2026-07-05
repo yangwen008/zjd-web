@@ -71,7 +71,7 @@ export async function POST(request: Request) {
         area_mu, area_sqm, price_total, price_start, yield_rate, lease_years,
         certification, planning_use, images, video_url, commercial_plan,
         commercial_plan_doc, cert_doc_url, infra_details, gps_lat, gps_lng, contact_name, contact_phone,
-        status, featured,
+        status, featured, transport_info, cert_info,
       } = body as Record<string, unknown>;
 
       await execute(
@@ -79,13 +79,16 @@ export async function POST(request: Request) {
           title = ?, code = ?, description = ?, location = ?, province = ?, city = ?, district = ?,
           area_mu = ?, area_sqm = ?, price_total = ?, price_start = ?, yield_rate = ?, lease_years = ?,
           certification = ?, planning_use = ?, images = ?, video_url = ?, commercial_plan = ?,
-          commercial_plan_doc = ?, cert_doc_url = ?, infra_details = ?, gps_lat = ?, gps_lng = ?, contact_name = ?, contact_phone = ?,
+          commercial_plan_doc = ?, cert_doc_url = ?, infra_details = ?, transport_info = ?, cert_info = ?, gps_lat = ?, gps_lng = ?, contact_name = ?, contact_phone = ?,
           status = ?, featured = ?, updated_at = datetime('now')
         WHERE id = ?`,
         title, code, description, location, province, city, district,
         area_mu, area_sqm, price_total, price_start, yield_rate, lease_years,
         certification, planning_use, images, video_url, commercial_plan,
-        commercial_plan_doc || null, cert_doc_url, infra_details || null, gps_lat, gps_lng, contact_name, contact_phone,
+        commercial_plan_doc || null, cert_doc_url, infra_details || null,
+        transport_info ? (typeof transport_info === 'object' ? JSON.stringify(transport_info) : transport_info) : null,
+        cert_info ? (typeof cert_info === 'object' ? JSON.stringify(cert_info) : cert_info) : null,
+        gps_lat, gps_lng, contact_name, contact_phone,
         status, featured ? 1 : 0, id
       );
       return NextResponse.json({ success: true });

@@ -198,7 +198,54 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
                 })()}
               </div>
             </div>
-          </div>
+
+              {/* 交通信息 */}
+              {(() => {
+                let transport: any = null;
+                try { if (project.transport_info) transport = JSON.parse(project.transport_info); } catch {}
+                if (!transport) return null;
+                const items = [
+                  transport.highway && { icon: '🚗', label: '距高速出口', value: transport.highway },
+                  transport.rail && { icon: '🚄', label: '距高铁站', value: transport.rail },
+                  transport.airport && { icon: '✈️', label: '距机场', value: transport.airport },
+                  transport.bus && { icon: '🚌', label: '公交', value: transport.bus },
+                  transport.metro && { icon: '🚇', label: '地铁', value: transport.metro },
+                ].filter(Boolean);
+                if (items.length === 0) return null;
+                return (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6">
+                    <h2 className="font-bold text-gray-900 mb-4">🚗 交通信息</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {items.map((item: any) => (
+                        <div key={item.label} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <span className="text-xl">{item.icon}</span>
+                          <div>
+                            <div className="text-xs text-gray-400">{item.label}</div>
+                            <div className="text-sm font-medium text-gray-900">{item.value}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 地图展示 */}
+              {project.gps_lat && project.gps_lng && (
+                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                  <h2 className="font-bold text-gray-900 mb-4">📍 位置地图</h2>
+                  <div className="rounded-xl overflow-hidden" style={{ height: '300px' }}>
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      src={`https://map.qq.com/api/gl?lat=${project.gps_lat}&lng=${project.gps_lng}&zoom=14&marker=lat:${project.gps_lat}|lng:${project.gps_lng}|title:${encodeURIComponent(project.title)}`}
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
 
           {/* Sidebar */}
           <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">

@@ -76,7 +76,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json() as any;
-    const { id, title, description, province, city, district, address, area_mu, price_year, price_total, lease_years, asset_type, contact_name, contact_phone, images, video_url, status, infra_details, certification } = body;
+    const { id, title, description, province, city, district, address, area_mu, price_year, price_total, lease_years, asset_type, contact_name, contact_phone, images, video_url, status, infra_details, certification, transport_info, cert_info } = body;
 
     if (!id) return NextResponse.json({ success: false, error: '缺少资产ID' }, { status: 400 });
 
@@ -106,6 +106,8 @@ export async function PUT(request: Request) {
     if (contact_phone !== undefined) { fields.push('contact_phone = ?'); args.push(contact_phone || ''); }
     if (status !== undefined) { fields.push('status = ?'); args.push(status); }
     if (infra_details !== undefined) { fields.push('infra_details = ?'); args.push(infra_details); }
+    if (transport_info !== undefined) { fields.push('transport_info = ?'); args.push(typeof transport_info === 'object' ? JSON.stringify(transport_info) : transport_info); }
+    if (cert_info !== undefined) { fields.push('cert_info = ?'); args.push(typeof cert_info === 'object' ? JSON.stringify(cert_info) : cert_info); }
     if (certification !== undefined) { fields.push('certification = ?'); args.push(certification); }
     fields.push("updated_at = datetime('now')");
 

@@ -175,11 +175,13 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
 
               {/* Title */}
               <div>
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 flex-wrap">
                   <span className="text-xs bg-brand-green text-white px-2 py-0.5 rounded">
                     {((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方原矿' : asset.source_type === 'village' ? '村委直营' : '个人发布')}
                   </span>
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{asset.asset_type || '资产'}</span>
+                  {asset.certification === 'certified' && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">✅ 已确权</span>}
+                  <span className="text-xs text-gray-400">ZJD-{String(asset.id).padStart(5, '0')}</span>
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900">{asset.title}</h1>
                 <p className="text-gray-500 mt-1">{asset.location || [asset.province, asset.city, asset.district].filter(Boolean).join(' · ')}</p>
@@ -210,6 +212,34 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   </div>
                 ))}
               </div>
+
+              {/* 权证信息 */}
+              {(() => {
+                let certData: any = null;
+                try { if (asset.cert_info) certData = JSON.parse(asset.cert_info); } catch {}
+                if (!certData && asset.certification === 'uncertified') return null;
+                return (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6">
+                    <h2 className="font-bold text-gray-900 mb-4">📋 权证信息</h2>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-xs text-gray-400 mb-1">权属类型</div>
+                        <div className="text-sm font-bold text-gray-900">{certData?.ownership_type || '待确认'}</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-xs text-gray-400 mb-1">权证类型</div>
+                        <div className="text-sm font-bold text-gray-900">{certData?.cert_type || '待确认'}</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-xs text-gray-400 mb-1">确权状态</div>
+                        <div className={`text-sm font-bold ${asset.certification === 'certified' ? 'text-green-600' : asset.certification === 'pending' ? 'text-yellow-600' : 'text-gray-500'}`}>
+                          {asset.certification === 'certified' ? '已确权' : asset.certification === 'pending' ? '待确权' : '未确权'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Description */}
               {asset.description && (
@@ -248,6 +278,53 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   ))}
                 </div>
               </div>
+
+              {/* 交通信息 */}
+              {(() => {
+                let transport: any = null;
+                try { if (asset.transport_info) transport = JSON.parse(asset.transport_info); } catch {}
+                if (!transport) return null;
+                const items = [
+                  transport.highway && { icon: '🚗', label: '距高速出口', value: transport.highway },
+                  transport.rail && { icon: '🚄', label: '距高铁站', value: transport.rail },
+                  transport.airport && { icon: '✈️', label: '距机场', value: transport.airport },
+                  transport.bus && { icon: '🚌', label: '公交', value: transport.bus },
+                  transport.metro && { icon: '🚇', label: '地铁', value: transport.metro },
+                ].filter(Boolean);
+                if (items.length === 0) return null;
+                return (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6">
+                    <h2 className="font-bold text-gray-900 mb-4">🚗 交通信息</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {items.map((item: any) => (
+                        <div key={item.label} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <span className="text-xl">{item.icon}</span>
+                          <div>
+                            <div className="text-xs text-gray-400">{item.label}</div>
+                            <div className="text-sm font-medium text-gray-900">{item.value}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 地图展示 */}
+              {asset.gps_lat && asset.gps_lng && (
+                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                  <h2 className="font-bold text-gray-900 mb-4">📍 位置地图</h2>
+                  <div className="rounded-xl overflow-hidden" style={{ height: '300px' }}>
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      src={`https://map.qq.com/api/gl?lat=${asset.gps_lat}&lng=${asset.gps_lng}&zoom=14&marker=lat:${asset.gps_lat}|lng:${asset.gps_lng}|title:${encodeURIComponent(asset.title)}`}
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Sidebar */}

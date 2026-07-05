@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS assets (
   raw_html      TEXT,              -- 原始抓取HTML
   ai_extracted  TEXT,              -- AI提取的JSON
   infra_details TEXT,              -- 基建配套+环境指标JSON
+  transport_info TEXT,             -- 交通信息JSON
+  cert_info TEXT,                  -- 权证信息JSON
   certification TEXT DEFAULT 'uncertified', -- 确权状态: certified/uncertified/pending
   invest_enabled      INTEGER DEFAULT 0,    -- 是否开放参投
   invest_total_shares INTEGER,              -- 总份数
@@ -318,6 +320,8 @@ CREATE TABLE IF NOT EXISTS bulk_projects (
   commercial_plan_doc TEXT,            -- 商业计划书附件URL
   cert_doc_url      TEXT,
   infra_details     TEXT,              -- 基建配套+环境指标JSON
+  transport_info    TEXT,              -- 交通信息JSON
+  cert_info         TEXT,              -- 权证信息JSON
   gps_lat           REAL,
   gps_lng           REAL,
   contact_name      TEXT,

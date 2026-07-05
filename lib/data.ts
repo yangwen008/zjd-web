@@ -95,6 +95,8 @@ export interface Asset {
   raw_html: string | null;
   ai_extracted: string | null;
   infra_details: string | null;
+  transport_info: string | null;
+  cert_info: string | null;
   certification: string;
   invest_enabled: number;
   invest_total_shares: number | null;
@@ -525,6 +527,8 @@ export interface BulkProject {
   commercial_plan: string | null;
   cert_doc_url: string | null;
   infra_details: string | null;
+  transport_info: string | null;
+  cert_info: string | null;
   gps_lat: number | null;
   gps_lng: number | null;
   contact_name: string | null;

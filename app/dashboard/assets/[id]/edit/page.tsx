@@ -39,9 +39,13 @@ export default function EditAssetPage() {
     price_total: '',
     lease_years: '20',
     asset_type: '宅基地',
+    certification: 'uncertified',
     contact_name: '',
     contact_phone: '',
   });
+
+  const [transport, setTransport] = useState({ highway: '', rail: '', airport: '', bus: '', metro: '' });
+  const [certInfo, setCertInfo] = useState({ ownership_type: '', cert_type: '' });
 
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [existingVideo, setExistingVideo] = useState<string | null>(null);
@@ -90,9 +94,13 @@ export default function EditAssetPage() {
             price_total: asset.price_total?.toString() || '',
             lease_years: asset.lease_years?.toString() || '20',
             asset_type: asset.asset_type || '宅基地',
+            certification: asset.certification || 'uncertified',
             contact_name: asset.contact_name || '',
             contact_phone: asset.contact_phone || '',
           });
+          // 加载交通信息和权证信息
+          try { if (asset.transport_info) setTransport(JSON.parse(asset.transport_info)); } catch {}
+          try { if (asset.cert_info) setCertInfo(JSON.parse(asset.cert_info)); } catch {}
           // 加载已有图片
           try {
             const imgs = asset.images ? JSON.parse(asset.images) : [];
@@ -172,7 +180,7 @@ export default function EditAssetPage() {
       const res = await fetch('/api/dashboard/assets', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: parseInt(assetId), ...formData, images: JSON.stringify(allImages), video_url: videoUrl }),
+        body: JSON.stringify({ id: parseInt(assetId), ...formData, images: JSON.stringify(allImages), video_url: videoUrl, transport_info: Object.values(transport).some(v => v) ? transport : undefined, cert_info: Object.values(certInfo).some(v => v) ? certInfo : undefined }),
       });
       const d = await res.json() as any;
       if (d.success) {
@@ -378,6 +386,60 @@ export default function EditAssetPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">联系电话</label>
               <input type="tel" name="contact_phone" value={formData.contact_phone} onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg" />
+            </div>
+          </div>
+        </div>
+
+        {/* 交通信息 */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold text-gray-800 border-b pb-2">🚗 交通信息</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { key: 'highway', icon: '🚗', label: '距高速出口', options: ['15分钟内', '30分钟内', '60分钟内', '60分钟以上'] },
+              { key: 'rail', icon: '🚄', label: '距高铁站', options: ['15分钟内', '30分钟内', '60分钟内', '60分钟以上'] },
+              { key: 'airport', icon: '✈️', label: '距机场', options: ['30分钟内', '60分钟内', '90分钟内', '90分钟以上'] },
+              { key: 'bus', icon: '🚌', label: '公交', options: ['有直达', '需转车', '无公交'] },
+              { key: 'metro', icon: '🚇', label: '地铁', options: ['有站点', '规划中', '无地铁'] },
+            ].map((item) => (
+              <div key={item.key}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{item.icon} {item.label}</label>
+                <select
+                  value={(transport as any)[item.key]}
+                  onChange={(e) => setTransport({ ...transport, [item.key]: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green"
+                >
+                  <option value="">请选择</option>
+                  {item.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 权证信息 */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold text-gray-800 border-b pb-2">📋 权证信息</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">权属类型</label>
+              <select value={certInfo.ownership_type} onChange={(e) => setCertInfo({ ...certInfo, ownership_type: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg">
+                <option value="">请选择</option>
+                <option value="集体">集体</option>
+                <option value="国有">国有</option>
+                <option value="个人">个人</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">权证类型</label>
+              <select value={certInfo.cert_type} onChange={(e) => setCertInfo({ ...certInfo, cert_type: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg">
+                <option value="">请选择</option>
+                <option value="不动产权证书">不动产权证书</option>
+                <option value="宅基地使用权证">宅基地使用权证</option>
+                <option value="土地承包经营权证">土地承包经营权证</option>
+                <option value="暂无">暂无</option>
+              </select>
             </div>
           </div>
         </div>

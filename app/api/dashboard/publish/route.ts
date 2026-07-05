@@ -71,10 +71,10 @@ export async function POST(request: Request) {
       await execute(
         `INSERT INTO assets
         (title, description, location, province, city, district, address, area_mu, price_year, price_total, lease_years,
-         asset_type, source_type, images, video_url, infra_details, certification, gps_lat, gps_lng, contact_name, contact_phone,
+         asset_type, source_type, images, video_url, infra_details, transport_info, cert_info, certification, gps_lat, gps_lng, contact_name, contact_phone,
          invest_enabled, invest_total_shares, invest_share_price, invest_min_shares,
          user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         body.description || '',
         location,
@@ -91,6 +91,8 @@ export async function POST(request: Request) {
         imagesJson,
         video_url,
         infra_details,
+        body.transport_info ? JSON.stringify(body.transport_info) : null,
+        body.cert_info ? JSON.stringify(body.cert_info) : null,
         certification,
         gps_lat,
         gps_lng,
@@ -148,11 +150,11 @@ export async function POST(request: Request) {
       await execute(
         `INSERT INTO bulk_projects
         (title, code, description, location, province, city, district, area_mu, area_sqm, price_total, price_start,
-         yield_rate, lease_years, certification, planning_use, images, video_url, commercial_plan, commercial_plan_doc, cert_doc_url, infra_details, gps_lat, gps_lng,
+         yield_rate, lease_years, certification, planning_use, images, video_url, commercial_plan, commercial_plan_doc, cert_doc_url, infra_details, transport_info, cert_info, gps_lat, gps_lng,
          contact_name, contact_phone,
          invest_enabled, invest_total_shares, invest_share_price, invest_min_shares,
          user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         code || null,
         body.description || '',
@@ -174,6 +176,8 @@ export async function POST(request: Request) {
         body.commercial_plan_doc || null,
         body.cert_doc_url || null,
         body.infra_details || null,
+        body.transport_info ? JSON.stringify(body.transport_info) : null,
+        body.cert_info ? JSON.stringify(body.cert_info) : null,
         body.gps_lat ? parseFloat(body.gps_lat) : null,
         body.gps_lng ? parseFloat(body.gps_lng) : null,
         body.contact_name || '',
