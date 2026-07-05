@@ -56,7 +56,8 @@ export async function POST(request: Request) {
         // 更新已有配方
         await execute(
           `UPDATE scrapers_recipes SET name=?, base_url=?, list_url=?, selectors=?, detail_selectors=?,
-           ai_prompt=?, max_pages=?, pagination_type=?, schedule_cron=?, enabled=?, proxy_enabled=?, updated_at=datetime('now')
+           ai_prompt=?, max_pages=?, pagination_type=?, schedule_cron=?, enabled=?, proxy_enabled=?,
+           source_name=?, scraper_type=?, province_code=?, updated_at=datetime('now')
            WHERE id=?`,
           body.name, body.base_url, body.list_url,
           JSON.stringify(body.selectors || {}),
@@ -67,13 +68,17 @@ export async function POST(request: Request) {
           body.schedule_cron || '0 3 * * *',
           body.enabled !== false ? 1 : 0,
           body.proxy_enabled ? 1 : 0,
+          body.source_name || null,
+          body.scraper_type || 'playwright',
+          body.province_code || null,
           body.id
         );
       } else {
         // 新增配方
         await execute(
-          `INSERT INTO scrapers_recipes (name, base_url, list_url, selectors, detail_selectors, ai_prompt, max_pages, pagination_type, schedule_cron, enabled, proxy_enabled)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO scrapers_recipes (name, base_url, list_url, selectors, detail_selectors, ai_prompt,
+           max_pages, pagination_type, schedule_cron, enabled, proxy_enabled, source_name, scraper_type, province_code)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           body.name, body.base_url, body.list_url,
           JSON.stringify(body.selectors || {}),
           body.detail_selectors ? JSON.stringify(body.detail_selectors) : null,
@@ -82,7 +87,10 @@ export async function POST(request: Request) {
           body.pagination_type || 'url',
           body.schedule_cron || '0 3 * * *',
           body.enabled !== false ? 1 : 0,
-          body.proxy_enabled ? 1 : 0
+          body.proxy_enabled ? 1 : 0,
+          body.source_name || null,
+          body.scraper_type || 'playwright',
+          body.province_code || null
         );
       }
       return NextResponse.json({ success: true });

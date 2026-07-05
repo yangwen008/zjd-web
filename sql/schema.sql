@@ -166,6 +166,8 @@ CREATE TABLE IF NOT EXISTS homepage_config (
 CREATE TABLE IF NOT EXISTS scrapers_recipes (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   name          TEXT NOT NULL,
+  source_name   TEXT,               -- 来源标识：cdaee/tuliu_nongfang/jutubao 等
+  scraper_type  TEXT DEFAULT 'playwright', -- playwright/http_api/hybrid
   base_url      TEXT NOT NULL,
   list_url      TEXT NOT NULL,
   enabled       INTEGER DEFAULT 1,
@@ -174,6 +176,7 @@ CREATE TABLE IF NOT EXISTS scrapers_recipes (
   selectors     TEXT NOT NULL,       -- JSON: 列表页选择器
   detail_selectors TEXT,             -- JSON: 详情页选择器
   ai_prompt     TEXT,
+  province_code TEXT,               -- 省份代码
   schedule_cron TEXT DEFAULT '0 3 * * *',
   last_run_at   TEXT,
   last_run_status TEXT DEFAULT 'idle',

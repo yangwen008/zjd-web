@@ -6,8 +6,68 @@ interface Recipe {
   id: number; name: string; base_url: string; list_url: string; enabled: number;
   max_pages: number; pagination_type: string; selectors: string; detail_selectors: string | null;
   ai_prompt: string | null; schedule_cron: string; last_run_at: string | null; last_run_status: string;
-  proxy_enabled: number;
+  proxy_enabled: number; source_name?: string; scraper_type?: string; province_code?: string;
+  data_count?: number;
 }
+
+interface SiteTemplate {
+  name: string;
+  source_name: string;
+  category: string;
+  base_url: string;
+  list_url: string;
+  scraper_type: string;
+  max_pages: number;
+  province_code?: string;
+  description: string;
+  icon: string;
+}
+
+// 预置采集站模板
+const SITE_TEMPLATES: SiteTemplate[] = [
+  {
+    name: '四川农交所', source_name: 'cdaee', category: 'official',
+    base_url: 'https://www.cdaee.com', list_url: 'https://www.cdaee.com/inteligentsearch_new',
+    scraper_type: 'http_api', max_pages: 1, province_code: '253',
+    description: '四川省农村产权综合交易平台，JSON API 直接采集', icon: '🏛️',
+  },
+  {
+    name: '土流网 · 农房', source_name: 'tuliu_nongfang', category: 'commercial',
+    base_url: 'https://www.tuliu.com', list_url: 'https://www.tuliu.com/nongfang/list-0-31-0/',
+    scraper_type: 'playwright', max_pages: 5, province_code: '0',
+    description: '全国最大土地流转平台，宅基地/农房数据约5000条', icon: '🏠',
+  },
+  {
+    name: '土流网 · 四川农房', source_name: 'tuliu_sichuan', category: 'commercial',
+    base_url: 'https://www.tuliu.com', list_url: 'https://www.tuliu.com/nongfang/list-253-31-0/',
+    scraper_type: 'playwright', max_pages: 10, province_code: '253',
+    description: '土流网四川省农房数据', icon: '🐼',
+  },
+  {
+    name: '土流网 · 浙江农房', source_name: 'tuliu_zhejiang', category: 'commercial',
+    base_url: 'https://www.tuliu.com', list_url: 'https://www.tuliu.com/nongfang/list-94-31-0/',
+    scraper_type: 'playwright', max_pages: 10, province_code: '94',
+    description: '土流网浙江省农房数据', icon: '🌊',
+  },
+  {
+    name: '土流网 · 云南农房', source_name: 'tuliu_yunnan', category: 'commercial',
+    base_url: 'https://www.tuliu.com', list_url: 'https://www.tuliu.com/nongfang/list-285-31-0/',
+    scraper_type: 'playwright', max_pages: 10, province_code: '285',
+    description: '土流网云南省农房数据', icon: '🌸',
+  },
+  {
+    name: '聚土网 · 全国', source_name: 'jutubao', category: 'commercial',
+    base_url: 'https://www.jutubao.com', list_url: 'https://www.jutubao.com/tudi/',
+    scraper_type: 'playwright', max_pages: 5, province_code: '0',
+    description: '农村土地流转平台，宅基地/农房/耕地数据', icon: '🌾',
+  },
+];
+
+const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
+  official: { label: '🏛️ 官方农交所', color: 'bg-blue-100 text-blue-700' },
+  commercial: { label: '🏢 商业平台', color: 'bg-purple-100 text-purple-700' },
+  custom: { label: '⚙️ 自定义', color: 'bg-gray-100 text-gray-600' },
+};
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   success: { label: '✅ 成功', className: 'bg-green-100 text-green-700' },
@@ -23,20 +83,53 @@ export default function AdminScrapersPage() {
   const [editId, setEditId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [filter, setFilter] = useState<string>('all');
+  const [showTemplates, setShowTemplates] = useState(false);
+
   const emptyForm = {
     name: '', base_url: '', list_url: '', max_pages: '10', pagination_type: 'url',
     ai_prompt: '', schedule_cron: '0 3 * * *', enabled: true, proxy_enabled: false,
     selectors: '{"list":{"container":"","fields":{}}}', detail_selectors: '',
+    source_name: '', scraper_type: 'playwright', province_code: '',
   };
   const [form, setForm] = useState(emptyForm);
 
   const fetchRecipes = async () => {
     setLoading(true);
-    try { const res = await fetch('/api/scrape?path=recipes'); const data = await res.json() as any; setRecipes(data.recipes || []); } catch { setRecipes([]); } finally { setLoading(false); }
+    try {
+      const res = await fetch('/api/scrape?path=recipes');
+      const data = await res.json() as any;
+      setRecipes(data.recipes || []);
+    } catch { setRecipes([]); }
+    finally { setLoading(false); }
   };
+
   useEffect(() => { fetchRecipes(); }, []);
 
   const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3000); };
+
+  // 从模板创建
+  const handleFromTemplate = (tmpl: SiteTemplate) => {
+    setForm({
+      name: tmpl.name,
+      base_url: tmpl.base_url,
+      list_url: tmpl.list_url,
+      max_pages: String(tmpl.max_pages),
+      pagination_type: tmpl.scraper_type === 'http_api' ? 'api' : 'url',
+      ai_prompt: '',
+      schedule_cron: '0 3 * * *',
+      enabled: true,
+      proxy_enabled: false,
+      selectors: '{"list":{"container":"","fields":{}}}',
+      detail_selectors: '',
+      source_name: tmpl.source_name,
+      scraper_type: tmpl.scraper_type,
+      province_code: tmpl.province_code || '',
+    });
+    setShowTemplates(false);
+    setShowForm(true);
+    setEditId(null);
+  };
 
   const handleEdit = (r: Recipe) => {
     setEditId(r.id);
@@ -45,6 +138,7 @@ export default function AdminScrapersPage() {
       pagination_type: r.pagination_type, ai_prompt: r.ai_prompt || '', schedule_cron: r.schedule_cron || '0 3 * * *',
       enabled: r.enabled === 1, proxy_enabled: r.proxy_enabled === 1,
       selectors: r.selectors || '{"list":{"container":"","fields":{}}}', detail_selectors: r.detail_selectors || '',
+      source_name: r.source_name || '', scraper_type: r.scraper_type || 'playwright', province_code: r.province_code || '',
     });
     setShowForm(true);
   };
@@ -64,6 +158,8 @@ export default function AdminScrapersPage() {
         ai_prompt: form.ai_prompt || null, schedule_cron: form.schedule_cron,
         selectors: selectorsObj, detail_selectors: detailObj,
         enabled: form.enabled, proxy_enabled: form.proxy_enabled,
+        source_name: form.source_name || null, scraper_type: form.scraper_type || 'playwright',
+        province_code: form.province_code || null,
       };
       if (editId) payload.id = editId;
 
@@ -96,30 +192,109 @@ export default function AdminScrapersPage() {
     fetchRecipes();
   };
 
+  // 按分类筛选
+  const filteredRecipes = filter === 'all' ? recipes : recipes.filter(r => {
+    const src = r.source_name || '';
+    if (filter === 'official') return src.includes('cdaee') || src.includes('nongjiao');
+    if (filter === 'commercial') return src.includes('tuliu') || src.includes('jutubao');
+    if (filter === 'custom') return !src.includes('cdaee') && !src.includes('tuliu') && !src.includes('jutubao');
+    return true;
+  });
+
+  // 已配置的来源名称集合
+  const configuredSources = new Set(recipes.map(r => r.source_name).filter(Boolean));
+
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">🕷️ 爬虫采集站管理</h1>
-        <button onClick={() => { setShowForm(!showForm); setEditId(null); setForm(emptyForm); }} className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm">{showForm ? '取消' : '+ 新增采集站'}</button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">🕷️ 采集站管理</h1>
+          <p className="text-sm text-gray-500 mt-1">管理各平台数据采集配方，支持一键采集和定时任务</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <button onClick={() => { setShowTemplates(!showTemplates); setShowForm(false); }} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">📦 从模板添加</button>
+          <button onClick={() => { setShowForm(!showForm); setShowTemplates(false); setEditId(null); setForm(emptyForm); }} className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm">{showForm ? '取消' : '+ 手动新增'}</button>
+        </div>
       </div>
-      {msg && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-                <div className={`${msg.startsWith('✅') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} px-8 py-4 rounded-xl shadow-2xl text-sm font-medium`}>
-                  {msg}
-                </div>
-              </div>
-            )}
 
+      {/* Toast */}
+      {msg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className={`${msg.startsWith('✅') ? 'bg-green-600' : 'bg-red-600'} text-white px-8 py-4 rounded-xl shadow-2xl text-sm font-medium`}>
+            {msg}
+          </div>
+        </div>
+      )}
+
+      {/* 分类筛选 */}
+      <div className="flex items-center space-x-2 mb-4">
+        {[
+          { key: 'all', label: '全部' },
+          { key: 'official', label: '🏛️ 官方农交所' },
+          { key: 'commercial', label: '🏢 商业平台' },
+          { key: 'custom', label: '⚙️ 自定义' },
+        ].map(tab => (
+          <button key={tab.key} onClick={() => setFilter(tab.key)}
+            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${filter === tab.key ? 'bg-brand-green text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            {tab.label}
+          </button>
+        ))}
+        <span className="text-sm text-gray-400 ml-2">共 {filteredRecipes.length} 个配方</span>
+      </div>
+
+      {/* 模板选择面板 */}
+      {showTemplates && (
+        <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
+          <h2 className="font-bold text-gray-900 mb-4">📦 选择采集站模板</h2>
+          <p className="text-sm text-gray-500 mb-4">预置配置，一键添加。已配置的站点标记为 ✅。</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {SITE_TEMPLATES.map((tmpl, i) => {
+              const isConfigured = configuredSources.has(tmpl.source_name);
+              const cat = CATEGORY_LABELS[tmpl.category] || CATEGORY_LABELS.custom;
+              return (
+                <div key={i} className={`border rounded-xl p-4 transition-all cursor-pointer hover:shadow-md ${isConfigured ? 'border-green-200 bg-green-50' : 'border-gray-200 hover:border-brand-green'}`}
+                  onClick={() => !isConfigured && handleFromTemplate(tmpl)}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-2xl">{tmpl.icon}</span>
+                      <div>
+                        <div className="font-bold text-gray-900 text-sm">{tmpl.name}</div>
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${cat.color}`}>{cat.label}</span>
+                      </div>
+                    </div>
+                    {isConfigured && <span className="text-green-500 text-lg">✅</span>}
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3">{tmpl.description}</p>
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span>{tmpl.scraper_type === 'http_api' ? '🔗 API采集' : '🌐 浏览器采集'}</span>
+                    <span>{tmpl.max_pages} 页</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 新增/编辑表单 */}
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-          <h2 className="font-bold text-gray-900 mb-4">{editId ? '编辑采集站' : '新增采集站配置'}</h2>
+          <h2 className="font-bold text-gray-900 mb-4">{editId ? '编辑采集站' : '新增采集站'}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div><label className="block text-xs font-medium text-gray-500 mb-1">站点名称</label><input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="浙江省农村产权交易中心" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" /></div>
-            <div><label className="block text-xs font-medium text-gray-500 mb-1">基础URL</label><input type="text" value={form.base_url} onChange={(e) => setForm({ ...form, base_url: e.target.value })} placeholder="https://example.com" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" /></div>
-            <div><label className="block text-xs font-medium text-gray-500 mb-1">列表页URL ({'{page}'} 占位符)</label><input type="text" value={form.list_url} onChange={(e) => setForm({ ...form, list_url: e.target.value })} placeholder="https://example.com/list?page={page}" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" /></div>
+            <div><label className="block text-xs font-medium text-gray-500 mb-1">站点名称 *</label><input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="如：土流网·四川农房" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" /></div>
+            <div><label className="block text-xs font-medium text-gray-500 mb-1">来源标识</label><input type="text" value={form.source_name} onChange={(e) => setForm({ ...form, source_name: e.target.value })} placeholder="如：tuliu_sichuan" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" /></div>
+            <div><label className="block text-xs font-medium text-gray-500 mb-1">基础URL *</label><input type="text" value={form.base_url} onChange={(e) => setForm({ ...form, base_url: e.target.value })} placeholder="https://example.com" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" /></div>
+            <div><label className="block text-xs font-medium text-gray-500 mb-1">列表页URL *</label><input type="text" value={form.list_url} onChange={(e) => setForm({ ...form, list_url: e.target.value })} placeholder="https://example.com/list?p={page}" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" /></div>
+            <div><label className="block text-xs font-medium text-gray-500 mb-1">采集模式</label>
+              <select value={form.scraper_type} onChange={(e) => setForm({ ...form, scraper_type: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green">
+                <option value="playwright">🌐 浏览器渲染 (Playwright)</option>
+                <option value="http_api">🔗 HTTP API (JSON)</option>
+              </select>
+            </div>
             <div><label className="block text-xs font-medium text-gray-500 mb-1">最大页数</label><input type="number" value={form.max_pages} onChange={(e) => setForm({ ...form, max_pages: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" /></div>
-            <div><label className="block text-xs font-medium text-gray-500 mb-1">翻页方式</label><select value={form.pagination_type} onChange={(e) => setForm({ ...form, pagination_type: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green"><option value="url">URL翻页</option><option value="scroll">滚动加载</option></select></div>
             <div><label className="block text-xs font-medium text-gray-500 mb-1">定时表达式</label><input type="text" value={form.schedule_cron} onChange={(e) => setForm({ ...form, schedule_cron: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" /></div>
+            <div><label className="block text-xs font-medium text-gray-500 mb-1">省份代码</label><input type="text" value={form.province_code} onChange={(e) => setForm({ ...form, province_code: e.target.value })} placeholder="0=全国, 253=四川" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" /></div>
           </div>
           <div className="mb-4">
             <label className="block text-xs font-medium text-gray-500 mb-1">CSS 选择器 (JSON)</label>
@@ -140,11 +315,12 @@ export default function AdminScrapersPage() {
         </div>
       )}
 
+      {/* 配方列表 */}
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <table className="w-full text-sm">
           <thead><tr className="bg-gray-50 text-left">
-            <th className="px-4 py-3 font-medium text-gray-500">站点名称</th>
-            <th className="px-4 py-3 font-medium text-gray-500">采集URL</th>
+            <th className="px-4 py-3 font-medium text-gray-500">站点</th>
+            <th className="px-4 py-3 font-medium text-gray-500">采集模式</th>
             <th className="px-4 py-3 font-medium text-gray-500">最大页数</th>
             <th className="px-4 py-3 font-medium text-gray-500">上次运行</th>
             <th className="px-4 py-3 font-medium text-gray-500">状态</th>
@@ -153,14 +329,28 @@ export default function AdminScrapersPage() {
           </tr></thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
-            : recipes.length > 0 ? recipes.map((r) => {
+            : filteredRecipes.length > 0 ? filteredRecipes.map((r) => {
               const status = STATUS_LABELS[r.last_run_status] || STATUS_LABELS.idle;
+              const cat = r.source_name?.includes('cdaee') ? CATEGORY_LABELS.official
+                : r.source_name?.includes('tuliu') || r.source_name?.includes('jutubao') ? CATEGORY_LABELS.commercial
+                : CATEGORY_LABELS.custom;
               return (
                 <tr key={r.id} className="hover:bg-gray-50/50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{r.name}</td>
-                  <td className="px-4 py-3 text-gray-500 font-mono text-xs max-w-[200px] truncate">{r.base_url}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${cat.color}`}>{cat.label}</span>
+                      <span className="font-medium text-gray-900">{r.name}</span>
+                    </div>
+                    <div className="text-xs text-gray-400 font-mono mt-0.5 truncate max-w-[250px]">{r.base_url}</div>
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {r.scraper_type === 'http_api' || r.pagination_type === 'api'
+                      ? <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded">🔗 API</span>
+                      : <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded">🌐 浏览器</span>
+                    }
+                  </td>
                   <td className="px-4 py-3 text-gray-500">{r.max_pages} 页</td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">{r.last_run_at || '从未运行'}</td>
+                  <td className="px-4 py-3 text-gray-400 text-xs">{r.last_run_at ? new Date(r.last_run_at).toLocaleString('zh-CN') : '从未运行'}</td>
                   <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${status.className}`}>{status.label}</span></td>
                   <td className="px-4 py-3">
                     <button onClick={() => handleToggle(r.id, r.enabled)} className={`w-10 h-5 rounded-full relative transition-colors ${r.enabled ? 'bg-green-400' : 'bg-gray-300'}`}>
@@ -176,7 +366,9 @@ export default function AdminScrapersPage() {
                   </td>
                 </tr>
               );
-            }) : <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">暂无采集配方</td></tr>}
+            }) : <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+              {filter === 'all' ? '暂无采集配方，点击上方「从模板添加」开始' : '该分类下暂无配方'}
+            </td></tr>}
           </tbody>
         </table>
       </div>
