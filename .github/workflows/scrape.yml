@@ -9,10 +9,6 @@ on:
         description: '指定配方ID（留空则运行所有启用的配方）'
         required: false
         default: ''
-      scraper:
-        description: '指定爬虫脚本（catcher/cdaee/tuliu）'
-        required: false
-        default: 'catcher'
 
 jobs:
   scrape:
@@ -36,16 +32,6 @@ jobs:
       - name: Run scraper
         env:
           CF_API_URL: ${{ secrets.CF_API_URL }}
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_API_TOKEN: *** secrets.CF_API_TOKEN }}
           RECIPE_ID: ${{ github.event.inputs.recipe_id }}
-        run: |
-          SCRAPER="${{ github.event.inputs.scraper || 'catcher' }}"
-          if [ "$SCRAPER" = "jutubao" ]; then
-            node scrapers/jutubao.js --type=nongfang --pages=5
-          elif [ "$SCRAPER" = "tuliu" ]; then
-            node scrapers/tuliu-nongfang.js --pages=5
-          elif [ "$SCRAPER" = "cdaee" ]; then
-            node scrapers/cdaee.js
-          else
-            node scrapers/catcher.js
-          fi
+        run: node scrapers/catcher.js
