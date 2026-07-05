@@ -37,7 +37,7 @@ export default function AdminUsersPage() {
   const [editForm, setEditForm] = useState({
     nickname: '', phone: '', real_name: '', org_name: '', bio: '',
     broker_region: '', broker_specialties: '', broker_bio: '', daily_quota: '3',
-    role: '',
+    role: '', new_password: '',
   });
 
   const fetchUsers = async () => {
@@ -133,6 +133,7 @@ export default function AdminUsersPage() {
           broker_specialties: editForm.broker_specialties,
           broker_bio: editForm.broker_bio,
           daily_quota: editForm.daily_quota,
+          new_password: editForm.new_password || undefined,
         }),
       });
       const d = await res.json() as any;
@@ -303,6 +304,13 @@ export default function AdminUsersPage() {
               <label className="block text-xs font-medium text-gray-500 mb-1">个人简介</label>
               <textarea value={editForm.bio} onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} rows={2}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg" />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-500 mb-1">🔑 重置密码（留空则不修改）</label>
+              <input type="text" value={editForm.new_password} onChange={(e) => setEditForm({ ...editForm, new_password: e.target.value })}
+                placeholder="输入新密码，至少8位，含大小写字母和数字"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg font-mono" />
             </div>
 
             {/* 合伙人专属字段 */}

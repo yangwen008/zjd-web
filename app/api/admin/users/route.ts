@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     }
 
     if (action === 'update-profile') {
-      const { id, nickname, phone, real_name, org_name, bio, broker_region, broker_specialties, broker_bio, daily_quota } = body as Record<string, any>;
+      const { id, nickname, phone, real_name, org_name, bio, broker_region, broker_specialties, broker_bio, daily_quota, new_password } = body as Record<string, any>;
       if (!id) return NextResponse.json({ success: false, error: '缺少用户ID' }, { status: 400 });
 
       const fields: string[] = [];
@@ -87,6 +87,14 @@ export async function POST(request: Request) {
       if (broker_specialties !== undefined) { fields.push('broker_specialties = ?'); args.push(broker_specialties || null); }
       if (broker_bio !== undefined) { fields.push('broker_bio = ?'); args.push(broker_bio || null); }
       if (daily_quota !== undefined) { fields.push('daily_quota = ?'); args.push(parseInt(daily_quota) || 3); }
+
+      // 修改密码
+      if (new_password && new_password.trim()) {
+        const { hashPassword } = await import('@/lib/auth');
+        const hash = await hashPassword(new_password.trim());
+        fields.push('password_hash = ?');
+        args.push(hash);
+      }
 
       if (fields.length === 0) return NextResponse.json({ success: false, error: '没有要修改的字段' }, { status: 400 });
 
