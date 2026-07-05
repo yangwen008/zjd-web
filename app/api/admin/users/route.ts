@@ -71,6 +71,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
+    if (action === 'update-profile') {
+      const { id, nickname, phone, real_name, org_name, bio, broker_region, broker_specialties, broker_bio, daily_quota } = body as Record<string, any>;
+      if (!id) return NextResponse.json({ success: false, error: '缺少用户ID' }, { status: 400 });
+
+      const fields: string[] = [];
+      const args: unknown[] = [];
+
+      if (nickname !== undefined) { fields.push('nickname = ?'); args.push(nickname); }
+      if (phone !== undefined) { fields.push('phone = ?'); args.push(phone || null); }
+      if (real_name !== undefined) { fields.push('real_name = ?'); args.push(real_name || null); }
+      if (org_name !== undefined) { fields.push('org_name = ?'); args.push(org_name || null); }
+      if (bio !== undefined) { fields.push('bio = ?'); args.push(bio || null); }
+      if (broker_region !== undefined) { fields.push('broker_region = ?'); args.push(broker_region || null); }
+      if (broker_specialties !== undefined) { fields.push('broker_specialties = ?'); args.push(broker_specialties || null); }
+      if (broker_bio !== undefined) { fields.push('broker_bio = ?'); args.push(broker_bio || null); }
+      if (daily_quota !== undefined) { fields.push('daily_quota = ?'); args.push(parseInt(daily_quota) || 3); }
+
+      if (fields.length === 0) return NextResponse.json({ success: false, error: '没有要修改的字段' }, { status: 400 });
+
+      fields.push("updated_at = datetime('now')");
+      args.push(id);
+      await execute(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, ...args);
+      return NextResponse.json({ success: true });
+    }
+
     return NextResponse.json({ success: false, error: 'Unknown action' }, { status: 400 });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });

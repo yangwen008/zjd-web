@@ -33,6 +33,12 @@ export default function AdminUsersPage() {
   const [msg, setMsg] = useState('');
   const [reviewId, setReviewId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editForm, setEditForm] = useState({
+    nickname: '', phone: '', real_name: '', org_name: '', bio: '',
+    broker_region: '', broker_specialties: '', broker_bio: '', daily_quota: '3',
+    role: '',
+  });
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -84,6 +90,55 @@ export default function AdminUsersPage() {
       const d = await res.json() as any;
       if (d.success) { show('✅ 已封禁'); fetchUsers(); } else show(`❌ ${d.error}`);
     } catch { show('❌ 操作失败'); }
+  };
+
+  const openEdit = (u: User) => {
+    setEditingUser(u);
+    setEditForm({
+      nickname: u.nickname || '',
+      phone: u.phone || '',
+      real_name: (u as any).real_name || '',
+      org_name: u.org_name || '',
+      bio: (u as any).bio || '',
+      broker_region: u.broker_region || '',
+      broker_specialties: u.broker_specialties || '',
+      broker_bio: u.broker_bio || '',
+      daily_quota: String((u as any).daily_quota || 3),
+      role: u.role || 'user',
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingUser) return;
+    try {
+      // 更新角色
+      if (editForm.role !== editingUser.role) {
+        await fetch('/api/admin/users', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update-role', id: editingUser.id, role: editForm.role }),
+        });
+      }
+      // 更新资料
+      const res = await fetch('/api/admin/users', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update-profile',
+          id: editingUser.id,
+          nickname: editForm.nickname,
+          phone: editForm.phone,
+          real_name: editForm.real_name,
+          org_name: editForm.org_name,
+          bio: editForm.bio,
+          broker_region: editForm.broker_region,
+          broker_specialties: editForm.broker_specialties,
+          broker_bio: editForm.broker_bio,
+          daily_quota: editForm.daily_quota,
+        }),
+      });
+      const d = await res.json() as any;
+      if (d.success) { show('✅ 用户资料已更新'); setEditingUser(null); fetchUsers(); }
+      else show(`❌ ${d.error}`);
+    } catch { show('❌ 保存失败'); }
   };
 
   const handleUnban = async (id: number) => {
@@ -171,6 +226,7 @@ export default function AdminUsersPage() {
                   <td className="px-4 py-3 text-gray-400 text-xs">{u.created_at?.substring(0, 16)}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center space-x-2">
+                      <button onClick={() => openEdit(u)} className="text-xs text-blue-600 hover:underline">编辑</button>
                       {u.status === 'pending' && (
                         <>
                           <button onClick={() => handleApprove(u.id)} className="text-xs text-green-600 hover:underline font-medium">✓ 通过</button>
@@ -198,6 +254,90 @@ export default function AdminUsersPage() {
           </tbody>
         </table>
       </div>
+
+      {/* 编辑用户弹窗 */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setEditingUser(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-gray-900">✏️ 编辑用户 #{editingUser.id} — {editingUser.nickname}</h2>
+              <button onClick={() => setEditingUser(null)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">昵称</label>
+                <input value={editForm.nickname} onChange={(e) => setEditForm({ ...editForm, nickname: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">手机号</label>
+                <input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg font-mono" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">真实姓名</label>
+                <input value={editForm.real_name} onChange={(e) => setEditForm({ ...editForm, real_name: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">角色</label>
+                <select value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg">
+                  {Object.entries(ROLE_LABELS).map(([key, val]) => <option key={key} value={key}>{val.icon} {val.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">机构/村委名称</label>
+                <input value={editForm.org_name} onChange={(e) => setEditForm({ ...editForm, org_name: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">每日发布上限</label>
+                <input type="number" value={editForm.daily_quota} onChange={(e) => setEditForm({ ...editForm, daily_quota: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg" />
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-500 mb-1">个人简介</label>
+              <textarea value={editForm.bio} onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} rows={2}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg" />
+            </div>
+
+            {/* 合伙人专属字段 */}
+            {(editForm.role === 'broker' || editForm.role === 'village_org') && (
+              <div className="bg-blue-50 rounded-xl p-4 mb-4 space-y-3">
+                <h3 className="text-sm font-bold text-blue-800">🤝 合伙人/村集体专属信息</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">负责区域</label>
+                    <input value={editForm.broker_region} onChange={(e) => setEditForm({ ...editForm, broker_region: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">擅长领域 (JSON)</label>
+                    <input value={editForm.broker_specialties} onChange={(e) => setEditForm({ ...editForm, broker_specialties: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg font-mono" placeholder='["宅基地","林地"]' />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">合伙人简介</label>
+                  <textarea value={editForm.broker_bio} onChange={(e) => setEditForm({ ...editForm, broker_bio: e.target.value })} rows={2}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg" />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center space-x-3">
+              <button onClick={handleSaveEdit}
+                className="bg-brand-green hover:bg-brand-light text-white px-6 py-2 rounded-lg text-sm font-medium">💾 保存</button>
+              <button onClick={() => setEditingUser(null)}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-2 rounded-lg text-sm">取消</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
