@@ -62,6 +62,11 @@ export default function BulkProjectPublishPage() {
     { key: 'noise', icon: '🔇', label: '噪声指数', enabled: true, value: '20-40 dB' },
   ]);
 
+  // 交通信息
+  const [transport, setTransport] = useState({ highway: '', rail: '', airport: '', bus: '', metro: '' });
+  // 权证信息
+  const [certInfo, setCertInfo] = useState({ ownership_type: '', cert_type: '' });
+
   useEffect(() => {
     fetch('/api/auth/me')
       .then((r) => r.json())
@@ -184,6 +189,8 @@ export default function BulkProjectPublishPage() {
             infra: infraItems.filter(i => i.enabled),
             env: envItems.filter(e => e.enabled),
           }),
+          transport_info: Object.values(transport).some(v => v) ? transport : undefined,
+          cert_info: Object.values(certInfo).some(v => v) ? certInfo : undefined,
         }),
       });
       const d = await res.json() as any;
@@ -500,6 +507,57 @@ export default function BulkProjectPublishPage() {
                 </div>
               </label>
             ))}
+          </div>
+        </div>
+
+        {/* ═══ 交通信息 ═══ */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold text-gray-800 border-b pb-2">🚗 交通信息</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { key: 'highway', icon: '🚗', label: '距高速出口', options: ['15分钟内', '30分钟内', '60分钟内', '60分钟以上'] },
+              { key: 'rail', icon: '🚄', label: '距高铁站', options: ['15分钟内', '30分钟内', '60分钟内', '60分钟以上'] },
+              { key: 'airport', icon: '✈️', label: '距机场', options: ['30分钟内', '60分钟内', '90分钟内', '90分钟以上'] },
+              { key: 'bus', icon: '🚌', label: '公交', options: ['有直达', '需转车', '无公交'] },
+              { key: 'metro', icon: '🚇', label: '地铁', options: ['有站点', '规划中', '无地铁'] },
+            ].map((item) => (
+              <div key={item.key}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{item.icon} {item.label}</label>
+                <select value={(transport as any)[item.key]} onChange={(e) => setTransport({ ...transport, [item.key]: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green">
+                  <option value="">请选择</option>
+                  {item.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ═══ 权证信息 ═══ */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold text-gray-800 border-b pb-2">📋 权证信息</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">权属类型</label>
+              <select value={certInfo.ownership_type} onChange={(e) => setCertInfo({ ...certInfo, ownership_type: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg">
+                <option value="">请选择</option>
+                <option value="集体">集体</option>
+                <option value="国有">国有</option>
+                <option value="个人">个人</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">权证类型</label>
+              <select value={certInfo.cert_type} onChange={(e) => setCertInfo({ ...certInfo, cert_type: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg">
+                <option value="">请选择</option>
+                <option value="不动产权证书">不动产权证书</option>
+                <option value="宅基地使用权证">宅基地使用权证</option>
+                <option value="土地承包经营权证">土地承包经营权证</option>
+                <option value="暂无">暂无</option>
+              </select>
+            </div>
           </div>
         </div>
 
