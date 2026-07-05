@@ -28,7 +28,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         const first = arr[0];
         const rawUrl = typeof first === 'object' ? (first.url || first.thumb || '') : first;
         if (rawUrl) {
-          imageUrl = rawUrl.startsWith('http') ? rawUrl : `${siteUrl}/api/images/${rawUrl}`;
+          if (rawUrl.startsWith('http')) {
+            imageUrl = rawUrl;
+          } else if (rawUrl.startsWith('/api/images/')) {
+            imageUrl = `${siteUrl}${rawUrl}`;
+          } else {
+            imageUrl = `${siteUrl}/api/images/${rawUrl}`;
+          }
         }
       }
     } catch {}
@@ -129,10 +135,17 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
   const firstImageRaw = imageUrls.length > 0
     ? (typeof imageUrls[0] === 'object' ? (imageUrls[0] as any).url || (imageUrls[0] as any).thumb || '' : imageUrls[0])
     : '';
-  // 绝对 URL 直接用，相对路径走代理
-  const shareImage = firstImageRaw
-    ? (firstImageRaw.startsWith('http') ? firstImageRaw : `${siteUrl}/api/images/${firstImageRaw}`)
-    : '';
+  // 绝对 URL 直接用，已含 /api/images/ 的直接拼域名，其他走代理
+  let shareImage = '';
+  if (firstImageRaw) {
+    if (firstImageRaw.startsWith('http')) {
+      shareImage = firstImageRaw;
+    } else if (firstImageRaw.startsWith('/api/images/')) {
+      shareImage = `${siteUrl}${firstImageRaw}`;
+    } else {
+      shareImage = `${siteUrl}/api/images/${firstImageRaw}`;
+    }
+  }
 
   return (
     <>
