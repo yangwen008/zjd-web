@@ -105,6 +105,7 @@ export default function AdminUsersPage() {
       broker_bio: u.broker_bio || '',
       daily_quota: String((u as any).daily_quota || 3),
       role: u.role || 'user',
+      new_password: '',
     });
   };
 
