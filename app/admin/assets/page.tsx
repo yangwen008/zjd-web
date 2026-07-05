@@ -24,6 +24,7 @@ interface Asset {
   video_url: string | null;
   certification: string;
   featured: number;
+  created_at?: string;
 }
 
 const STATUS_LABELS: Record<string, string> = { approved: '已上架', pending: '待审核', rejected: '已拒绝', banned: '已封禁' };
@@ -61,6 +62,38 @@ export default function AdminAssetsPage() {
   const [msg, setMsg] = useState('');
   const [editInfra, setEditInfra] = useState<any[]>([]);
   const [editEnv, setEditEnv] = useState<any[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
+  const toggleSelect = (id: number) => {
+    const next = new Set(selectedIds);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelectedIds(next);
+  };
+  const toggleSelectAll = () => {
+    if (selectedIds.size === assets.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(assets.map(a => a.id)));
+  };
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`确定删除选中的 ${selectedIds.size} 条资产？此操作不可恢复。`)) return;
+    setDeleting(true);
+    let success = 0, failed = 0;
+    for (const id of selectedIds) {
+      try {
+        const res = await fetch('/api/admin/assets', {
+          method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        const d = await res.json() as any;
+        if (d.success) success++; else failed++;
+      } catch { failed++; }
+    }
+    setSelectedIds(new Set());
+    setDeleting(false);
+    show(`✅ 删除完成：${success} 成功，${failed} 失败`);
+    fetchAssets(filter);
+  };
 
   const fetchAssets = async (status?: string) => {
     setLoading(true);
@@ -226,11 +259,18 @@ export default function AdminAssetsPage() {
         </div>
         <button onClick={() => fetchAssets(filter)} className="px-4 py-2.5 bg-brand-green text-white text-sm rounded-lg hover:bg-brand-light transition-colors">搜索</button>
         {search && <button onClick={() => { setSearch(''); fetchAssets(filter); }} className="px-3 py-2.5 text-sm text-gray-500 hover:text-gray-700">清除</button>}
+        {selectedIds.size > 0 && (
+          <button onClick={handleBatchDelete} disabled={deleting}
+            className="px-4 py-2.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50">
+            {deleting ? '删除中...' : `🗑️ 删除选中 (${selectedIds.size})`}
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <table className="w-full text-sm">
           <thead> <tr className="bg-gray-50 text-left">
+            <th className="px-2 py-3"><input type="checkbox" checked={assets.length > 0 && selectedIds.size === assets.length} onChange={toggleSelectAll} className="rounded" /></th>
             <th className="px-4 py-3 font-medium text-gray-500">ID</th>
             <th className="px-4 py-3 font-medium text-gray-500">标题</th>
             <th className="px-4 py-3 font-medium text-gray-500">区域</th>
@@ -238,13 +278,15 @@ export default function AdminAssetsPage() {
             <th className="px-4 py-3 font-medium text-gray-500">确权</th>
             <th className="px-4 py-3 font-medium text-gray-500">推荐</th>
             <th className="px-4 py-3 font-medium text-gray-500">浏览量</th>
+            <th className="px-4 py-3 font-medium text-gray-500">发布时间</th>
             <th className="px-4 py-3 font-medium text-gray-500">状态</th>
             <th className="px-4 py-3 font-medium text-gray-500">操作</th>
           </tr> </thead>
           <tbody className="divide-y divide-gray-50">
-            {loading ? <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
+            {loading ? <tr><td colSpan={11} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
             : assets.length > 0 ? assets.map((asset) => (
-              <tr key={asset.id} className="hover:bg-gray-50/50">
+              <tr key={asset.id} className={`hover:bg-gray-50/50 ${selectedIds.has(asset.id) ? 'bg-blue-50/30' : ''}`}>
+                <td className="px-2 py-3"><input type="checkbox" checked={selectedIds.has(asset.id)} onChange={() => toggleSelect(asset.id)} className="rounded" /></td>
                 <td className="px-4 py-3 text-gray-400">#{asset.id}</td>
                 <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate">{asset.title}</td>
                 <td className="px-4 py-3 text-gray-500">{asset.province || '-'}</td>
@@ -252,6 +294,7 @@ export default function AdminAssetsPage() {
                 <td className="px-4 py-3">{(() => { const c = CERT_LABELS[(asset as any).certification || 'uncertified'] || CERT_LABELS.uncertified; return <span className={`text-xs px-2 py-0.5 rounded ${c.className}`}>{c.label}</span>; })()}</td>
                 <td className="px-4 py-3 text-center">{asset.featured ? <span className="text-yellow-500">★</span> : <span className="text-gray-300">-</span>}</td>
                 <td className="px-4 py-3 text-gray-500">{asset.views.toLocaleString()}</td>
+                <td className="px-4 py-3 text-gray-400 text-xs">{asset.created_at?.substring(0, 16) || '-'}</td>
                 <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[asset.status] || 'bg-gray-100 text-gray-600'}`}>{STATUS_LABELS[asset.status] || asset.status}</span></td>
                 <td className="px-4 py-3">
                   <div className="flex items-center space-x-2">
@@ -267,7 +310,7 @@ export default function AdminAssetsPage() {
                   </div>
                 </td>
               </tr>
-            )) : <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>}
+            )) : <tr><td colSpan={11} className="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>}
           </tbody>
         </table>
       </div>

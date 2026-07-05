@@ -119,3 +119,14 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json() as { id: number };
+    if (!body.id) return NextResponse.json({ success: false, error: '缺少资产ID' }, { status: 400 });
+    await execute('DELETE FROM assets WHERE id = ?', body.id);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+  }
+}
