@@ -36,13 +36,17 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
       fetch(`/api/wx/jssdk?url=${encodeURIComponent(window.location.href.split('#')[0])}`)
         .then(r => r.json() as Promise<any>)
         .then(data => {
-          if (!data.success) return;
+          if (!data.success) {
+            console.error('[WxShare] JSSDK签名获取失败:', data.error);
+            return;
+          }
 
           const wx = (window as any).wx;
           if (!wx) return;
 
+          // 开启 debug 模式，签名失败时会弹出错误信息
           wx.config({
-            debug: false,
+            debug: window.location.search.includes('wxdebug=1'),
             appId: data.data.appId,
             timestamp: data.data.timestamp,
             nonceStr: data.data.nonceStr,
@@ -56,13 +60,14 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
           });
 
           wx.ready(() => {
+            console.log('[WxShare] wx.config 成功，注入分享数据');
             // 分享给朋友
             wx.updateAppMessageShareData({
               title,
               desc,
               link,
               imgUrl,
-              success: () => {},
+              success: () => { console.log('[WxShare] updateAppMessageShareData 成功'); },
             });
 
             // 分享到朋友圈
@@ -70,11 +75,17 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
               title,
               link,
               imgUrl,
-              success: () => {},
+              success: () => { console.log('[WxShare] updateTimelineShareData 成功'); },
             });
           });
+
+          wx.error((err: any) => {
+            console.error('[WxShare] wx.config 失败:', err);
+          });
         })
-        .catch(() => {});
+        .catch((err) => {
+          console.error('[WxShare] JSSDK请求异常:', err);
+        });
     };
     document.head.appendChild(script);
 

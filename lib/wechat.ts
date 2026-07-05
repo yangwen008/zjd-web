@@ -258,27 +258,59 @@ interface JSSDKSignature {
 }
 
 /**
- * 生成 JSSDK 签名
- * 用于前端 wx.config() 调用
+ * 获取 jsapi_ticket，带 D1 缓存
+ * 微信 jsapi_ticket 有效期 2 小时，提前 5 分钟刷新
  */
-export async function getJSSDKSignature(url: string): Promise<JSSDKSignature> {
-  const config = getWxConfig();
+async function getJsapiTicket(): Promise<string> {
   const accessToken = await getAccessToken();
 
-  // 1. 获取 jsapi_ticket
+  // 查缓存
+  const cached = await queryOne<{ value: string; updated_at: string }>(
+    `SELECT value, updated_at FROM homepage_config WHERE key = 'wx_jsapi_ticket'`
+  );
+
+  if (cached) {
+    const updatedAt = new Date(cached.updated_at).getTime();
+    const now = Date.now();
+    // 有效期 2 小时，提前 5 分钟刷新
+    if (now - updatedAt < 115 * 60 * 1000) {
+      return cached.value;
+    }
+  }
+
+  // 重新获取
   const ticketRes = await fetch(
     `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`
   );
   const ticketData = await ticketRes.json() as { ticket?: string; errcode?: number; errmsg?: string };
 
   if (!ticketData.ticket) {
-    throw new Error(`Failed to get jsapi_ticket: ${ticketData.errmsg}`);
+    throw new Error(`Failed to get jsapi_ticket: ${ticketData.errmsg} (${ticketData.errcode})`);
   }
+
+  // 写入缓存
+  await execute(
+    `INSERT OR REPLACE INTO homepage_config (key, value, updated_at) VALUES ('wx_jsapi_ticket', ?, datetime('now'))`,
+    ticketData.ticket
+  );
+
+  return ticketData.ticket;
+}
+
+/**
+ * 生成 JSSDK 签名
+ * 用于前端 wx.config() 调用
+ */
+export async function getJSSDKSignature(url: string): Promise<JSSDKSignature> {
+  const config = getWxConfig();
+
+  // 1. 获取带缓存的 jsapi_ticket
+  const ticket = await getJsapiTicket();
 
   // 2. 生成签名
   const timestamp = Math.floor(Date.now() / 1000);
   const nonceStr = Math.random().toString(36).substring(2, 15);
-  const signStr = `jsapi_ticket=${ticketData.ticket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
+  const signStr = `jsapi_ticket=${ticket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
 
   // SHA-1 签名
   const encoder = new TextEncoder();
