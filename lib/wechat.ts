@@ -5,11 +5,13 @@ import { queryOne, execute } from './db';
 
 // ============ 配置 ============
 
-// 微信 API 代理（国内服务器反代，解决 Cloudflare Workers IP 白名单问题）
-const WX_API_PROXY = 'http://112.44.232.181:8443/weixin-proxy';
+// 微信 API 直连（api.weixin.qq.com）
+// 之前用代理 112.44.232.181:8443，但 Cloudflare Workers 无法访问（error 1003）
+// 改为直连，需在微信公众平台配置 IP 白名单或不设白名单
+const WX_API_BASE = 'https://api.weixin.qq.com';
 
 function wxApiUrl(path: string): string {
-  return `${WX_API_PROXY}${path}`;
+  return `${WX_API_BASE}${path}`;
 }
 
 interface WxConfig {
