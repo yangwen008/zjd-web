@@ -40,8 +40,18 @@ export async function GET(request: Request) {
   args.push(limit, (page - 1) * limit);
 
   try {
+    // 查询总数
+    let countSql = 'SELECT COUNT(*) as total FROM assets';
+    const countArgs: unknown[] = [];
+    if (conditions.length > 0) {
+      countSql += ' WHERE ' + conditions.join(' AND ');
+      countArgs.push(...args.slice(0, args.length - 2)); // 去掉 LIMIT 和 OFFSET
+    }
+    const countRow = await queryOne<{ total: number }>(countSql, ...countArgs);
+    const total = countRow?.total || 0;
+
     const results = await query<Asset>(sql, ...args);
-    return NextResponse.json({ success: true, data: results });
+    return NextResponse.json({ success: true, data: results, total });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }

@@ -50,6 +50,9 @@ export default function AdminAssetsPage() {
   }, [searchParams]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 30;
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [formData, setFormData] = useState<Partial<Asset>>({});
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -95,21 +98,24 @@ export default function AdminAssetsPage() {
     fetchAssets(filter);
   };
 
-  const fetchAssets = async (status?: string) => {
+  const fetchAssets = async (status?: string, p?: number) => {
     setLoading(true);
+    const currentPage = p || page;
     try {
       const params = new URLSearchParams();
       if (status && status !== 'all') params.set('status', status);
       if (sourceFilter) params.set('source', sourceFilter);
       if (search.trim()) params.set('search', search.trim());
-      params.set('limit', '50');
+      params.set('limit', String(pageSize));
+      params.set('page', String(currentPage));
       const res = await fetch(`/api/admin/assets?${params.toString()}`);
       const data: any = await res.json();
       setAssets(data.data || []);
+      setTotal(data.total || 0);
     } catch { setAssets([]); } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchAssets(filter); }, [filter, sourceFilter]);
+  useEffect(() => { setPage(1); fetchAssets(filter, 1); }, [filter, sourceFilter]);
 
   const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3000); };
 
@@ -314,6 +320,39 @@ export default function AdminAssetsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* 分页 */}
+      {total > pageSize && (
+        <div className="flex items-center justify-between mt-4 px-2">
+          <span className="text-sm text-gray-500">共 {total} 条，第 {page}/{Math.ceil(total / pageSize)} 页</span>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => { const p = page - 1; setPage(p); fetchAssets(filter, p); }}
+              disabled={page <= 1}
+              className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >上一页</button>
+            {Array.from({ length: Math.min(Math.ceil(total / pageSize), 7) }, (_, i) => {
+              const totalPages = Math.ceil(total / pageSize);
+              let startPage = Math.max(1, page - 3);
+              if (startPage + 6 > totalPages) startPage = Math.max(1, totalPages - 6);
+              const p = startPage + i;
+              if (p > totalPages) return null;
+              return (
+                <button
+                  key={p}
+                  onClick={() => { setPage(p); fetchAssets(filter, p); }}
+                  className={`px-3 py-1.5 text-sm border rounded-lg ${p === page ? 'bg-brand-green text-white border-brand-green' : 'border-gray-200 hover:bg-gray-50'}`}
+                >{p}</button>
+              );
+            })}
+            <button
+              onClick={() => { const p = page + 1; setPage(p); fetchAssets(filter, p); }}
+              disabled={page >= Math.ceil(total / pageSize)}
+              className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >下一页</button>
+          </div>
+        </div>
+      )}
 
       {/* 编辑 Modal */}
       {editingAsset && (
