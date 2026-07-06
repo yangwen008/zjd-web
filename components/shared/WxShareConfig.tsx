@@ -32,8 +32,10 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
     const script = document.createElement('script');
     script.src = 'https://res.wx.qq.com/open/js/jweixin-1.6.0.js';
     script.onload = () => {
-      // 获取 JSSDK 签名
-      fetch(`/api/wx/jssdk?url=${encodeURIComponent(window.location.href.split('#')[0])}`)
+      // 直接调用国内代理服务器获取 JSSDK 签名（绕过 Cloudflare Workers）
+      const proxyBase = 'http://112.44.232.181:8443';
+      const pageUrl = window.location.href.split('#')[0];
+      fetch(`${proxyBase}/jssdk?url=${encodeURIComponent(pageUrl)}`)
         .then(r => r.json() as Promise<any>)
         .then(data => {
           if (!data.success) {
