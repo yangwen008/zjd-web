@@ -161,13 +161,16 @@ function parsePrice(priceNum: string, priceUnit: string) {
   return { price_year: null, price_total: null };
 }
 
-// 下载图片上传到 R2
+// 下载图片上传到 R2（通过代理服务器下载，绕过反爬）
+const PROXY_BASE_IMG = 'http://112.44.232.181:8443';
+
 async function uploadImageToR2(r2: R2Bucket, url: string): Promise<string | null> {
   try {
     if (!url || url.startsWith('/api/images/')) return url;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; zjd-bot/1.0)', 'Referer': 'http://www.jutubao.com/' },
-      signal: AbortSignal.timeout(10000),
+    const proxyUrl = `${PROXY_BASE_IMG}/fetch?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl, {
+      headers: { 'X-Forwarded-Referer': 'http://www.jutubao.com/' },
+      signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) return null;
     const ct = res.headers.get('content-type') || '';
@@ -206,11 +209,12 @@ export async function POST(request: Request) {
       listUrl = `http://www.jutubao.com/${provCode}/`;
     }
 
-    // 抓取列表页
-    const res = await fetch(listUrl, {
+    // 抓取列表页（通过代理服务器绕过反爬）
+    const PROXY_BASE = 'http://112.44.232.181:8443';
+    const proxyUrl = `${PROXY_BASE}/fetch?url=${encodeURIComponent(listUrl)}`;
+    const res = await fetch(proxyUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html',
+        'X-Forwarded-Referer': 'http://www.jutubao.com/',
       },
       signal: AbortSignal.timeout(30000),
     });
