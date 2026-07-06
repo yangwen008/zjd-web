@@ -30,7 +30,7 @@ interface ImportItem {
 }
 
 // 下载外部图片并上传到 R2
-async function downloadAndUploadToR2(env: R2Bucket, url: string): Promise<string | null> {
+async function downloadAndUploadToR2(r2: R2Bucket, url: string): Promise<string | null> {
   try {
     if (url.startsWith('/api/images/')) return url;
     const res = await fetch(url, {
@@ -44,7 +44,7 @@ async function downloadAndUploadToR2(env: R2Bucket, url: string): Promise<string
     if (buffer.byteLength > 5 * 1024 * 1024) return null;
     const ext = ct.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
     const key = `scraped/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-    await env.R2.put(key, buffer, { httpMetadata: { contentType: ct } });
+    await r2.put(key, buffer, { httpMetadata: { contentType: ct } });
     return `/api/images/${key}`;
   } catch {
     return null;
@@ -52,7 +52,7 @@ async function downloadAndUploadToR2(env: R2Bucket, url: string): Promise<string
 }
 
 // 处理图片数组：下载外部图片上传到 R2
-async function processImages(env: R2Bucket, imagesJson: string, uploadImages: boolean): Promise<string> {
+async function processImages(r2: R2Bucket, imagesJson: string, uploadImages: boolean): Promise<string> {
   if (!uploadImages) return imagesJson;
   try {
     const arr = JSON.parse(imagesJson);
@@ -61,7 +61,7 @@ async function processImages(env: R2Bucket, imagesJson: string, uploadImages: bo
     for (const item of arr.slice(0, 5)) { // 最多处理5张
       const url = typeof item === 'object' ? (item.url || item.thumb || '') : item;
       if (!url) continue;
-      const r2Url = await downloadAndUploadToR2(env, url);
+      const r2Url = await downloadAndUploadToR2(r2, url);
       processed.push(r2Url || url); // 上传失败则保留原始URL
     }
     return JSON.stringify(processed);
