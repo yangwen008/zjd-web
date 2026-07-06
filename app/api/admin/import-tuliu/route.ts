@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     }
 
     const env = getEnv();
-    const uploadImages = body.uploadImages === true;
+    const uploadImages = body.uploadImages !== false; // 默认开启图片上传到R2
 
     // 获取来源账号
     const sourceAccount = await queryOne<{ user_id: number }>(
