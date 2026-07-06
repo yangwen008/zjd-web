@@ -199,8 +199,12 @@ export async function POST(request: Request) {
     );
     const defaultUserId = sourceAccount?.user_id || user.id;
 
-    // 构建 URL
-    const listUrl = buildUrl(landType, province, 1);
+    // 构建 URL（直接用主页，不按类型筛选）
+    let listUrl = 'http://www.jutubao.com/tudi/';
+    if (province) {
+      const provCode = PROVINCE_MAP[province] || `t-${province}`;
+      listUrl = `http://www.jutubao.com/${provCode}/`;
+    }
 
     // 抓取列表页
     const res = await fetch(listUrl, {
