@@ -85,6 +85,10 @@ export default function AdminScrapersPage() {
   const [msg, setMsg] = useState('');
   const [filter, setFilter] = useState<string>('all');
   const [showTemplates, setShowTemplates] = useState(false);
+  const [scraping, setScraping] = useState(false);
+  const [scrapeType, setScrapeType] = useState('nongfang');
+  const [scrapeProvince, setScrapeProvince] = useState('');
+  const [scrapeLimit, setScrapeLimit] = useState('10');
 
   const emptyForm = {
     name: '', base_url: '', list_url: '', max_pages: '10', pagination_type: 'url',
@@ -107,6 +111,31 @@ export default function AdminScrapersPage() {
   useEffect(() => { fetchRecipes(); }, []);
 
   const show = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3000); };
+
+  const handleScrapeImport = async () => {
+    setScraping(true);
+    show('🔄 正在采集，请稍候...');
+    try {
+      const res = await fetch('/api/admin/scrape-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source: 'jutubao',
+          type: scrapeType,
+          province: scrapeProvince || undefined,
+          limit: parseInt(scrapeLimit) || 10,
+        }),
+      });
+      const data = await res.json() as any;
+      if (data.success) {
+        const d = data.data;
+        show(`✅ 采集完成！导入 ${d.imported} 条，跳过 ${d.skipped} 条，图片 ${d.imagesUploaded} 张`);
+      } else {
+        show(`❌ 采集失败: ${data.error}`);
+      }
+    } catch { show('❌ 网络错误'); }
+    finally { setScraping(false); }
+  };
 
   // 从模板创建
   const handleFromTemplate = (tmpl: SiteTemplate) => {
@@ -226,6 +255,61 @@ export default function AdminScrapersPage() {
           </div>
         </div>
       )}
+
+      {/* 一键采集 */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200 p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-gray-900">⚡ 一键采集+入库</h3>
+            <p className="text-xs text-gray-500 mt-1">从聚土网抓取数据，自动下载图片存入 R2，直接上架</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <select value={scrapeType} onChange={(e) => setScrapeType(e.target.value)} className="px-3 py-2 text-sm border border-gray-200 rounded-lg">
+              <option value="nongfang">🏠 农房</option>
+              <option value="linmumiaopu">🌲 林木苗圃地</option>
+              <option value="shucailiangyou">🌾 蔬菜粮油地</option>
+              <option value="guochacansang">🍵 水果茶桑地</option>
+              <option value="xumufangyang">🐄 畜牧放养地</option>
+              <option value="chanzhiyangzhi">🐟 水产养殖地</option>
+            </select>
+            <select value={scrapeProvince} onChange={(e) => setScrapeProvince(e.target.value)} className="px-3 py-2 text-sm border border-gray-200 rounded-lg">
+              <option value="">全国</option>
+              <option value="sichuan">四川</option>
+              <option value="yunnan">云南</option>
+              <option value="guizhou">贵州</option>
+              <option value="chongqing">重庆</option>
+              <option value="guangxi">广西</option>
+              <option value="hubei">湖北</option>
+              <option value="hunan">湖南</option>
+              <option value="guangdong">广东</option>
+              <option value="zhejiang">浙江</option>
+              <option value="jiangsu">江苏</option>
+              <option value="anhui">安徽</option>
+              <option value="fujian">福建</option>
+              <option value="jiangxi">江西</option>
+              <option value="shandong">山东</option>
+              <option value="henan">河南</option>
+              <option value="hebei">河北</option>
+              <option value="beijing">北京</option>
+              <option value="shanghai">上海</option>
+              <option value="hainan">海南</option>
+            </select>
+            <select value={scrapeLimit} onChange={(e) => setScrapeLimit(e.target.value)} className="px-3 py-2 text-sm border border-gray-200 rounded-lg">
+              <option value="5">5条</option>
+              <option value="10">10条</option>
+              <option value="20">20条</option>
+              <option value="50">50条</option>
+            </select>
+            <button
+              onClick={handleScrapeImport}
+              disabled={scraping}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+            >
+              {scraping ? '采集中...' : '⚡ 开始采集'}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* 分类筛选 */}
       <div className="flex items-center space-x-2 mb-4">
