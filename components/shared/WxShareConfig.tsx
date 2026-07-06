@@ -12,27 +12,16 @@ interface WxShareConfigProps {
 /**
  * 微信 JSSDK 分享配置组件
  * 在需要分享的页面引入，自动注入 wx.ready() 分享配置
- *
- * 使用方式：
- *   <WxShareConfig
- *     title="资产标题"
- *     desc="资产描述"
- *     link="https://zjd.cn/asset/123"
- *     imgUrl="https://zjd.cn/api/images/xxx.jpg"
- *   />
  */
 export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConfigProps) {
   useEffect(() => {
-    // 检测是否在微信浏览器内
     const ua = navigator.userAgent.toLowerCase();
     const isWechat = ua.indexOf('micromessenger') > -1;
     if (!isWechat) return;
 
-    // 动态加载 wx JS SDK
     const script = document.createElement('script');
     script.src = 'https://res.wx.qq.com/open/js/jweixin-1.6.0.js';
     script.onload = () => {
-      // 直接调用国内代理服务器获取 JSSDK 签名（绕过 Cloudflare Workers IP 白名单问题）
       const proxyBase = 'http://112.44.232.181:8443';
       const pageUrl = window.location.href.split('#')[0];
       fetch(`${proxyBase}/jssdk?url=${encodeURIComponent(pageUrl)}`)
@@ -46,7 +35,6 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
           const wx = (window as any).wx;
           if (!wx) return;
 
-          // 开启 debug 模式，签名失败时会弹出错误信息
           wx.config({
             debug: window.location.search.includes('wxdebug=1'),
             appId: data.data.appId,
@@ -54,49 +42,66 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
             nonceStr: data.data.nonceStr,
             signature: data.data.signature,
             jsApiList: [
+              'onMenuShareAppMessage',
+              'onMenuShareTimeline',
               'updateAppMessageShareData',
               'updateTimelineShareData',
-              'getLocation',
-              'previewImage',
             ],
           });
 
           wx.ready(() => {
-            console.log('[WxShare] wx.config 成功，注入分享数据');
-            // 分享给朋友
-            wx.updateAppMessageShareData({
-              title,
-              desc,
-              link,
-              imgUrl,
-              success: () => { console.log('[WxShare] updateAppMessageShareData 成功'); },
+            console.log('[WxShare] wx.ready, 注入分享数据');
+
+            // 老版 API（兼容性最好，微信 7.0+ 都支持）
+            wx.onMenuShareAppMessage({
+              title: title,
+              desc: desc,
+              link: link,
+              imgUrl: imgUrl,
+              success: function () {
+                console.log('[WxShare] onMenuShareAppMessage success');
+              },
             });
 
-            // 分享到朋友圈
+            wx.onMenuShareTimeline({
+              title: title,
+              link: link,
+              imgUrl: imgUrl,
+              success: function () {
+                console.log('[WxShare] onMenuShareTimeline success');
+              },
+            });
+
+            // 新版 API（备用）
+            wx.updateAppMessageShareData({
+              title: title,
+              desc: desc,
+              link: link,
+              imgUrl: imgUrl,
+            });
+
             wx.updateTimelineShareData({
-              title,
-              link,
-              imgUrl,
-              success: () => { console.log('[WxShare] updateTimelineShareData 成功'); },
+              title: title,
+              link: link,
+              imgUrl: imgUrl,
             });
           });
 
-          wx.error((err: any) => {
-            console.error('[WxShare] wx.config 失败:', err);
+          wx.error(function (err: any) {
+            console.error('[WxShare] wx.error:', err);
           });
         })
         .catch((err) => {
-          console.error('[WxShare] JSSDK请求异常:', err);
+          console.error('[WxShare] 请求异常:', err);
         });
     };
     document.head.appendChild(script);
 
     return () => {
-      // cleanup
       const existing = document.querySelector('script[src*="jweixin"]');
       if (existing) existing.remove();
     };
   }, [title, desc, link, imgUrl]);
 
-  return null; // 无 UI 渲染
+  return null;
 }
