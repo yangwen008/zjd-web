@@ -84,48 +84,52 @@ function mapAssetType(landType: string): string {
 // 从 HTML 解析列表数据
 function parseListHtml(html: string): any[] {
   const items: any[] = [];
-  // 匹配列表项：每个 <li> 包含 content- 链接
-  const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+  // 聚土网列表结构：<a href="/tudi/content-xxx"> 包裹整个卡片
+  const linkRegex = /<a[^>]*href="([^"]*content-[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
   let match;
-  while ((match = liRegex.exec(html)) !== null) {
-    const block = match[1];
-    if (!block.includes('content-')) continue;
+  while ((match = linkRegex.exec(html)) !== null) {
+    const link = match[1];
+    const block = match[2];
+    if (!link || !block) continue;
 
-    // 标题和链接
-    const titleMatch = block.match(/<a[^>]*href="([^"]*content-[^"]*)"[^>]*>/);
-    const link = titleMatch ? titleMatch[1] : '';
-    if (!link) continue;
-
-    // 从链接中提取标题（链接文本）
-    const titleTextMatch = block.match(/class="mltr-p1[^"]*"[^>]*>([^<]+)</);
-    const title = titleTextMatch ? titleTextMatch[1].trim() : '';
+    // 标题
+    const titleMatch = block.match(/class="mltr-p1[^"]*"[^>]*>([^<]+)/);
+    const title = titleMatch ? titleMatch[1].trim() : '';
+    if (!title) continue;
 
     // 图片
     const imgMatch = block.match(/<img[^>]*original="([^"]*)"[^>]*>/) || block.match(/<img[^>]*src="([^"]*static\.jutubao\.com[^"]*)"[^>]*>/);
     const imgSrc = imgMatch ? imgMatch[1].split('?')[0] : '';
 
     // 流转类型
-    const typeMatch = block.match(/class="mspan2"[^>]*>([^<]+)</);
+    const typeMatch = block.match(/class="mspan2"[^>]*>([^<]+)/);
     const transferType = typeMatch ? typeMatch[1].trim() : '';
 
-    // 土地类型
-    const landTypeMatch = block.match(/class="mltr-p2"[^>]*>([^<]+)</);
+    // 土地类型（第一个 mltr-p2）
+    const landTypeMatch = block.match(/class="mltr-p2"[^>]*>([^<]+)/);
     const landType = landTypeMatch ? landTypeMatch[1].trim() : '';
 
     // 面积+年限
-    const areaMatch = block.match(/class="mltr-p3[^"]*"[^>]*>[\s\S]*?<span>([^<]+)<\/span>[\s\S]*?<span>([^<]+)<\/span>/);
-    const areaText = areaMatch ? areaMatch[1] : '';
-    const leaseText = areaMatch ? areaMatch[2] : '';
+    const areaMatch = block.match(/class="fl"[^>]*><span>([^<]+)<\/span>[\s\S]*?<span>([^<]+)<\/span>/);
+    const areaText = areaMatch ? areaMatch[1].trim() : '';
+    const leaseText = areaMatch ? areaMatch[2].trim() : '';
 
     // 价格
-    const priceMatch = block.match(/class="f18[^"]*"[^>]*>([^<]+)</);
+    const priceMatch = block.match(/class="f18[^"]*"[^>]*>([^<]+)/);
     const priceNum = priceMatch ? priceMatch[1].trim() : '';
-    const priceUnitMatch = block.match(/class="mltr-p3[^"]*"[^>]*>[\s\S]*?class="fr"[^>]*>([\s\S]*?)<\/div>/);
-    const priceUnit = priceUnitMatch ? priceUnitMatch[1].replace(priceNum, '').replace(/<[^>]*>/g, '').trim() : '';
+    const priceUnitMatch = block.match(/class="fr"[^>]*>[\s\S]*?<\/div>/);
+    let priceUnit = '';
+    if (priceUnitMatch) {
+      priceUnit = priceUnitMatch[0].replace(/<[^>]*>/g, '').replace(priceNum, '').trim();
+    }
 
-    // 位置
-    const locMatch = block.match(/所在地区：([^<]+)/);
-    const location = locMatch ? locMatch[1].trim() : '';
+    // 位置（第二个 mltr-p2）
+    const p2Matches = block.match(/class="mltr-p2"[^>]*>([^<]+)/g);
+    let location = '';
+    if (p2Matches && p2Matches.length > 1) {
+      const locText = p2Matches[1].replace(/class="mltr-p2"[^>]*>/, '').trim();
+      if (locText.includes('所在地区')) location = locText;
+    }
 
     items.push({ title, link, imgSrc, transferType, landType, areaText, leaseText, priceNum, priceUnit, location });
   }
