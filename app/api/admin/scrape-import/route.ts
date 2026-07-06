@@ -105,9 +105,18 @@ function parseListHtml(html: string): any[] {
     const typeMatch = block.match(/class="mspan2"[^>]*>([^<]+)/);
     const transferType = typeMatch ? typeMatch[1].trim() : '';
 
-    // 土地类型（第一个 mltr-p2）
-    const landTypeMatch = block.match(/class="mltr-p2"[^>]*>([^<]+)/);
-    const landType = landTypeMatch ? landTypeMatch[1].trim() : '';
+    // 土地类型（第一个 mltr-p2，排除"所在地区"和"最新刷新"）
+    const p2Matches = block.match(/class="mltr-p2"[^>]*>([^<]+)/g);
+    let landType = '';
+    if (p2Matches) {
+      for (const m of p2Matches) {
+        const text = m.replace(/class="mltr-p2"[^>]*>/, '').trim();
+        if (!text.includes('所在地区') && !text.includes('最新刷新')) {
+          landType = text;
+          break;
+        }
+      }
+    }
 
     // 面积+年限
     const areaMatch = block.match(/class="fl"[^>]*><span>([^<]+)<\/span>[\s\S]*?<span>([^<]+)<\/span>/);
@@ -123,12 +132,16 @@ function parseListHtml(html: string): any[] {
       priceUnit = priceUnitMatch[0].replace(/<[^>]*>/g, '').replace(priceNum, '').trim();
     }
 
-    // 位置（第二个 mltr-p2）
-    const p2Matches = block.match(/class="mltr-p2"[^>]*>([^<]+)/g);
+    // 位置（包含"所在地区"的 mltr-p2）
     let location = '';
-    if (p2Matches && p2Matches.length > 1) {
-      const locText = p2Matches[1].replace(/class="mltr-p2"[^>]*>/, '').trim();
-      if (locText.includes('所在地区')) location = locText;
+    if (p2Matches) {
+      for (const m of p2Matches) {
+        const text = m.replace(/class="mltr-p2"[^>]*>/, '').trim();
+        if (text.includes('所在地区')) {
+          location = text;
+          break;
+        }
+      }
     }
 
     items.push({ title, link, imgSrc, transferType, landType, areaText, leaseText, priceNum, priceUnit, location });
