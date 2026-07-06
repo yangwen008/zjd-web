@@ -15,7 +15,8 @@ export async function POST(request: Request) {
   try {
     const user = await requireRole(request, ['admin', 'superadmin']);
     const env = getEnv();
-    const { limit = 50 } = await request.json().catch(() => ({ limit: 50 }));
+    const body = await request.json().catch(() => ({})) as { limit?: number };
+    const limit = body.limit || 50;
 
     // 查找有外部图片 URL 的资产
     const assets = await query<{ id: number; images: string }>(
