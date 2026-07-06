@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         title, code, description, location, province, city, district,
         area_mu, area_sqm, price_total, price_start, yield_rate, lease_years,
         certification, planning_use, images, video_url, commercial_plan,
-        commercial_plan_doc, cert_doc_url, gps_lat, gps_lng, contact_name, contact_phone,
+        commercial_plan_doc, cert_doc_url, infra_details, transport_info, cert_info, gps_lat, gps_lng, contact_name, contact_phone,
         status, featured, user_id,
       } = body as Record<string, unknown>;
 
@@ -49,16 +49,20 @@ export async function POST(request: Request) {
           title, code, description, location, province, city, district,
           area_mu, area_sqm, price_total, price_start, yield_rate, lease_years,
           certification, planning_use, images, video_url, commercial_plan,
-          cert_doc_url, gps_lat, gps_lng, contact_name, contact_phone,
+          cert_doc_url, infra_details, transport_info, cert_info, gps_lat, gps_lng, contact_name, contact_phone,
           status, featured, user_id, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
         title, code || null, description || null, location || null,
         province || null, city || null, district || null,
         area_mu || null, area_sqm || null, price_total || null, price_start || null,
         yield_rate || null, lease_years || null,
         certification || 'uncertified', planning_use || null,
         images || null, video_url || null, commercial_plan || null,
-        commercial_plan_doc || null, cert_doc_url || null, gps_lat || null, gps_lng || null,
+        commercial_plan_doc || null, cert_doc_url || null,
+        infra_details || null,
+        transport_info ? (typeof transport_info === 'object' ? JSON.stringify(transport_info) : transport_info) : null,
+        cert_info ? (typeof cert_info === 'object' ? JSON.stringify(cert_info) : cert_info) : null,
+        gps_lat || null, gps_lng || null,
         contact_name || null, contact_phone || null,
         status || 'pending', featured ? 1 : 0, user_id || null
       );

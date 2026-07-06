@@ -55,8 +55,8 @@ export default function AdminBulkProjectsPage() {
     area_mu: '', area_sqm: '', price_total: '', price_start: '',
     yield_rate: '', lease_years: '', certification: 'uncertified',
     planning_use: '', images: '', video_url: '', commercial_plan: '',
-    cert_doc_url: '', infra_details: '', gps_lat: '', gps_lng: '',
-    contact_name: '', contact_phone: '', status: 'pending', featured: false,
+    cert_doc_url: '', infra_details: '', transport_info: '', cert_info: '',
+    gps_lat: '', gps_lng: '', contact_name: '', contact_phone: '', status: 'pending', featured: false,
   };
   const [form, setForm] = useState(emptyForm);
 
@@ -92,6 +92,7 @@ export default function AdminBulkProjectsPage() {
       planning_use: p.planning_use || '', images: '', video_url: '',
       commercial_plan: '', cert_doc_url: '',
       infra_details: (p as any).infra_details || '',
+      transport_info: (p as any).transport_info || '', cert_info: (p as any).cert_info || '',
       gps_lat: '', gps_lng: '', contact_name: '', contact_phone: '',
       status: p.status, featured: p.featured === 1,
     });
@@ -114,6 +115,8 @@ export default function AdminBulkProjectsPage() {
         gps_lat: form.gps_lat ? parseFloat(form.gps_lat) : null,
         gps_lng: form.gps_lng ? parseFloat(form.gps_lng) : null,
         infra_details: form.infra_details || null,
+        transport_info: form.transport_info || null,
+        cert_info: form.cert_info || null,
       };
       if (editId) payload.id = editId;
 
@@ -296,6 +299,16 @@ export default function AdminBulkProjectsPage() {
           <div className="mb-4">
             <label className="block text-xs font-medium text-gray-500 mb-1">确权证书URL</label>
             <input type="text" value={form.cert_doc_url} onChange={(e) => setForm({ ...form, cert_doc_url: e.target.value })} placeholder="https://..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">交通信息 (JSON)</label>
+              <textarea value={form.transport_info} onChange={(e) => setForm({ ...form, transport_info: e.target.value })} rows={3} placeholder='{"highway":"30分钟内","rail":"60分钟内","airport":"90分钟内","bus":"有直达","metro":"无地铁"}' className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">权证信息 (JSON)</label>
+              <textarea value={form.cert_info} onChange={(e) => setForm({ ...form, cert_info: e.target.value })} rows={3} placeholder='{"ownership_type":"集体","cert_type":"不动产权证书"}' className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green font-mono" />
+            </div>
           </div>
           <div className="flex items-center space-x-3">
             <button onClick={handleSave} disabled={saving} className="bg-brand-green hover:bg-brand-light text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50">
