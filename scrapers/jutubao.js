@@ -5,7 +5,8 @@
  * 采集内容：农房、宅基地、林地、耕地等
  * 
  * 用法：
- *   node scrapers/jutubao.js                           # 默认采集农房，5页
+ *   node scrapers/jutubao.js                           # 默认采集农房，10条
+ *   node scrapers/jutubao.js --limit=20                # 采集20条
  *   node scrapers/jutubao.js --type=nongfang --pages=10
  *   node scrapers/jutubao.js --type=all --pages=3      # 全部类型
  *   node scrapers/jutubao.js --dry-run                 # 只打印不入库
@@ -29,6 +30,7 @@ const args = Object.fromEntries(
 
 const LAND_TYPE = args.type || 'nongfang';
 const MAX_PAGES = parseInt(args.pages || '5', 10);
+const MAX_ITEMS = parseInt(args.limit || '10', 10); // 默认采集10条
 const DRY_RUN = process.argv.includes('--dry-run');
 const PROVINCE = args.province || '';
 
@@ -284,6 +286,7 @@ async function main() {
   console.log(`   类型: ${landTypeNames[LAND_TYPE] || LAND_TYPE}`);
   console.log(`   省份: ${PROVINCE || '全国'}`);
   console.log(`   页数: ${MAX_PAGES}`);
+  console.log(`   限制: ${MAX_ITEMS} 条`);
   console.log(`   模式: ${DRY_RUN ? '试运行(不入库)' : '正式采集'}`);
   console.log('');
 
@@ -310,6 +313,7 @@ async function main() {
         
         const fullLink = item.href.startsWith('http') ? item.href : `http://www.jutubao.com${item.href}`;
         
+        if (allItems.length >= MAX_ITEMS) break;
         allItems.push({
           title: item.title,
           location: item.location.replace(/所在地区：?/, '').replace(/\s/g, ''),
@@ -331,10 +335,11 @@ async function main() {
         });
       }
       
+      if (allItems.length >= MAX_ITEMS) break;
       if (p < MAX_PAGES) await sleep(2000);
     }
     
-    console.log(`\n📊 列表采集完成，共 ${allItems.length} 条`);
+    console.log(`\n📊 列表采集完成，共 ${allItems.length} 条 (限制: ${MAX_ITEMS})`);
     
     // 2. 详情页补充（取前20条）
     const detailLimit = Math.min(allItems.length, 20);

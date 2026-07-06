@@ -28,6 +28,7 @@ const args = Object.fromEntries(
 );
 const PROVINCE = args.province || '0';
 const MAX_PAGES = parseInt(args.pages || '5', 10);
+const MAX_ITEMS = parseInt(args.limit || '10', 10); // 默认采集10条
 const DRY_RUN = process.argv.includes('--dry-run');
 
 // 省份代码 → 省份名称映射
@@ -309,6 +310,7 @@ async function main() {
   console.log('🏠 土流网农房数据采集器');
   console.log(`   省份: ${PROVINCE_MAP[PROVINCE] || PROVINCE}`);
   console.log(`   页数: ${MAX_PAGES}`);
+  console.log(`   限制: ${MAX_ITEMS} 条`);
   console.log(`   模式: ${DRY_RUN ? '试运行(不入库)' : '正式采集'}`);
   console.log('');
 
@@ -336,6 +338,7 @@ async function main() {
         const priceTotal = parsePriceTotal(item.price);
         const leaseYears = parseLeaseYears(item.leaseYears);
         
+        if (allItems.length >= MAX_ITEMS) break;
         allItems.push({
           title: item.title,
           location: item.location || [loc.province, loc.city, loc.district].filter(Boolean).join('/'),
@@ -354,12 +357,13 @@ async function main() {
         });
       }
       
+      if (allItems.length >= MAX_ITEMS) break;
       if (p < MAX_PAGES) {
         await sleep(2000);
       }
     }
     
-    console.log(`\n📊 采集完成，共 ${allItems.length} 条`);
+    console.log(`\n📊 采集完成，共 ${allItems.length} 条 (限制: ${MAX_ITEMS})`);
     
     // 详情页补充（取前10条的描述）
     const detailLimit = Math.min(allItems.length, 10);
