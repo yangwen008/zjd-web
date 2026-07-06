@@ -92,8 +92,8 @@ function parseListHtml(html: string): any[] {
     const block = match[2];
     if (!link || !block) continue;
 
-    // 标题
-    const titleMatch = block.match(/class="mltr-p1[^"]*"[^>]*>([^<]+)/);
+    // 标题（class可能是 textover mltr-p1 或 mltr-p1）
+    const titleMatch = block.match(/class="[^"]*mltr-p1[^"]*"[^>]*>([^<]+)/);
     const title = titleMatch ? titleMatch[1].trim() : '';
     if (!title) continue;
 
