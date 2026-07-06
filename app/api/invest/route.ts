@@ -5,6 +5,18 @@ import { query, queryOne, execute } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 import { checkAndEnforceRateLimit } from '@/lib/rate-limit';
 
+// 安全白名单：防止 SQL 拼接注入
+const VALID_TABLES: Record<string, string> = {
+  asset: 'assets',
+  bulk_project: 'bulk_projects',
+};
+
+function resolveTable(assetType: string): string {
+  const table = VALID_TABLES[assetType];
+  if (!table) throw new Error(`Invalid assetType: ${assetType}`);
+  return table;
+}
+
 // POST /api/invest — 提交认购意向
 export async function POST(request: Request) {
   try {
@@ -28,8 +40,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '参数不完整' }, { status: 400 });
     }
 
-    // 查询资产的参投配置
-    const table = assetType === 'bulk_project' ? 'bulk_projects' : 'assets';
+    // 查询资产的参投配置（白名单校验表名，防注入）
+    const table = resolveTable(assetType);
     const asset = await queryOne<{
       id: number; invest_enabled: number; invest_total_shares: number;
       invest_share_price: number; invest_min_shares: number; invest_sold_shares: number;
@@ -67,7 +79,7 @@ export async function POST(request: Request) {
     await execute(
       `UPDATE ${table} SET invest_sold_shares = invest_sold_shares + ? WHERE id = ?`,
       shares, assetId
-    );
+    );  // table 已通过 resolveTable() 白名单校验
 
     // 写入认购记录
     await execute(
@@ -86,7 +98,7 @@ export async function POST(request: Request) {
     // 查询最新认购数（可能已超额）
     const updated = await queryOne<{ invest_sold_shares: number }>(
       `SELECT invest_sold_shares FROM ${table} WHERE id = ?`, assetId
-    );
+    );  // table 已通过 resolveTable() 白名单校验
 
     return NextResponse.json({
       success: true,

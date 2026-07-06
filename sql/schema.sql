@@ -207,7 +207,13 @@ CREATE TABLE IF NOT EXISTS admin_audit_logs (
   target_type   TEXT,                -- asset/user/config
   target_id     INTEGER,
   detail        TEXT,
+  user_role     TEXT,                -- 操作者角色
+  module        TEXT,                -- 模块：asset/bulk/user/config/auth
+  level         TEXT DEFAULT 'info', -- info/warn/error
+  before_data   TEXT,                -- 修改前JSON
+  after_data    TEXT,                -- 修改后JSON
   ip_address    TEXT,
+  user_agent    TEXT,
   created_at    TEXT DEFAULT (datetime('now'))
 );
 
