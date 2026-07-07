@@ -201,10 +201,18 @@ async function uploadImageToR2(r2: R2Bucket, url: string): Promise<string | null
 }
 
 export async function POST(request: Request) {
+  // 强制返回 JSON（防止 Worker 崩溃返回 HTML）
+  const jsonResponse = (data: any, status = 200) => {
+    return new Response(JSON.stringify(data), {
+      status,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    });
+  };
+
   try {
     const user = await getAdminUser(request);
     if (!user) {
-      return NextResponse.json({ success: false, error: '需要管理员权限' }, { status: 403 });
+      return jsonResponse({ success: false, error: '需要管理员权限' }, 403);
     }
     const body = await request.json().catch(() => ({})) as {
       source?: string; type?: string; province?: string; limit?: number;
@@ -243,14 +251,14 @@ export async function POST(request: Request) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ success: false, error: `抓取失败: HTTP ${res.status}` }, { status: 502 });
+      return jsonResponse({ success: false, error: `抓取失败: HTTP ${res.status}` }, 502);
     }
 
     const html = await res.text();
     const rawItems = parseListHtml(html);
 
     if (rawItems.length === 0) {
-      return NextResponse.json({ success: false, error: '未解析到数据，页面结构可能已变化' }, { status: 502 });
+      return jsonResponse({ success: false, error: '未解析到数据，页面结构可能已变化' }, 502);
     }
 
     // 处理数据
@@ -306,7 +314,7 @@ export async function POST(request: Request) {
       request,
     });
 
-    return NextResponse.json({
+    return jsonResponse({
       success: true,
       data: {
         source: '聚土网',
@@ -321,6 +329,6 @@ export async function POST(request: Request) {
       },
     });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return jsonResponse({ success: false, error: error.message || '未知错误' }, 500);
   }
 }
