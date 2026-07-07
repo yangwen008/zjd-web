@@ -2,8 +2,24 @@ export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
 import { execute, queryOne, getEnv } from '@/lib/db';
-import { requireRole } from '@/lib/auth';
+import { getUserFromRequest, type User } from '@/lib/auth';
 import { writeAuditLog } from '@/lib/audit';
+
+// 支持 admin_token 和 user_session 两种认证
+async function getAdminUser(request: Request): Promise<User | null> {
+  // 先检查 admin_token（Admin 后台登录）
+  const cookie = request.headers.get('cookie') || '';
+  if (cookie.includes('admin_token=')) {
+    // admin_token 已在 middleware 验证，直接返回虚拟 admin 用户
+    return { id: 0, nickname: '管理员', role: 'superadmin', status: 'active' } as User;
+  }
+  // 再检查 user_session（用户登录）
+  const user = await getUserFromRequest(request);
+  if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+    return user;
+  }
+  return null;
+}
 
 /**
  * POST /api/admin/scrape-import
@@ -186,7 +202,10 @@ async function uploadImageToR2(r2: R2Bucket, url: string): Promise<string | null
 
 export async function POST(request: Request) {
   try {
-    const user = await requireRole(request, ['admin', 'superadmin']);
+    const user = await getAdminUser(request);
+    if (!user) {
+      return NextResponse.json({ success: false, error: '需要管理员权限' }, { status: 403 });
+    }
     const body = await request.json().catch(() => ({})) as {
       source?: string; type?: string; province?: string; limit?: number;
     };
@@ -196,11 +215,15 @@ export async function POST(request: Request) {
     const limit = Math.min(body.limit || 10, 50);
     const env = getEnv();
 
-    // 获取来源账号
+    // 获取来源账号（聚土网 → 自动创建的 project_publisher 账号）
     const sourceAccount = await queryOne<{ user_id: number }>(
       `SELECT user_id FROM source_accounts WHERE name LIKE '%聚土网%' AND enabled = 1 LIMIT 1`
     );
-    const defaultUserId = sourceAccount?.user_id || user.id;
+    // 如果没有来源账号，找第一个管理员账号作为发布者
+    const adminUser = await queryOne<{ id: number }>(
+      `SELECT id FROM users WHERE role IN ('admin', 'superadmin') AND status = 'active' ORDER BY id LIMIT 1`
+    );
+    const defaultUserId = sourceAccount?.user_id || adminUser?.id || 1;
 
     // 构建 URL（直接用主页，不按类型筛选）
     let listUrl = 'http://www.jutubao.com/tudi/';
