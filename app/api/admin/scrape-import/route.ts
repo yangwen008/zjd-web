@@ -239,7 +239,7 @@ export async function POST(request: Request) {
       headers: {
         'X-Forwarded-Referer': 'http://www.jutubao.com/',
       },
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!res.ok) {

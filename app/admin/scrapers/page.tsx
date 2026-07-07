@@ -116,6 +116,9 @@ export default function AdminScrapersPage() {
     setScraping(true);
     show('🔄 正在采集，请稍候...');
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 90000); // 90秒超时
+      show('🔄 正在采集，请稍候（最多90秒）...');
       const res = await fetch('/api/admin/scrape-import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -125,7 +128,9 @@ export default function AdminScrapersPage() {
           province: scrapeProvince || undefined,
           limit: parseInt(scrapeLimit) || 10,
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       const data = await res.json() as any;
       if (data.success) {
         const d = data.data;
@@ -133,7 +138,13 @@ export default function AdminScrapersPage() {
       } else {
         show(`❌ 采集失败: ${data.error}`);
       }
-    } catch { show('❌ 网络错误'); }
+    } catch (e: any) {
+      if (e.name === 'AbortError') {
+        show('❌ 请求超时（90秒），代理服务器响应太慢');
+      } else {
+        show(`❌ 网络错误: ${e.message}`);
+      }
+    }
     finally { setScraping(false); }
   };
 
