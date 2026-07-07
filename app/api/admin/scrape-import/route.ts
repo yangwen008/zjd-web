@@ -103,6 +103,54 @@ function mapAssetType(landType: string): string {
 }
 
 // 从 HTML 解析列表数据
+// 从详情页 HTML 解析描述和图片
+function parseDetailHtml(html: string): { description: string; images: string[] } {
+  let description = '';
+  const images: string[] = [];
+
+  // 1. 描述：从"其他说明"区域的 .cont-b .f18 提取
+  const descMatch = html.match(/其他说明[\s\S]*?<div[^>]*class="[^"]*cont-b[^"]*c9[^"]*f14[^"]*"[^>]*>[\s\S]*?<div[^>]*class="f18[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+  if (descMatch) {
+    description = descMatch[1].replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 800);
+  }
+
+  // 2. 土地信息：从 .cont-b.land-info 提取结构化数据
+  const landInfoMatch = html.match(/<div[^>]*class="cont-b land-info[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/);
+  if (landInfoMatch) {
+    const block = landInfoMatch[1];
+    const pairs = [...block.matchAll(/<span>([^<]+：)<\/span><span[^>]*class="c3"[^>]*>([^<]*)<\/span>/g)];
+    const parts: string[] = [];
+    for (const m of pairs) {
+      const label = m[1].replace('：', '').trim();
+      const value = m[2].trim();
+      if (value && value !== '不详') parts.push(`${label}：${value}`);
+    }
+    if (parts.length > 0) description += (description ? '\n' : '') + '土地属性：' + parts.join('；');
+  }
+
+  // 3. 图片：从 #Jimg-show 区域提取
+  const imgShowMatch = html.match(/id="Jimg-show"[\s\S]*?<ul[\s\S]*?>([\s\S]*?)<\/ul>/);
+  if (imgShowMatch) {
+    const imgSrcs = [...imgShowMatch[1].matchAll(/<img[^>]*src="(http[^"]*static\.jutubao\.com[^"]*)"[^>]*>/g)];
+    for (const m of imgSrcs) {
+      images.push(m[1].split('?')[0]);
+    }
+  }
+
+  // 4. 备用：扫描所有 static.jutubao.com 图片
+  if (images.length === 0) {
+    const allImgs = [...html.matchAll(/<img[^>]*src="(http[^"]*static\.jutubao\.com[^"?]*)"[^>]*>/g)];
+    for (const m of allImgs) {
+      const src = m[1];
+      if (!src.includes('logo') && !src.includes('icon') && !src.includes('qrcode')) {
+        images.push(src);
+      }
+    }
+  }
+
+  return { description, images };
+}
+
 function parseListHtml(html: string): any[] {
   const items: any[] = [];
   // 聚土网列表结构：<li><a href="/tudi/content-xxx">...</a></li>
@@ -260,11 +308,29 @@ export async function POST(request: Request) {
         const existing = await queryOne<{ id: number }>('SELECT id FROM assets WHERE source_url = ?', fullLink);
         if (existing) { skipped++; continue; }
 
-        // 图片：下载并上传R2
+        // 抓取详情页（描述+图片）
+        let detailDesc = '';
+        let detailImages: string[] = [];
+        try {
+          const detailRes = await fetch(fullLink, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36', 'Referer': 'http://www.jutubao.com/' },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (detailRes.ok) {
+            const detailHtml = await detailRes.text();
+            const detail = parseDetailHtml(detailHtml);
+            detailDesc = detail.description;
+            detailImages = detail.images;
+          }
+        } catch { /* 详情页抓取失败，继续用列表页数据 */ }
+
+        // 图片：优先用详情页图片（更清晰），fallback 到列表页缩略图
         let imagesJson = '[]';
-        if (item.imgSrc) {
+        const allImageUrls = detailImages.length > 0 ? detailImages : (item.imgSrc ? [item.imgSrc] : []);
+        const uploadedUrls: string[] = [];
+        for (const imgUrl of allImageUrls.slice(0, 8)) {
           try {
-            const imgRes = await fetch(item.imgSrc, {
+            const imgRes = await fetch(imgUrl, {
               headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'http://www.jutubao.com/' },
               signal: AbortSignal.timeout(5000),
             });
@@ -277,12 +343,13 @@ export async function POST(request: Request) {
                   const key = `scraped/${Date.now()}-${Math.random().toString(36).substring(2, 6)}.${ext}`;
                   const env = getEnv();
                   await env.R2.put(key, buffer, { httpMetadata: { contentType: ct } });
-                  imagesJson = JSON.stringify([`/api/images/${key}`]);
+                  uploadedUrls.push(`/api/images/${key}`);
                 }
               }
             }
-          } catch { /* 图片下载失败，保留空 */ }
+          } catch { /* 单张图片失败不影响整体 */ }
         }
+        if (uploadedUrls.length > 0) imagesJson = JSON.stringify(uploadedUrls);
 
         await execute(
           `INSERT INTO assets (
@@ -292,7 +359,7 @@ export async function POST(request: Request) {
             status, user_id, created_at, updated_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
           item.title,
-          null,
+          detailDesc || null,
           item.location.replace(/所在地区：?/, '').replace(/\s/g, ''),
           loc.province, loc.city, loc.district,
           areaMu, price_year, price_total, leaseYears,
