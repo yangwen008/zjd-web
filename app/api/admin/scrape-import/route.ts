@@ -100,10 +100,10 @@ function mapAssetType(landType: string): string {
 // 从 HTML 解析列表数据
 function parseListHtml(html: string): any[] {
   const items: any[] = [];
-  // 聚土网列表结构：<a href="/tudi/content-xxx"> 包裹整个卡片
-  const linkRegex = /<a[^>]*href="([^"]*content-[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
+  // 聚土网列表结构：<li><a href="/tudi/content-xxx">...</a></li>
+  const liRegex = /<li>\s*<a[^>]*href="([^"]*content-[^"]*)"[^>]*>([\s\S]*?)<\/a>\s*<\/li>/gi;
   let match;
-  while ((match = linkRegex.exec(html)) !== null) {
+  while ((match = liRegex.exec(html)) !== null) {
     const link = match[1];
     const block = match[2];
     if (!link || !block) continue;
