@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPublisherProfile, getPublisherAssets, getBulkProjects, type Asset, type BulkProject } from '@/lib/data';
+import PublisherContentTabs from '@/components/shared/PublisherContentTabs';
 
 const ROLE_LABELS: Record<string, string> = {
   user: '个人用户',
@@ -182,71 +183,9 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
             </div>
           </div>
 
-          {/* 右侧：发布的资产 */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 资产列表 */}
-            {assets.length > 0 && (
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-4">🏘️ 发布的资产</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {assets.map((asset) => (
-                    <Link key={asset.id} href={`/asset/${asset.id}`} className="bg-white rounded-xl border border-gray-100 overflow-hidden card-hover">
-                      <div className="h-40 relative overflow-hidden">
-                        <img src={getFirstImage(asset.images)} alt={asset.title} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                        <div className="absolute top-3 left-3">
-                          <span className="text-xs bg-white/90 text-gray-700 px-2 py-0.5 rounded">
-                            {asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人'}
-                          </span>
-                        </div>
-                        <div className="absolute bottom-3 right-3">
-                          <span className="text-xs bg-black/50 text-white px-2 py-0.5 rounded">{asset.views.toLocaleString()} 浏览</span>
-                        </div>
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-bold text-gray-900 text-sm mb-1 line-clamp-1">{asset.title}</h3>
-                        <p className="text-xs text-gray-400 mb-2">{asset.location || [asset.province, asset.city].filter(Boolean).join(' · ')}</p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-bold text-brand-green">{formatPrice(asset.price_year)}</span>
-                          <span className="text-xs text-gray-400">{asset.area_mu ? `${asset.area_mu}亩` : ''}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 大宗项目 */}
-            {bulkProjects.length > 0 && (
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-4">🏢 大宗项目</h2>
-                <div className="space-y-4">
-                  {bulkProjects.map((bp) => (
-                    <Link key={bp.id} href={`/bulk-projects/${bp.id}`} className="block bg-white rounded-xl border border-gray-100 p-4 card-hover">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-bold text-gray-900 text-sm mb-1">{bp.title}</h3>
-                          <p className="text-xs text-gray-400">{bp.location || [bp.province, bp.city].filter(Boolean).join(' · ')}</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-bold text-brand-green">{bp.price_start ? `¥${bp.price_start}万/年起` : '价格面议'}</div>
-                          <div className="text-xs text-gray-400">{bp.area_sqm ? `${bp.area_sqm}㎡` : bp.area_mu ? `${bp.area_mu}亩` : ''}</div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 无资产 */}
-            {assets.length === 0 && bulkProjects.length === 0 && (
-              <div className="text-center py-16 text-gray-400">
-                <div className="text-5xl mb-4">📭</div>
-                <p className="text-lg">该发布者暂无在架资产</p>
-              </div>
-            )}
+          {/* 右侧：发布内容（Tab 分栏切换） */}
+          <div className="lg:col-span-2">
+            <PublisherContentTabs assets={assets} bulkProjects={bulkProjects} />
           </div>
         </div>
       </div>
