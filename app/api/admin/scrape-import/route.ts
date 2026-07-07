@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
-import { execute, queryOne, getEnv } from '@/lib/db';
+import { execute, queryOne } from '@/lib/db';
 import { getUserFromRequest, type User } from '@/lib/auth';
 import { writeAuditLog } from '@/lib/audit';
 
@@ -10,8 +10,13 @@ async function getAdminUser(request: Request): Promise<User | null> {
   // 先检查 admin_token（Admin 后台登录）
   const cookie = request.headers.get('cookie') || '';
   if (cookie.includes('admin_token=')) {
-    // admin_token 已在 middleware 验证，直接返回虚拟 admin 用户
-    return { id: 0, nickname: '管理员', role: 'superadmin', status: 'active' } as User;
+    // admin_token 已在 middleware 验证，从数据库查真实管理员
+    const admin = await queryOne<User>(
+      `SELECT * FROM users WHERE role IN ('admin', 'superadmin') AND status = 'active' ORDER BY id LIMIT 1`
+    );
+    if (admin) return admin;
+    // 兜底：返回虚拟用户
+    return { id: 1, nickname: '管理员', role: 'superadmin', status: 'active' } as User;
   }
   // 再检查 user_session（用户登录）
   const user = await getUserFromRequest(request);
@@ -177,28 +182,7 @@ function parsePrice(priceNum: string, priceUnit: string) {
   return { price_year: null, price_total: null };
 }
 
-// 下载图片上传到 R2（通过代理服务器下载，绕过反爬）
-const PROXY_BASE_IMG = 'http://112.44.232.181:8443';
 
-async function uploadImageToR2(r2: R2Bucket, url: string): Promise<string | null> {
-  try {
-    if (!url || url.startsWith('/api/images/')) return url;
-    const proxyUrl = `${PROXY_BASE_IMG}/fetch?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl, {
-      headers: { 'X-Forwarded-Referer': 'http://www.jutubao.com/' },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!res.ok) return null;
-    const ct = res.headers.get('content-type') || '';
-    if (!ct.startsWith('image/')) return null;
-    const buffer = await res.arrayBuffer();
-    if (buffer.byteLength > 5 * 1024 * 1024) return null;
-    const ext = ct.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
-    const key = `scraped/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-    await r2.put(key, buffer, { httpMetadata: { contentType: ct } });
-    return `/api/images/${key}`;
-  } catch { return null; }
-}
 
 export async function POST(request: Request) {
   // 强制返回 JSON（防止 Worker 崩溃返回 HTML）
@@ -221,7 +205,7 @@ export async function POST(request: Request) {
     const landType = body.type || 'nongfang';
     const province = body.province || '';
     const limit = Math.min(body.limit || 10, 50);
-    const env = getEnv();
+
 
     // 获取来源账号（聚土网 → 自动创建的 project_publisher 账号）
     const sourceAccount = await queryOne<{ user_id: number }>(
@@ -265,7 +249,6 @@ export async function POST(request: Request) {
     const items = rawItems.slice(0, limit);
     let imported = 0;
     let skipped = 0;
-    let imagesUploaded = 0;
     const errors: string[] = [];
 
     for (const item of items) {
@@ -310,7 +293,7 @@ export async function POST(request: Request) {
     await writeAuditLog({
       userId: user.id, userRole: user.role,
       action: 'scrape-import', module: 'scraper', targetType: 'scraped_data',
-      detail: `一键采集(${LAND_TYPE_NAMES[landType] || landType}): ${imported}条导入, ${skipped}条跳过, ${imagesUploaded}张图片上传R2`,
+      detail: `一键采集(${LAND_TYPE_NAMES[landType] || landType}): ${imported}条导入, ${skipped}条跳过`,
       request,
     });
 
@@ -323,7 +306,7 @@ export async function POST(request: Request) {
         total: items.length,
         imported,
         skipped,
-        imagesUploaded,
+
         failed: errors.length,
         errors: errors.slice(0, 5),
       },
