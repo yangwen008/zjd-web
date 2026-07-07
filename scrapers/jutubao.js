@@ -249,21 +249,68 @@ async function scrapeDetailPage(page, url) {
         return el ? el.textContent.trim() : '';
       };
       
-      // 描述
-      const descEl = document.querySelector('.intro-con, .detail-intro, [class*="intro"], [class*="desc"], [class*="jianjie"]');
-      const description = descEl ? descEl.textContent.trim().substring(0, 800) : '';
-      
-      // 详情页图片（多张）
-      const images = [];
-      const imgEls = document.querySelectorAll('.swiper-wrapper img, .detail-img img, .banner img, [class*="banner"] img, [class*="gallery"] img');
-      for (const img of imgEls) {
-        const src = img.getAttribute('original') || img.src || '';
-        if (src && src.includes('static.jutubao.com')) {
-          images.push(src.split('?')[0]); // 去掉OSS参数
+      // 1. 描述：从"其他说明"区域提取
+      //    结构：<div class="cont-b c9 f14"> 内的 <div class="f18 c3 lh36 mb20">
+      let description = '';
+      const sections = document.querySelectorAll('section');
+      for (const sec of sections) {
+        const h2 = sec.querySelector('h2');
+        if (h2 && h2.textContent.includes('其他说明')) {
+          const descDiv = sec.querySelector('.cont-b .f18, .cont-b.c9');
+          if (descDiv) {
+            description = descDiv.textContent.trim().substring(0, 800);
+          }
+          // 如果没有文字描述，尝试拼接土地信息
+          break;
         }
       }
       
-      return { description, images };
+      // 2. 土地信息：结构化数据拼接
+      //    结构：<div class="cont-b land-info"> > <ul> > <li> > <div>
+      const landInfoParts = [];
+      const landInfoDiv = document.querySelector('.cont-b.land-info');
+      if (landInfoDiv) {
+        const spans = landInfoDiv.querySelectorAll('span.c3');
+        const labels = landInfoDiv.querySelectorAll('span:not(.c3)');
+        for (let i = 0; i < labels.length; i++) {
+          const label = labels[i].textContent.replace('：', '').trim();
+          const value = spans[i] ? spans[i].textContent.trim() : '';
+          if (value && value !== '不详') {
+            landInfoParts.push(`${label}：${value}`);
+          }
+        }
+      }
+      const landInfoStr = landInfoParts.length > 0 ? '\n土地属性：' + landInfoParts.join('；') : '';
+      
+      // 合并描述
+      const fullDescription = (description + landInfoStr).trim();
+      
+      // 3. 图片：从"图片展示"区域提取
+      //    结构：<div id="Jimg-show"> > <ul> > <li> > <img src="...">
+      const images = [];
+      const imgContainer = document.getElementById('Jimg-show');
+      if (imgContainer) {
+        const imgEls = imgContainer.querySelectorAll('img');
+        for (const img of imgEls) {
+          const src = img.src || img.getAttribute('original') || '';
+          if (src && src.includes('static.jutubao.com')) {
+            images.push(src.split('?')[0]); // 去掉OSS参数
+          }
+        }
+      }
+      
+      // 4. 备用：如果 #Jimg-show 没找到，用其他方式
+      if (images.length === 0) {
+        const allImgs = document.querySelectorAll('img[src*="static.jutubao.com"]');
+        for (const img of allImgs) {
+          const src = img.src || '';
+          if (src && !src.includes('logo') && !src.includes('icon') && !src.includes('qrcode')) {
+            images.push(src.split('?')[0]);
+          }
+        }
+      }
+      
+      return { description: fullDescription, images };
     });
     
     return detail;
