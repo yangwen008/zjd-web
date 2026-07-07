@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
-import { execute, queryOne } from '@/lib/db';
+import { execute, queryOne, getEnv } from '@/lib/db';
 import { getUserFromRequest, type User } from '@/lib/auth';
 import { writeAuditLog } from '@/lib/audit';
 
@@ -260,10 +260,28 @@ export async function POST(request: Request) {
         const existing = await queryOne<{ id: number }>('SELECT id FROM assets WHERE source_url = ?', fullLink);
         if (existing) { skipped++; continue; }
 
-        // 图片：先保存原始URL，后续批量上传R2（避免Worker超时）
+        // 图片：下载并上传R2
         let imagesJson = '[]';
         if (item.imgSrc) {
-          imagesJson = JSON.stringify([item.imgSrc]);
+          try {
+            const imgRes = await fetch(item.imgSrc, {
+              headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'http://www.jutubao.com/' },
+              signal: AbortSignal.timeout(5000),
+            });
+            if (imgRes.ok) {
+              const ct = imgRes.headers.get('content-type') || '';
+              if (ct.startsWith('image/')) {
+                const buffer = await imgRes.arrayBuffer();
+                if (buffer.byteLength < 3 * 1024 * 1024) {
+                  const ext = ct.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
+                  const key = `scraped/${Date.now()}-${Math.random().toString(36).substring(2, 6)}.${ext}`;
+                  const env = getEnv();
+                  await env.R2.put(key, buffer, { httpMetadata: { contentType: ct } });
+                  imagesJson = JSON.stringify([`/api/images/${key}`]);
+                }
+              }
+            }
+          } catch { /* 图片下载失败，保留空 */ }
         }
 
         await execute(
