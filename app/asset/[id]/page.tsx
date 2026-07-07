@@ -90,11 +90,18 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
   }).catch(() => []);
   const similarFiltered = similar.filter((a) => a.id !== asset.id).slice(0, 3);
 
-  // 解析图片列表
+  // 解析图片列表（兼容 {url,thumb} 新格式和纯字符串旧格式）
   let imageUrls: string[] = [];
   try {
     if (asset.images) {
-      imageUrls = JSON.parse(asset.images);
+      const parsed = JSON.parse(asset.images);
+      if (Array.isArray(parsed)) {
+        imageUrls = parsed.map((item: any) => {
+          if (typeof item === 'string') return item;
+          if (typeof item === 'object' && item) return item.url || item.thumb || '';
+          return '';
+        }).filter(Boolean);
+      }
     }
   } catch {}
 

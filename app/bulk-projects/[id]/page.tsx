@@ -39,13 +39,24 @@ function getFirstImage(images: string | null): string {
   if (!images) return 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
   try {
     const arr = JSON.parse(images);
-    return Array.isArray(arr) && arr.length > 0 ? arr[0] : 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
+    if (!Array.isArray(arr) || arr.length === 0) return 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800';
+    const first = arr[0];
+    if (typeof first === 'object' && first.thumb) return first.thumb;
+    return typeof first === 'object' ? first.url : first;
   } catch { return 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800'; }
 }
 
 function getAllImages(images: string | null): string[] {
   if (!images) return [];
-  try { return JSON.parse(images); } catch { return []; }
+  try {
+    const arr = JSON.parse(images);
+    if (!Array.isArray(arr)) return [];
+    return arr.map((item: any) => {
+      if (typeof item === 'string') return item;
+      if (typeof item === 'object' && item) return item.url || item.thumb || '';
+      return '';
+    }).filter(Boolean);
+  } catch { return []; }
 }
 
 const CERT_LABELS: Record<string, { label: string; className: string }> = {

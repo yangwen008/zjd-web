@@ -11,7 +11,10 @@ function getFirstImage(images: string | null): string | null {
   if (!images) return null;
   try {
     const arr = JSON.parse(images);
-    return Array.isArray(arr) && arr.length > 0 ? arr[0] : null;
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    const first = arr[0];
+    if (typeof first === 'object' && first.thumb) return first.thumb;
+    return typeof first === 'object' ? first.url : first;
   } catch { return null; }
 }
 
