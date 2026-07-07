@@ -42,8 +42,6 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
             nonceStr: data.data.nonceStr,
             signature: data.data.signature,
             jsApiList: [
-              'onMenuShareAppMessage',
-              'onMenuShareTimeline',
               'updateAppMessageShareData',
               'updateTimelineShareData',
             ],
@@ -52,38 +50,24 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
           wx.ready(() => {
             console.log('[WxShare] wx.ready, 注入分享数据');
 
-            // 老版 API（兼容性最好，微信 7.0+ 都支持）
-            wx.onMenuShareAppMessage({
-              title: title,
-              desc: desc,
-              link: link,
-              imgUrl: imgUrl,
-              success: function () {
-                console.log('[WxShare] onMenuShareAppMessage success');
-              },
-            });
-
-            wx.onMenuShareTimeline({
-              title: title,
-              link: link,
-              imgUrl: imgUrl,
-              success: function () {
-                console.log('[WxShare] onMenuShareTimeline success');
-              },
-            });
-
-            // 新版 API（备用）
+            // 新版 API（微信 6.7.2+）
             wx.updateAppMessageShareData({
               title: title,
               desc: desc,
               link: link,
               imgUrl: imgUrl,
+              success: function () {
+                console.log('[WxShare] updateAppMessageShareData success');
+              },
             });
 
             wx.updateTimelineShareData({
               title: title,
               link: link,
               imgUrl: imgUrl,
+              success: function () {
+                console.log('[WxShare] updateTimelineShareData success');
+              },
             });
           });
 
