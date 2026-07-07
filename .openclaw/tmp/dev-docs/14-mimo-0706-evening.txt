@@ -1,0 +1,13 @@
+2026-07-06 晚上开发工作总结
+一、代码质量问题修复（4 项）
+数据库变更：
+sql/schema.sql — admin_audit_logs 表新增 6 列
+sql/audit-logs-upgrade.sql — 新建，现有数据库 ALTER TABLE 迁移脚本（需手动执行）
+二、微信 JSSDK 分享
+服务器变更：
+/opt/weixin-proxy.js — 新增 handleFetch() 函数 + /fetch 路由
+/etc/systemd/system/wx-proxy.service — 新建 systemd 服务，开机自启
+三、采集系统代理
+四、文档
+五、Git 提交记录
+六、待完成事项

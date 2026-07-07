@@ -1,0 +1,16 @@
+今日工作总结（2026-06-30）
+一、项目分析
+生成了完整的项目分析报告，梳理了数据库架构、权限系统、API 路由、前端页面等全部内容。
+二、修改的文件
+三、新建的文件
+四、核心 Bug 修复
+地址下拉框无法选择
+现象：发布页「资产类型」「流转年限」下拉框正常，但「省份」「城市」下拉框能弹出选项却无法选中
+排查过程：尝试了 6 种方案（去 inline style、自定义 DropdownSelect、复用 RegionSelector、极简内联 select、去 bg-gray-50、去 outline-none）全部失败
+根因：React 'use client' 子组件内的原生 <select> 在特定渲染边界下丢失交互能力
+解决：将省份/城市 <select> 直接写在主表单 JSX 中（与「资产类型」同级），不使用子组件
+影响范围：发布页已修复；注册页的 RegionSelector 仍有同样问题，后续需统一处理
+五、推送统计
+共 13 次 commit 推送到 GitHub main 分支
+每次推送触发 Cloudflare Pages 自动部署
+使用了约 8 个 GitHub PAT（频繁过期 revoke）

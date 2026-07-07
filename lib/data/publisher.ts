@@ -31,12 +31,20 @@ export async function getPublisherProfile(id: number | string): Promise<Publishe
   );
 }
 
-export async function getPublisherAssets(userId: number | string, limit: number = 12): Promise<Asset[]> {
+export async function getPublisherAssets(userId: number | string, limit: number = 12, offset: number = 0): Promise<Asset[]> {
   return query<Asset>(
     `SELECT a.*, u.nickname as publisher_name, u.role as publisher_role
      FROM assets a LEFT JOIN users u ON a.user_id = u.id
      WHERE a.user_id = ? AND a.status = 'approved'
-     ORDER BY a.featured DESC, a.created_at DESC LIMIT ?`,
-    userId, limit
+     ORDER BY a.featured DESC, a.created_at DESC LIMIT ? OFFSET ?`,
+    userId, limit, offset
   );
+}
+
+export async function getPublisherAssetCount(userId: number | string): Promise<number> {
+  const row = await queryOne<{ cnt: number }>(
+    `SELECT COUNT(*) as cnt FROM assets WHERE user_id = ? AND status = 'approved'`,
+    userId
+  );
+  return row?.cnt ?? 0;
 }

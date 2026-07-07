@@ -1,0 +1,19 @@
+2026-07-03上午 工作总结
+共 26 次提交，37 个文件变更，+1786 行 / -168 行
+一、分页系统（3个列表页 + 1个公开API）
+关联改动：首页/导航栏的村委链接从 /search?source=village → /village
+二、发布者资料页
+三、拼单认购系统（参投）
+业务逻辑：允许超额认购（防恶意占位），发布者可手动填单价或由年租金÷份数自动计算
+四、机构/村委介绍
+五、TipTap富文本编辑器
+六、UI/UX修复
+七、数据库变更汇总
+执行迁移命令：
+bash
+wrangler d1 execute zjd-main --remote --file=./sql/invest-migration.sql
+wrangler d1 execute zjd-main --remote --file=./sql/invest-migration.sql
+迁移内容：
+sql
+-- assets 表 +5字段ALTER TABLE assets ADD COLUMN invest_enabled INTEGER DEFAULT 0;ALTER TABLE assets ADD COLUMN invest_total_shares INTEGER;ALTER TABLE assets ADD COLUMN invest_share_price REAL;ALTER TABLE assets ADD COLUMN invest_min_shares INTEGER DEFAULT 1;ALTER TABLE assets ADD COLUMN invest_sold_shares INTEGER DEFAULT 0;-- bulk_projects 表 +5字段（同上）-- users 表 +1字段ALTER TABLE users ADD COLUMN bio TEXT;-- 新建 investments 表 + 3个索引CREATE TABLE investments (...);
+-- assets 表 +5字段ALTER TABLE assets ADD COLUMN invest_enabled INTEGER DEFAULT 0;ALTER TABLE assets ADD COLUMN invest_total_shares INTEGER;ALTER TABLE assets ADD COLUMN invest_share_price REAL;ALTER TABLE assets ADD COLUMN invest_min_shares INTEGER DEFAULT 1;ALTER TABLE assets ADD COLUMN invest_sold_shares INTEGER DEFAULT 0;-- bulk_projects 表 +5字段（同上）-- users 表 +1字段ALTER TABLE users ADD COLUMN bio TEXT;-- 新建 investments 表 + 3个索引CREATE TABLE investments (...);

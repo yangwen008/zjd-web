@@ -42,6 +42,6 @@ export {
 
 // 发布者
 export {
-  getPublisherProfile, getPublisherAssets,
+  getPublisherProfile, getPublisherAssets, getPublisherAssetCount,
   type PublisherProfile,
 } from './publisher';
