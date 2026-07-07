@@ -21,6 +21,7 @@ export async function GET(request: Request) {
         role_label: ROLE_LABELS[user.role] || user.role,
         avatar_url: user.avatar_url,
         verified: user.verified,
+        real_name: user.real_name,
         permissions,
         broker_region: user.broker_region,
         broker_specialties: user.broker_specialties,
@@ -43,6 +44,7 @@ export async function PUT(request: Request) {
     const body = await request.json() as {
       nickname?: string;
       avatar_url?: string;
+      real_name?: string;
       broker_region?: string;
       broker_specialties?: string;
       broker_bio?: string;
@@ -56,6 +58,7 @@ export async function PUT(request: Request) {
 
     if (body.nickname !== undefined) { updates.push('nickname = ?'); args.push(body.nickname); }
     if (body.avatar_url !== undefined) { updates.push('avatar_url = ?'); args.push(body.avatar_url); }
+    if (body.real_name !== undefined) { updates.push('real_name = ?'); args.push(body.real_name || null); }
     if (body.broker_region !== undefined) { updates.push('broker_region = ?'); args.push(body.broker_region); }
     if (body.broker_specialties !== undefined) { updates.push('broker_specialties = ?'); args.push(body.broker_specialties); }
     if (body.broker_bio !== undefined) { updates.push('broker_bio = ?'); args.push(body.broker_bio); }

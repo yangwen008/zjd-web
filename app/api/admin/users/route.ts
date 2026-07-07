@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     }
 
     if (action === 'update-profile') {
-      const { id, nickname, phone, real_name, org_name, bio, broker_region, broker_specialties, broker_bio, daily_quota, new_password } = body as Record<string, any>;
+      const { id, nickname, phone, real_name, avatar_url, org_name, org_license, bio, broker_region, broker_specialties, broker_bio, daily_quota, new_password } = body as Record<string, any>;
       if (!id) return NextResponse.json({ success: false, error: '缺少用户ID' }, { status: 400 });
 
       const fields: string[] = [];
@@ -81,7 +81,9 @@ export async function POST(request: Request) {
       if (nickname !== undefined) { fields.push('nickname = ?'); args.push(nickname); }
       if (phone !== undefined) { fields.push('phone = ?'); args.push(phone || null); }
       if (real_name !== undefined) { fields.push('real_name = ?'); args.push(real_name || null); }
+      if (avatar_url !== undefined) { fields.push('avatar_url = ?'); args.push(avatar_url || null); }
       if (org_name !== undefined) { fields.push('org_name = ?'); args.push(org_name || null); }
+      if (org_license !== undefined) { fields.push('org_license = ?'); args.push(org_license || null); }
       if (bio !== undefined) { fields.push('bio = ?'); args.push(bio || null); }
       if (broker_region !== undefined) { fields.push('broker_region = ?'); args.push(broker_region || null); }
       if (broker_specialties !== undefined) { fields.push('broker_specialties = ?'); args.push(broker_specialties || null); }
