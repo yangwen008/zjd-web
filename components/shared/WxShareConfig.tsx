@@ -51,10 +51,12 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
             console.log('[WxShare] wx.ready, 注入分享数据');
 
             // 新版 API（微信 6.7.2+）
+            // link 加时间戳参数，强制微信重新抓取预览（避免缓存）
+            var shareLink = link + (link.indexOf('?') > -1 ? '&' : '?') + '_wx=' + Date.now();
             wx.updateAppMessageShareData({
               title: title,
               desc: desc,
-              link: link,
+              link: shareLink,
               imgUrl: imgUrl,
               success: function () {
                 console.log('[WxShare] updateAppMessageShareData success');
@@ -63,7 +65,7 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
 
             wx.updateTimelineShareData({
               title: title,
-              link: link,
+              link: shareLink,
               imgUrl: imgUrl,
               success: function () {
                 console.log('[WxShare] updateTimelineShareData success');

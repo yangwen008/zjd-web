@@ -52,6 +52,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       type: 'website',
       locale: 'zh_CN',
     },
+    other: {
+      'itemprop:name': asset.title,
+      'itemprop:description': desc,
+      'itemprop:image': imageUrl,
+    },
     twitter: {
       card: 'summary_large_image',
       title: asset.title,
