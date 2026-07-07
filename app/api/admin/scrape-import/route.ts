@@ -186,7 +186,7 @@ async function uploadImageToR2(r2: R2Bucket, url: string): Promise<string | null
     const proxyUrl = `${PROXY_BASE_IMG}/fetch?url=${encodeURIComponent(url)}`;
     const res = await fetch(proxyUrl, {
       headers: { 'X-Forwarded-Referer': 'http://www.jutubao.com/' },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
     const ct = res.headers.get('content-type') || '';
@@ -239,7 +239,7 @@ export async function POST(request: Request) {
       headers: {
         'X-Forwarded-Referer': 'http://www.jutubao.com/',
       },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!res.ok) {
@@ -272,16 +272,10 @@ export async function POST(request: Request) {
         const existing = await queryOne<{ id: number }>('SELECT id FROM assets WHERE source_url = ?', fullLink);
         if (existing) { skipped++; continue; }
 
-        // 下载图片上传 R2
+        // 图片：先保存原始URL，后续批量上传R2（避免Worker超时）
         let imagesJson = '[]';
         if (item.imgSrc) {
-          const r2Url = await uploadImageToR2(env.R2, item.imgSrc);
-          if (r2Url) {
-            imagesJson = JSON.stringify([r2Url]);
-            imagesUploaded++;
-          } else {
-            imagesJson = JSON.stringify([item.imgSrc]); // 上传失败保留原始
-          }
+          imagesJson = JSON.stringify([item.imgSrc]);
         }
 
         await execute(
