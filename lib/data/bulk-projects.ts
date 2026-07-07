@@ -78,7 +78,12 @@ export async function getBulkProjectsCount(params: BulkProjectFilters = {}): Pro
 
 export async function getBulkProjectById(id: number | string): Promise<BulkProject | null> {
   return queryOne<BulkProject>(
-    'SELECT bp.*, u.nickname as publisher_name, u.role as publisher_role FROM bulk_projects bp LEFT JOIN users u ON bp.user_id = u.id WHERE bp.id = ? AND bp.status = ?',
+    `SELECT bp.*,
+            COALESCE(bp.contact_phone, u.phone) as contact_phone,
+            COALESCE(bp.contact_name, u.nickname) as contact_name,
+            u.nickname as publisher_name, u.role as publisher_role
+     FROM bulk_projects bp LEFT JOIN users u ON bp.user_id = u.id
+     WHERE bp.id = ? AND bp.status = ?`,
     id, 'approved'
   );
 }

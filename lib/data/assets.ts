@@ -133,7 +133,12 @@ export async function getAssetsCount(params: AssetFilters = {}): Promise<number>
 
 export async function getAssetById(id: number | string): Promise<Asset | null> {
   return queryOne<Asset>(
-    'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role, u.avatar_url as publisher_avatar FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.id = ? AND a.status = ?',
+    `SELECT a.*,
+            COALESCE(a.contact_phone, u.phone) as contact_phone,
+            COALESCE(a.contact_name, u.nickname) as contact_name,
+            u.nickname as publisher_name, u.role as publisher_role, u.avatar_url as publisher_avatar
+     FROM assets a LEFT JOIN users u ON a.user_id = u.id
+     WHERE a.id = ? AND a.status = ?`,
     id, 'approved'
   );
 }
