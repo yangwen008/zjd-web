@@ -19,8 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const siteUrl = 'https://zjd.cn';
 
-  // OG 图片：必须用本地可访问的图片（微信爬虫访问不了 Unsplash 等外链）
-  // 使用压缩版 logo（9.7KB），微信建议图片 ≤32KB
+  // OG 图片：优先用资产图片，外链用 logo 兜底
   let imageUrl = `${siteUrl}/logo-share.jpg`;
   if (asset.images) {
     try {
@@ -28,11 +27,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       if (Array.isArray(arr) && arr.length > 0) {
         const first = arr[0];
         const rawUrl = typeof first === 'object' ? (first.url || first.thumb || '') : first;
-        if (rawUrl && rawUrl.startsWith('/api/images/')) {
-          // 本地 R2 图片，直接用
-          imageUrl = `${siteUrl}${rawUrl}`;
+        if (rawUrl) {
+          if (rawUrl.startsWith('/api/images/')) {
+            // R2 本地图片，直接用
+            imageUrl = `${siteUrl}${rawUrl}`;
+          } else if (rawUrl.startsWith('http')) {
+            // 外链图片（Unsplash等），也尝试用
+            imageUrl = rawUrl;
+          }
         }
-        // 外链图片（Unsplash等）不用，fallback 到 logo.png
       }
     } catch {}
   }
@@ -138,10 +141,14 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     ? (typeof imageUrls[0] === 'object' ? (imageUrls[0] as any).url || (imageUrls[0] as any).thumb || '' : imageUrls[0])
     : '';
   // 绝对 URL 直接用，已含 /api/images/ 的直接拼域名，其他走代理
-  // JSSDK 分享图片：使用压缩版 logo（9.7KB），微信建议 ≤32KB
+  // JSSDK 分享图片：优先用资产图片，外链也尝试用
   let shareImage = `${siteUrl}/logo-share.jpg`;
-  if (firstImageRaw && firstImageRaw.startsWith('/api/images/')) {
-    shareImage = `${siteUrl}${firstImageRaw}`;
+  if (firstImageRaw) {
+    if (firstImageRaw.startsWith('/api/images/')) {
+      shareImage = `${siteUrl}${firstImageRaw}`;
+    } else if (firstImageRaw.startsWith('http')) {
+      shareImage = firstImageRaw;
+    }
   }
 
   return (
