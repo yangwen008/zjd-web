@@ -27,6 +27,10 @@ export default function MyAssetsPage() {
   const [scope, setScope] = useState<'mine' | 'all'>('mine');
   const [isAdmin, setIsAdmin] = useState(false);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const PAGE_SIZE = 12;
 
   useEffect(() => {
     // 检查用户角色
@@ -40,18 +44,30 @@ export default function MyAssetsPage() {
       .catch(() => {});
   }, []);
 
+  // 搜索或切换范围时重置到第1页
+  useEffect(() => { setPage(1); }, [scope, search]);
+
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
     if (scope === 'all') params.set('scope', 'all');
     if (search.trim()) params.set('search', search.trim());
-    params.set('limit', '100');
+    params.set('page', String(page));
+    params.set('limit', String(PAGE_SIZE));
     const url = `/api/dashboard/assets?${params.toString()}`;
     fetch(url)
       .then((r) => r.json())
-      .then((d: any) => { if (d.success) setAssets(d.data || []); })
+      .then((d: any) => {
+        if (d.success) {
+          setAssets(d.data || []);
+          if (d.pagination) {
+            setTotalPages(d.pagination.totalPages || 1);
+            setTotal(d.pagination.total || 0);
+          }
+        }
+      })
       .finally(() => setLoading(false));
-  }, [scope, search]);
+  }, [scope, search, page]);
 
   return (
     <div>
@@ -143,6 +159,53 @@ export default function MyAssetsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* 分页栏 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <span className="text-sm text-gray-500">共 {total} 条，第 {page}/{totalPages} 页</span>
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setPage(1)}
+              disabled={page <= 1}
+              className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >首页</button>
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >上一页</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+              .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...');
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, i) =>
+                typeof p === 'string' ? (
+                  <span key={`gap-${i}`} className="px-1 text-gray-400">...</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`px-3 py-1.5 text-sm border rounded-lg transition-colors ${p === page ? 'bg-brand-green text-white border-brand-green' : 'border-gray-200 hover:bg-gray-50'}`}
+                  >{p}</button>
+                )
+              )}
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >下一页</button>
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={page >= totalPages}
+              className="px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >末页</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

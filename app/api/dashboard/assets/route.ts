@@ -12,7 +12,9 @@ export async function GET(request: Request) {
     const scope = searchParams.get('scope');
     const id = searchParams.get('id');
     const search = searchParams.get('search');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+    const page = Math.max(parseInt(searchParams.get('page') || '1'), 1);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '12'), 50);
+    const offset = (page - 1) * limit;
 
     // 查单条
     if (id) {
@@ -24,11 +26,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, data: asset });
     }
 
-    let sql = 'SELECT * FROM assets';
+    const isAdmin = ['admin', 'superadmin'].includes(user.role);
+    const isAll = scope === 'all' && isAdmin;
+
+    let whereSql = '';
     const args: unknown[] = [];
     const conditions: string[] = [];
 
-    if (!(scope === 'all' && ['admin', 'superadmin'].includes(user.role))) {
+    if (!isAll) {
       conditions.push('user_id = ?');
       args.push(user.id);
     }
@@ -40,14 +45,22 @@ export async function GET(request: Request) {
     }
 
     if (conditions.length > 0) {
-      sql += ' WHERE ' + conditions.join(' AND ');
+      whereSql = ' WHERE ' + conditions.join(' AND ');
     }
 
-    sql += ' ORDER BY created_at DESC LIMIT ?';
-    args.push(limit);
+    // 查询总数
+    const countRow = await queryOne<{ total: number }>(`SELECT COUNT(*) as total FROM assets${whereSql}`, ...args);
+    const total = countRow?.total || 0;
 
-    const results = await query(sql, ...args);
-    return NextResponse.json({ success: true, data: results });
+    // 查询当前页数据
+    const dataArgs = [...args, limit, offset];
+    const results = await query(`SELECT * FROM assets${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`, ...dataArgs);
+
+    return NextResponse.json({
+      success: true,
+      data: results,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
