@@ -206,7 +206,7 @@ export default async function PublisherPage({ params, searchParams }: { params: 
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                         <div className="absolute top-3 left-3">
                           <span className="text-xs bg-white/90 text-gray-700 px-2 py-0.5 rounded">
-                            {asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人'}
+                                                        {(asset as any).source_site || (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')}
                           </span>
                         </div>
                         <div className="absolute bottom-3 right-3">

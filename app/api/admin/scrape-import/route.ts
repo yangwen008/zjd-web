@@ -355,15 +355,15 @@ export async function POST(request: Request) {
           `INSERT INTO assets (
             title, description, location, province, city, district,
             area_mu, price_year, price_total, lease_years,
-            asset_type, source_type, source_url, images,
+            asset_type, source_type, source_url, source_site, images,
             status, user_id, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
           item.title,
           detailDesc || null,
           item.location.replace(/所在地区：?/, '').replace(/\s/g, ''),
           loc.province, loc.city, loc.district,
           areaMu, price_year, price_total, leaseYears,
-          mapAssetType(item.landType), 'official', fullLink, imagesJson,
+          mapAssetType(item.landType), 'official', fullLink, '聚土网', imagesJson,
           'approved', defaultUserId,
         );
         imported++;

@@ -21,6 +21,7 @@ export interface Asset {
   asset_type: string | null;
   source_type: string;
   source_url: string | null;
+  source_site: string | null;
   images: string | null;
   video_url: string | null;
   gps_lat: number | null;

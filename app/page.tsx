@@ -105,7 +105,7 @@ function toPropertyFormat(asset: Asset, defaultImage: string) {
     location: asset.province ? `${asset.province}·${asset.city || ''}` : '全国',
     type: `${asset.lease_years || 20}年期${asset.asset_type || '宅基地'}使用权`,
     imageUrl: getFirstImage(asset.images, defaultImage),
-    badge: ((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人'),
+    badge: (asset as any).source_site || (((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方' : asset.source_type === 'village' ? '村委' : '个人')),
     certification: (asset as any).certification || 'uncertified',
   };
 }
@@ -235,7 +235,7 @@ export default async function HomePage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {latestAssets.map((a) => {
-                  const badge = a.source_type === 'official' ? '官方' : a.source_type === 'village' ? '村委' : '个人';
+                  const badge = (a as any).source_site || (a.source_type === 'official' ? '官方' : a.source_type === 'village' ? '村委' : '个人');
                   return (
                     <Link key={a.id} href={`/asset/${a.id}`} className="block">
                       <PropertyCard property={toPropertyFormat(a, defaultImage)} />
