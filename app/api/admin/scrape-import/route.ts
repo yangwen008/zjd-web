@@ -217,16 +217,18 @@ export async function POST(request: Request) {
     );
     const defaultUserId = sourceAccount?.user_id || adminUser?.id || 1;
 
-    // Step 4: 抓取页面
+    // Step 4: 直接抓取聚土网（Worker 可直连，不需要代理）
     let listUrl = 'http://www.jutubao.com/tudi/';
     if (province) {
       const provCode = PROVINCE_MAP[province] || `t-${province}`;
       listUrl = `http://www.jutubao.com/${provCode}/`;
     }
-    const PROXY_BASE = 'http://112.44.232.181:8443';
-    const proxyUrl = `${PROXY_BASE}/fetch?url=${encodeURIComponent(listUrl)}`;
-    const res = await fetch(proxyUrl, {
-      headers: { 'X-Forwarded-Referer': 'http://www.jutubao.com/' },
+    const res = await fetch(listUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+        'Referer': 'http://www.jutubao.com/',
+      },
       signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) {
