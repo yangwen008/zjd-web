@@ -194,55 +194,50 @@ export async function POST(request: Request) {
   };
 
   try {
+    // Step 1: 认证
     const user = await getAdminUser(request);
     if (!user) {
-      return jsonResponse({ success: false, error: '需要管理员权限' }, 403);
+      return jsonResponse({ success: false, error: '需要管理员权限', step: 'auth' }, 403);
     }
+
+    // Step 2: 解析请求体
     const body = await request.json().catch(() => ({})) as {
       source?: string; type?: string; province?: string; limit?: number;
     };
-
     const landType = body.type || 'nongfang';
     const province = body.province || '';
     const limit = Math.min(body.limit || 10, 50);
 
-
-    // 获取来源账号（聚土网 → 自动创建的 project_publisher 账号）
+    // Step 3: 获取默认发布者
     const sourceAccount = await queryOne<{ user_id: number }>(
       `SELECT user_id FROM source_accounts WHERE name LIKE '%聚土网%' AND enabled = 1 LIMIT 1`
     );
-    // 如果没有来源账号，找第一个管理员账号作为发布者
     const adminUser = await queryOne<{ id: number }>(
       `SELECT id FROM users WHERE role IN ('admin', 'superadmin') AND status = 'active' ORDER BY id LIMIT 1`
     );
     const defaultUserId = sourceAccount?.user_id || adminUser?.id || 1;
 
-    // 构建 URL（直接用主页，不按类型筛选）
+    // Step 4: 抓取页面
     let listUrl = 'http://www.jutubao.com/tudi/';
     if (province) {
       const provCode = PROVINCE_MAP[province] || `t-${province}`;
       listUrl = `http://www.jutubao.com/${provCode}/`;
     }
-
-    // 抓取列表页（通过代理服务器绕过反爬）
     const PROXY_BASE = 'http://112.44.232.181:8443';
     const proxyUrl = `${PROXY_BASE}/fetch?url=${encodeURIComponent(listUrl)}`;
     const res = await fetch(proxyUrl, {
-      headers: {
-        'X-Forwarded-Referer': 'http://www.jutubao.com/',
-      },
+      headers: { 'X-Forwarded-Referer': 'http://www.jutubao.com/' },
       signal: AbortSignal.timeout(10000),
     });
-
     if (!res.ok) {
-      return jsonResponse({ success: false, error: `抓取失败: HTTP ${res.status}` }, 502);
+      return jsonResponse({ success: false, error: `抓取失败: HTTP ${res.status}`, step: 'fetch' }, 502);
     }
 
+    // Step 5: 解析 HTML
     const html = await res.text();
     const rawItems = parseListHtml(html);
-
     if (rawItems.length === 0) {
-      return jsonResponse({ success: false, error: '未解析到数据，页面结构可能已变化' }, 502);
+      return jsonResponse({ success: false, error: '未解析到数据', step: 'parse' }, 502);
     }
 
     // 处理数据
@@ -312,6 +307,6 @@ export async function POST(request: Request) {
       },
     });
   } catch (error: any) {
-    return jsonResponse({ success: false, error: error.message || '未知错误' }, 500);
+    return jsonResponse({ success: false, error: error.message || '未知错误', stack: error.stack?.substring(0, 200) }, 500);
   }
 }
