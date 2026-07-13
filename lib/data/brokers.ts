@@ -32,7 +32,7 @@ export interface BrokerFilters {
 
 export async function getBrokers(limit: number = 20): Promise<Broker[]> {
   return query<Broker>(
-    "SELECT * FROM brokers WHERE status = ? ORDER BY CASE rating WHEN 'gold' THEN 1 WHEN 'silver' THEN 2 ELSE 3 END, show_count DESC LIMIT ?",
+    "SELECT b.*, COALESCE(NULLIF(b.avatar_url, ''), u.avatar_url) as avatar_url FROM brokers b LEFT JOIN users u ON b.user_id = u.id WHERE b.status = ? ORDER BY CASE b.rating WHEN 'gold' THEN 1 WHEN 'silver' THEN 2 ELSE 3 END, b.show_count DESC LIMIT ?",
     'active', limit
   );
 }
@@ -44,18 +44,18 @@ export async function getBrokersFiltered(params: BrokerFilters = {}): Promise<Br
   } = params;
 
   const limitNum = Math.min(limit, 50);
-  let sql = 'SELECT * FROM brokers WHERE status = ?';
+  let sql = 'SELECT b.*, COALESCE(NULLIF(b.avatar_url, \'\'), u.avatar_url) as avatar_url FROM brokers b LEFT JOIN users u ON b.user_id = u.id WHERE b.status = ?';
   const args: unknown[] = ['active'];
 
-  if (province) { sql += ' AND province = ?'; args.push(province); }
-  if (city) { sql += ' AND city = ?'; args.push(city); }
-  if (rating) { sql += ' AND rating = ?'; args.push(rating); }
-  if (search) { sql += ' AND (name LIKE ? OR region LIKE ? OR bio LIKE ?)'; const q = `%${search}%`; args.push(q, q, q); }
+  if (province) { sql += ' AND b.province = ?'; args.push(province); }
+  if (city) { sql += ' AND b.city = ?'; args.push(city); }
+  if (rating) { sql += ' AND b.rating = ?'; args.push(rating); }
+  if (search) { sql += ' AND (b.name LIKE ? OR b.region LIKE ? OR b.bio LIKE ?)'; const q = `%${search}%`; args.push(q, q, q); }
 
   const sortMap: Record<string, string> = {
-    rating: "CASE rating WHEN 'gold' THEN 1 WHEN 'silver' THEN 2 ELSE 3 END",
-    show_count: 'show_count DESC',
-    good_rate: 'good_rate DESC',
+    rating: "CASE b.rating WHEN 'gold' THEN 1 WHEN 'silver' THEN 2 ELSE 3 END",
+    show_count: 'b.show_count DESC',
+    good_rate: 'b.good_rate DESC',
   };
   sql += ` ORDER BY ${sortMap[sort] || sortMap.show_count} LIMIT ? OFFSET ?`;
   args.push(limitNum, (page - 1) * limitNum);
@@ -79,7 +79,7 @@ export async function getBrokersCount(params: BrokerFilters = {}): Promise<numbe
 
 export async function getBrokerById(id: number | string): Promise<Broker | null> {
   return queryOne<Broker>(
-    'SELECT * FROM brokers WHERE id = ? AND status = ?',
+    'SELECT b.*, COALESCE(NULLIF(b.avatar_url, \'\'), u.avatar_url) as avatar_url FROM brokers b LEFT JOIN users u ON b.user_id = u.id WHERE b.id = ? AND b.status = ?',
     id, 'active'
   );
 }
