@@ -28,6 +28,48 @@ function getWxConfig(): WxConfig {
   return { appId, appSecret };
 }
 
+// ============ 微信开放平台配置 ============
+
+interface WxOpenConfig {
+  appId: string;
+  appSecret: string;
+}
+
+function getWxOpenConfig(): WxOpenConfig {
+  const appId = (process.env as Record<string, string>).WX_OPEN_APPID;
+  const appSecret = (process.env as Record<string, string>).WX_OPEN_APPSECRET;
+  if (!appId || !appSecret) {
+    throw new Error('WX_OPEN_APPID or WX_OPEN_APPSECRET not configured');
+  }
+  return { appId, appSecret };
+}
+
+/**
+ * 获取开放平台 OAuth URL（PC 网页扫码登录）
+ * scope: snsapi_login (网页登录专用)
+ */
+export function getOpenOAuthUrl(redirectUri: string, state: string): string {
+  const config = getWxOpenConfig();
+  const encodedUri = encodeURIComponent(redirectUri);
+  return `https://open.weixin.qq.com/connect/qrconnect?appid=${config.appId}&redirect_uri=${encodedUri}&response_type=code&scope=snsapi_login&state=${state}#wechat_redirect`;
+}
+
+/**
+ * 用 code 换取开放平台 OAuth token
+ */
+export async function getOpenOAuthToken(code: string): Promise<WxOAuthToken> {
+  const config = getWxOpenConfig();
+  const url = wxApiUrl(`/sns/oauth2/access_token?appid=${config.appId}&secret=${config.appSecret}&code=${code}&grant_type=authorization_code`);
+  const res = await fetch(url);
+  const data = await res.json() as WxOAuthToken & { errcode?: number; errmsg?: string };
+
+  if ((data as any).errcode) {
+    throw new Error(`Open OAuth token error: ${(data as any).errmsg} (${(data as any).errcode})`);
+  }
+
+  return data;
+}
+
 // ============ Access Token 管理 (带 D1 缓存) ============
 
 interface TokenCache {

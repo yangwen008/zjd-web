@@ -17,3 +17,7 @@ bucket_name = "zjd-assets"
 # GEMINI_API_KEY — 通过 Cloudflare Dashboard 的 Environment Variables 或 wrangler secret 设置
 # ADMIN_PASSWORD — 通过 Cloudflare Dashboard 的 Environment Variables 或 wrangler secret 设置
 # SIGNING_SECRET — 通过 Cloudflare Dashboard 的 Environment Variables 或 wrangler secret 设置
+# WX_APPID — 微信公众号 AppID
+# WX_APPSECRET — 微信公众号 AppSecret
+# WX_OPEN_APPID — 微信开放平台 AppID (PC网页扫码登录)
+# WX_OPEN_APPSECRET — 微信开放平台 AppSecret
