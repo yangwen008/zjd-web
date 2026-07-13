@@ -90,24 +90,30 @@ export default function AdminBrokersPage() {
   const handleSave = async (id: number) => {
     setSaving(id);
     try {
+      // id=0 表示从 users 表导入的合伙人，需要先创建 brokers 记录
+      const action = id === 0 ? 'add' : 'update';
+      const body: any = {
+        action,
+        name: editData.name,
+        region: editData.region,
+        province: editData.province,
+        city: editData.city,
+        bio: editData.bio,
+        specialties: editData.specialties,
+        rating: editData.rating,
+        show_count: editData.show_count,
+        good_rate: editData.good_rate,
+        phone: editData.phone_encrypted,
+        avatar_url: editData.avatar_url,
+      };
+      if (id !== 0) body.id = id;
+      // 如果是待导入的，带上 user_id
+      if (id === 0) body.user_id = (editData as any).user_id;
+
       const res = await fetch('/api/admin/brokers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'update',
-          id,
-          name: editData.name,
-          region: editData.region,
-          province: editData.province,
-          city: editData.city,
-          bio: editData.bio,
-          specialties: editData.specialties,
-          rating: editData.rating,
-          show_count: editData.show_count,
-          good_rate: editData.good_rate,
-          phone: editData.phone_encrypted,
-          avatar_url: editData.avatar_url,
-        }),
+        body: JSON.stringify(body),
       });
       const json: any = await res.json();
       if (json.success) {
@@ -323,9 +329,10 @@ export default function AdminBrokersPage() {
               <tr><td colSpan={13} className="px-4 py-8 text-center text-gray-400">加载中...</td></tr>
             ) : brokers.length > 0 ? brokers.map((row) => {
               const isEditing = editRow === row.id;
+              const isPending = row.status === 'pending_import';
               return (
-                <tr key={row.id} className={`hover:bg-gray-50/50 ${isEditing ? 'bg-blue-50/20' : ''}`}>
-                  <td className="px-4 py-3 text-gray-400">#{row.id}</td>
+                <tr key={`${row.user_id || ''}-${row.id}`} className={`hover:bg-gray-50/50 ${isEditing ? 'bg-blue-50/20' : ''} ${isPending ? 'bg-yellow-50/30' : ''}`}>
+                  <td className="px-4 py-3 text-gray-400">{isPending ? '🆕' : `#${row.id}`}</td>
                   <td className="px-4 py-3">
                     {isEditing ? (
                       renderInput('avatar_url', editData.avatar_url, (v) => setEditData({ ...editData, avatar_url: v }), false)
@@ -404,8 +411,8 @@ export default function AdminBrokersPage() {
                         </>
                       ) : (
                         <>
-                          <button onClick={() => handleEdit(row)} className="text-xs text-brand-green hover:underline">编辑</button>
-                          <button onClick={() => handleDelete(row.id)} className="text-xs text-red-500 hover:underline">删除</button>
+                          <button onClick={() => handleEdit(row)} className="text-xs text-brand-green hover:underline">{isPending ? '导入' : '编辑'}</button>
+                          {!isPending && <button onClick={() => handleDelete(row.id)} className="text-xs text-red-500 hover:underline">删除</button>}
                         </>
                       )}
                     </div>
