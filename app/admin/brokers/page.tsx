@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 interface Broker {
   id: number;
+  user_id?: number;
   name: string;
   region: string;
   province: string | null;
