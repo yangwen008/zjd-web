@@ -26,6 +26,17 @@ function formatPrice(price: number | null): string {
   return `¥${price}万/年起`;
 }
 
+function getFirstImage(images: string | null): string | undefined {
+  if (!images) return undefined;
+  try {
+    const arr = JSON.parse(images);
+    if (!Array.isArray(arr) || arr.length === 0) return undefined;
+    const first = arr[0];
+    if (typeof first === 'object' && first) return first.thumb || first.url || undefined;
+    return typeof first === 'string' ? first : undefined;
+  } catch { return undefined; }
+}
+
 export default async function BrokerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -135,6 +146,7 @@ export default async function BrokerDetailPage({ params }: { params: Promise<{ i
                     views={asset.views}
                     price={formatPrice(asset.price_year)}
                     gradient={GRADIENTS[i % GRADIENTS.length]}
+                    imageUrl={getFirstImage(asset.images)}
                     href={`/asset/${asset.id}`}
                   />
                 ))}
