@@ -144,7 +144,7 @@ interface WxUserInfo {
  * @param state 防 CSRF 状态码
  * @param scope snsapi_base（静默）或 snsapi_userinfo（弹窗授权）
  */
-export function getOAuthUrl(redirectUri: string, state: string, scope: 'snsapi_base' | 'snsapi_userinfo' = 'snsapi_userinfo'): string {
+export function getOAuthUrl(redirectUri: string, state: string, scope: 'snsapi_base' | 'snsapi_userinfo' = 'snsapi_base'): string {
   const config = getWxConfig();
   const encodedUri = encodeURIComponent(redirectUri);
   return `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${config.appId}&redirect_uri=${encodedUri}&response_type=code&scope=${scope}&state=${state}#wechat_redirect`;
