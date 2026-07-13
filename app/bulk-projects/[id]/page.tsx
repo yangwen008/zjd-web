@@ -246,18 +246,19 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
                 const lat = parseFloat(String(project.gps_lat));
                 const lng = parseFloat(String(project.gps_lng));
                 if (!lat || !lng || isNaN(lat) || isNaN(lng)) return null;
+                const mapUrl = `https://apis.map.qq.com/ws/staticmap/v2/?center=${lat},${lng}&zoom=14&size=600*300&markers=size:large|color:red|${lat},${lng}&key=OB4BZ-D4W3U-B7VVO-4PJWW-6TKDJ-WPB77`;
                 return (
                   <div className="bg-white rounded-xl border border-gray-100 p-6">
                     <h2 className="font-bold text-gray-900 mb-4">📍 位置地图</h2>
-                    <div className="rounded-xl overflow-hidden" style={{ height: '300px' }}>
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        src={`https://map.qq.com/api/gl?lat=${lat}&lng=${lng}&zoom=14&marker=lat:${lat}|lng:${lng}|title:${encodeURIComponent(project.title)}`}
-                        allowFullScreen
+                    <div className="rounded-xl overflow-hidden">
+                      <img
+                        src={mapUrl}
+                        alt="位置地图"
+                        className="w-full"
+                        style={{ height: 300, objectFit: 'cover' }}
                       />
                     </div>
+                    <p className="text-xs text-gray-400 mt-2">📍 {project.location || [project.province, project.city, project.district].filter(Boolean).join(' ')}</p>
                   </div>
                 );
               })()}
