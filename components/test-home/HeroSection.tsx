@@ -31,13 +31,15 @@ export default function HeroSection({ totalAssets = '104,281', todayNew = '142' 
     <section className="bg-gradient-to-b from-gray-50 to-white py-20">
       <div className="max-w-6xl mx-auto px-4 text-center">
         
-        {/* 2. 增加标题下边距 mb-4 -> mb-6，强调词颜色改为更亮的品牌绿 #4a8c6a */}
-        <h1 className="text-5xl md:text-6xl text-gray-900 mb-6">
+        {/* 手机端：精简标题 */}
+        <h1 className="text-4xl md:hidden text-gray-900 mb-6">
+          寻找被低估的<span className="text-[#4a8c6a] italic">乡村资产</span>
+        </h1>
+        {/* 桌面端：完整标题 + 副标题 */}
+        <h1 className="hidden md:block text-6xl text-gray-900 mb-6">
           寻找被低估的 <span className="text-[#4a8c6a] italic">低密度空间资产</span>
         </h1>
-        
-        {/* 3. 副标题颜色变浅 text-gray-600 -> text-gray-500，修复无效类名 max-w-1xl -> max-w-2xl */}
-        <p className="text-lg text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p className="hidden md:block text-lg text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
           乡村资产数字化绿色流转中枢。全网多源产权低频提纯，一键交叉碰撞，让技术重归山川。
         </p>
         
