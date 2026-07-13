@@ -150,8 +150,10 @@ export async function GET(request: Request) {
     });
 
     return res;
-  } catch (error) {
+  } catch (error: any) {
     console.error('WeChat OAuth callback error:', error);
-    return NextResponse.redirect(`${siteUrl}/login?error=wx_failed`);
+    // 将错误信息编码到 URL 参数中，便于调试
+    const errMsg = encodeURIComponent(error?.message || 'unknown_error');
+    return NextResponse.redirect(`${siteUrl}/login?error=wx_failed&detail=${errMsg}`);
   }
 }
