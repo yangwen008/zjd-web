@@ -36,7 +36,7 @@ export default function RegionGrid({ regions = [], title, subtitle }: RegionGrid
             <span className="text-2xl">🔥</span>
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{title || '核心地点寻源区'}</h2>
-              <p className="text-sm text-gray-500">{subtitle || '默认按本站最热点击量、收藏量降序排列'}</p>
+              <p className="hidden md:block text-sm text-gray-500">{subtitle || '默认按本站最热点击量、收藏量降序排列'}</p>
             </div>
           </div>
           
