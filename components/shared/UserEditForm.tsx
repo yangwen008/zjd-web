@@ -248,7 +248,7 @@ export default function UserEditForm({ user, mode, onSave, onCancel, showMsg }: 
                 </div>
               ) : (
                 <a
-                  href="/api/auth/wx/bind?mode=bind"
+                  href="/api/auth/wx/login?mode=bind"
                   className="flex items-center gap-2 px-4 py-3 bg-[#07C160] hover:bg-[#06AE56] text-white rounded-xl transition-colors"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
