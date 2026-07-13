@@ -69,13 +69,13 @@ export default function HeroSection({ totalAssets = '104,281', todayNew = '142' 
           </div>
         </div>
 
-        {/* 6. 统计信息：文字变浅，数字变深灰加粗，圆点统一为绿色，中间加竖线 */}
-        <div className="flex justify-center items-center gap-4 text-sm text-gray-500">
+        {/* 6. 统计信息：手机端分两行显示，桌面端一行 */}
+        <div className="flex flex-col md:flex-row justify-center items-center gap-2 md:gap-4 text-sm text-gray-500">
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 bg-[#4a8c6a] rounded-full"></span>
             全网合规收录：<strong className="text-gray-800 font-semibold">{totalAssets}</strong> 宗
           </span>
-          <span className="text-gray-300">|</span>
+          <span className="hidden md:inline text-gray-300">|</span>
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 bg-[#4a8c6a] rounded-full"></span>
             今日村委直售/官派提纯上新：<strong className="text-gray-800 font-semibold">{todayNew}</strong> 宗
