@@ -326,20 +326,27 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                 const lat = parseFloat(String(asset.gps_lat));
                 const lng = parseFloat(String(asset.gps_lng));
                 if (!lat || !lng || isNaN(lat) || isNaN(lng)) return null;
-                const bbox = `${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}`;
+                const zoom = 14;
+                // 经纬度转瓦片坐标
+                const x = Math.floor(((lng + 180) / 360) * Math.pow(2, zoom));
+                const y = Math.floor(((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2) * Math.pow(2, zoom));
+                const tileUrl = `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`;
+                const fullMapUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=${zoom}/${lat}/${lng}`;
                 return (
                   <div className="bg-white rounded-xl border border-gray-100 p-6">
                     <h2 className="font-bold text-gray-900 mb-4">📍 位置地图</h2>
-                    <div className="rounded-xl overflow-hidden" style={{ height: 300 }}>
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        scrolling="no"
-                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`}
-                        style={{ border: 0 }}
+                    <a href={fullMapUrl} target="_blank" rel="noopener noreferrer" className="block rounded-xl overflow-hidden relative group">
+                      <img
+                        src={tileUrl}
+                        alt="位置地图"
+                        className="w-full"
+                        style={{ height: 300, objectFit: 'cover' }}
+                        crossOrigin="anonymous"
                       />
-                    </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                        <span className="bg-white/90 text-gray-700 text-sm px-4 py-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity">🗺️ 点击查看完整地图</span>
+                      </div>
+                    </a>
                     <p className="text-xs text-gray-400 mt-2">📍 {asset.location || [asset.province, asset.city, asset.district].filter(Boolean).join(' ')}</p>
                   </div>
                 );
