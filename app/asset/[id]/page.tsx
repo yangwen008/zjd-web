@@ -321,21 +321,26 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                 );
               })()}
 
-              {/* 地图展示 */}
-              {asset.gps_lat && asset.gps_lng && (
-                <div className="bg-white rounded-xl border border-gray-100 p-6">
-                  <h2 className="font-bold text-gray-900 mb-4">📍 位置地图</h2>
-                  <div className="rounded-xl overflow-hidden" style={{ height: '300px' }}>
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      src={`https://map.qq.com/api/gl?lat=${asset.gps_lat}&lng=${asset.gps_lng}&zoom=14&marker=lat:${asset.gps_lat}|lng:${asset.gps_lng}|title:${encodeURIComponent(asset.title)}`}
-                      allowFullScreen
-                    />
+              {/* 地图展示 — 仅当 GPS 坐标有效时渲染 */}
+              {(() => {
+                const lat = parseFloat(String(asset.gps_lat));
+                const lng = parseFloat(String(asset.gps_lng));
+                if (!lat || !lng || isNaN(lat) || isNaN(lng)) return null;
+                return (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6">
+                    <h2 className="font-bold text-gray-900 mb-4">📍 位置地图</h2>
+                    <div className="rounded-xl overflow-hidden" style={{ height: '300px' }}>
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        src={`https://map.qq.com/api/gl?lat=${lat}&lng=${lng}&zoom=14&marker=lat:${lat}|lng:${lng}|title:${encodeURIComponent(asset.title)}`}
+                        allowFullScreen
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
             {/* Sidebar */}

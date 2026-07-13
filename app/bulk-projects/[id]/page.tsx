@@ -241,21 +241,26 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
                 );
               })()}
 
-              {/* 地图展示 */}
-              {project.gps_lat && project.gps_lng && (
-                <div className="bg-white rounded-xl border border-gray-100 p-6">
-                  <h2 className="font-bold text-gray-900 mb-4">📍 位置地图</h2>
-                  <div className="rounded-xl overflow-hidden" style={{ height: '300px' }}>
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      src={`https://map.qq.com/api/gl?lat=${project.gps_lat}&lng=${project.gps_lng}&zoom=14&marker=lat:${project.gps_lat}|lng:${project.gps_lng}|title:${encodeURIComponent(project.title)}`}
-                      allowFullScreen
-                    />
+              {/* 地图展示 — 仅当 GPS 坐标有效时渲染 */}
+              {(() => {
+                const lat = parseFloat(String(project.gps_lat));
+                const lng = parseFloat(String(project.gps_lng));
+                if (!lat || !lng || isNaN(lat) || isNaN(lng)) return null;
+                return (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6">
+                    <h2 className="font-bold text-gray-900 mb-4">📍 位置地图</h2>
+                    <div className="rounded-xl overflow-hidden" style={{ height: '300px' }}>
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        src={`https://map.qq.com/api/gl?lat=${lat}&lng=${lng}&zoom=14&marker=lat:${lat}|lng:${lng}|title:${encodeURIComponent(project.title)}`}
+                        allowFullScreen
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
           {/* Sidebar */}

@@ -297,6 +297,73 @@ export default function BulkProjectEditForm({
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Haversine distance (km)
+  const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  // GPS location
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) { showMsg('❌ 您的浏览器不支持地理位置'); return; }
+    showMsg('📍 正在获取位置...');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setFormData((prev) => ({ ...prev, gps_lat: lat.toFixed(6), gps_lng: lng.toFixed(6) }));
+
+        try {
+          const provRes = await fetch('/api/regions?level=province');
+          const provData: any = await provRes.json();
+          const provinces: { name: string; lat: number; lng: number }[] = provData.data || [];
+          let nearestProv = provinces[0];
+          let minDist = Infinity;
+          for (const p of provinces) {
+            if (p.lat && p.lng) {
+              const d = haversine(lat, lng, p.lat, p.lng);
+              if (d < minDist) { minDist = d; nearestProv = p; }
+            }
+          }
+
+          const cityRes = await fetch(`/api/regions?level=city&province=${encodeURIComponent(nearestProv.name)}`);
+          const cityData: any = await cityRes.json();
+          const cities: { name: string; lat: number; lng: number }[] = cityData.data || [];
+          let nearestCity = '';
+          let minCityDist = Infinity;
+          for (const c of cities) {
+            if (c.lat && c.lng) {
+              const d = haversine(lat, lng, c.lat, c.lng);
+              if (d < minCityDist) { minCityDist = d; nearestCity = c.name; }
+            }
+          }
+
+          setFormData((prev) => ({
+            ...prev,
+            gps_lat: lat.toFixed(6),
+            gps_lng: lng.toFixed(6),
+            province: nearestProv.name,
+            city: nearestCity,
+            district: '',
+          }));
+
+          setProvinceList(provinces.map((p) => p.name));
+          if (nearestCity) setCityList(cities.map((c) => c.name));
+
+          showMsg(`✅ 定位成功：${nearestProv.name} ${nearestCity}`);
+        } catch {
+          showMsg('✅ GPS已获取，省市匹配失败，请手动选择');
+        }
+      },
+      () => showMsg('❌ 获取位置失败，请检查浏览器权限')
+    );
+  };
+
   /* ════════════════════════════════════════════
      File upload (R2)
      ════════════════════════════════════════════ */
@@ -713,6 +780,43 @@ export default function BulkProjectEditForm({
             className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
             placeholder="如：浙江省湖州市德清县莫干山镇"
           />
+        </div>
+
+        {/* GPS */}
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-bold text-blue-800">🗺️ GPS 坐标</h4>
+            <button
+              type="button"
+              onClick={handleGetLocation}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center space-x-1"
+            >
+              <span>📍</span><span>获取当前位置</span>
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">纬度</label>
+              <input
+                name="gps_lat"
+                value={formData.gps_lat}
+                onChange={handleChange}
+                placeholder="如: 30.630000"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">经度</label>
+              <input
+                name="gps_lng"
+                value={formData.gps_lng}
+                onChange={handleChange}
+                placeholder="如: 119.680000"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">填写GPS坐标后，买家可在地图上精确查看地块位置</p>
         </div>
       </div>
 
