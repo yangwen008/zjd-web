@@ -3,20 +3,20 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { queryOne, execute } from '@/lib/db';
 import { getOAuthToken, getWxUserInfo } from '@/lib/wechat';
-import { createSession, getUserFromRequest } from '@/lib/auth';
+import { createSession } from '@/lib/auth';
 
 /**
  * GET /api/auth/wx/callback
  * 微信 OAuth 回调处理
- * - mode=login: 登录/自动注册（原有逻辑）
- * - mode=register: 注册绑定，把 openid 存入 sessionStorage，跳回注册页
- * - mode=bind: 已登录用户绑定微信
+ * - 用 code 换 token + openid + 用户信息
+ * - 查 users 表：有 wx_openid → 直接登录
+ * - 没有 → 自动注册新用户
+ * - 写入 session cookie，跳转回原页面
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const redirect = searchParams.get('redirect') || '/';
-  const mode = searchParams.get('mode') || 'login';
 
   if (!code) {
     return NextResponse.json({ success: false, error: 'Missing code parameter' }, { status: 400 });
@@ -33,79 +33,23 @@ export async function GET(request: Request) {
     try {
       wxUser = await getWxUserInfo(tokenData.access_token, tokenData.openid);
     } catch {
+      // snsapi_base 模式下拿不到用户信息，只有 openid
       wxUser = null;
     }
 
-    // ========== 注册模式 ==========
-    if (mode === 'register') {
-      // 检查 openid 是否已被绑定
-      const existing = await queryOne<{ id: number }>(
-        'SELECT id FROM users WHERE wx_openid = ?',
-        tokenData.openid
-      );
-
-      if (existing) {
-        // 已绑定，提示直接登录
-        return NextResponse.redirect(`${siteUrl}/login?error=wx_already_bound`);
-      }
-
-      // 把 openid 信息通过 URL 参数传回注册页（sessionStorage 在 SSR 中不可用）
-      const params = new URLSearchParams({
-        wx: '1',
-        openid: tokenData.openid,
-        nickname: wxUser?.nickname || '',
-        avatar: wxUser?.headimgurl || '',
-      });
-      return NextResponse.redirect(`${siteUrl}/register?${params.toString()}`);
-    }
-
-    // ========== 绑定模式 ==========
-    if (mode === 'bind') {
-      const user = await getUserFromRequest(request);
-      if (!user) {
-        return NextResponse.redirect(`${siteUrl}/login?error=not_logged_in`);
-      }
-
-      // 检查该微信是否已被其他账号绑定
-      const existing = await queryOne<{ id: number; nickname: string }>(
-        'SELECT id, nickname FROM users WHERE wx_openid = ? AND id != ?',
-        tokenData.openid, user.id
-      );
-
-      if (existing) {
-        return NextResponse.redirect(`${siteUrl}/dashboard/profile?error=wx_bound_other`);
-      }
-
-      // 绑定
-      await execute(
-        `UPDATE users SET wx_openid = ?, wx_unionid = COALESCE(?, wx_unionid),
-         wx_nickname = COALESCE(?, wx_nickname), wx_avatar = COALESCE(?, wx_avatar),
-         avatar_url = COALESCE(NULLIF(?, ''), avatar_url),
-         updated_at = datetime('now')
-         WHERE id = ?`,
-        tokenData.openid,
-        tokenData.unionid || null,
-        wxUser?.nickname || null,
-        wxUser?.headimgurl || null,
-        wxUser?.headimgurl || null,
-        user.id
-      );
-
-      return NextResponse.redirect(`${siteUrl}/dashboard/profile?success=wx_bound`);
-    }
-
-    // ========== 登录模式（原有逻辑） ==========
-    // 3. 查找已有用户
+    // 3. 查找已有用户（优先 wx_openid，其次 unionid）
     let user = await queryOne<{ id: number; nickname: string; role: string; status: string }>(
       'SELECT id, nickname, role, status FROM users WHERE wx_openid = ?',
       tokenData.openid
     );
 
+    // 如果有 unionid，也尝试匹配
     if (!user && tokenData.unionid) {
       user = await queryOne<{ id: number; nickname: string; role: string; status: string }>(
         'SELECT id, nickname, role, status FROM users WHERE wx_unionid = ?',
         tokenData.unionid
       );
+      // 如果通过 unionid 找到了，更新 wx_openid
       if (user) {
         await execute('UPDATE users SET wx_openid = ? WHERE id = ?', tokenData.openid, user.id);
       }
@@ -133,13 +77,15 @@ export async function GET(request: Request) {
       };
     }
 
+    // 5. 检查用户状态
     if (user.status === 'banned') {
       return NextResponse.redirect(`${siteUrl}/login?error=banned`);
     }
 
-    // 5. 创建 session
+    // 6. 创建 session
     const sessionId = await createSession(user.id);
 
+    // 7. 设置 cookie 并跳转
     const res = NextResponse.redirect(`${siteUrl}${redirect}`);
     res.cookies.set('user_session', sessionId, {
       httpOnly: true,
@@ -150,10 +96,8 @@ export async function GET(request: Request) {
     });
 
     return res;
-  } catch (error: any) {
+  } catch (error) {
     console.error('WeChat OAuth callback error:', error);
-    // 将错误信息编码到 URL 参数中，便于调试
-    const errMsg = encodeURIComponent(error?.message || 'unknown_error');
-    return NextResponse.redirect(`${siteUrl}/login?error=wx_failed&detail=${errMsg}`);
+    return NextResponse.redirect(`${siteUrl}/login?error=wx_failed`);
   }
 }
