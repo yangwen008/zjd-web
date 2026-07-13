@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   const callbackUrl = `${siteUrl}/wx-callback?redirect=${encodeURIComponent(redirect)}&mode=${mode}`;
 
   const state = crypto.randomUUID();
-  const authUrl = getOAuthUrl(callbackUrl, state, 'snsapi_userinfo');
+  const authUrl = getOAuthUrl(callbackUrl, state, 'snsapi_base');
 
   return NextResponse.redirect(authUrl);
 }
