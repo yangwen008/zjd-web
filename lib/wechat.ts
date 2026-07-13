@@ -147,7 +147,7 @@ interface WxUserInfo {
 export function getOAuthUrl(redirectUri: string, state: string, scope: 'snsapi_base' | 'snsapi_userinfo' = 'snsapi_base'): string {
   const config = getWxConfig();
   const encodedUri = encodeURIComponent(redirectUri);
-  return `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${config.appId}&redirect_uri=${encodedUri}&response_type=code&scope=${scope}&state=${state}#wechat_redirect`;
+  return `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${config.appId}&redirect_uri=${encodedUri}&response_type=code&scope=${scope}`;
 }
 
 /**
