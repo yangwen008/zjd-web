@@ -19,9 +19,12 @@ export async function POST(request: Request) {
       broker_specialties?: string;
       broker_bio?: string;
       org_name?: string;
+      wx_openid?: string;
+      wx_nickname?: string;
+      wx_avatar?: string;
     };
 
-    const { phone, password, nickname, role_apply, apply_reason, broker_region, broker_specialties, broker_bio, org_name } = body;
+    const { phone, password, nickname, role_apply, apply_reason, broker_region, broker_specialties, broker_bio, org_name, wx_openid, wx_nickname, wx_avatar } = body;
     const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '';
     const userAgent = request.headers.get('user-agent') || '';
 
@@ -45,6 +48,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '该手机号已注册' }, { status: 409 });
     }
 
+    // 检查微信是否已被绑定
+    if (wx_openid) {
+      const wxExisting = await queryOne<{ id: number }>('SELECT id FROM users WHERE wx_openid = ?', wx_openid);
+      if (wxExisting) {
+        return NextResponse.json({ success: false, error: '该微信已绑定其他账号' }, { status: 409 });
+      }
+    }
+
     // 确定角色和状态
     const validRoles = ['user', 'broker', 'village_org', 'project_publisher'];
     const applyRole = validRoles.includes(role_apply || '') ? role_apply : 'user';
@@ -56,12 +67,13 @@ export async function POST(request: Request) {
 
     // 创建用户
     const result = await execute(
-      `INSERT INTO users (phone, nickname, password_hash, role, status, role_apply, apply_reason, broker_region, broker_specialties, broker_bio, org_name, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      `INSERT INTO users (phone, nickname, password_hash, role, status, role_apply, apply_reason, broker_region, broker_specialties, broker_bio, org_name, wx_openid, wx_nickname, wx_avatar, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
       phone, nickname, passwordHash, applyRole, status,
       needsReview ? applyRole : null, apply_reason || null,
       broker_region || null, broker_specialties || null, broker_bio || null,
-      org_name || null
+      org_name || null,
+      wx_openid || null, wx_nickname || null, wx_avatar || null
     );
 
     const userId = result.meta.last_row_id || 0;

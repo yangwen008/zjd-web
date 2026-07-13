@@ -29,6 +29,9 @@ export async function GET(request: Request) {
         bio: user.bio,
         org_name: user.org_name,
         org_license: user.org_license,
+        wx_openid: (user as any).wx_openid || null,
+        wx_nickname: (user as any).wx_nickname || null,
+        wx_avatar: (user as any).wx_avatar || null,
       },
     });
   } catch (error) {

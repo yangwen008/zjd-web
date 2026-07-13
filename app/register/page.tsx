@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import RegionSelector from '@/components/shared/RegionSelector';
 
@@ -21,6 +21,12 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // 微信绑定状态
+  const [wxOpenid, setWxOpenid] = useState('');
+  const [wxNickname, setWxNickname] = useState('');
+  const [wxAvatar, setWxAvatar] = useState('');
+  const [isWechat, setIsWechat] = useState(false);
+
   // 合伙人专属字段
   const [brokerProvince, setBrokerProvince] = useState('');
   const [brokerCity, setBrokerCity] = useState('');
@@ -32,15 +38,61 @@ export default function RegisterPage() {
 
   const selectedRole = ROLES.find((r) => r.key === roleApply);
 
+  // 检测微信环境 + 恢复绑定状态
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    setIsWechat(/MicroMessenger/i.test(ua));
+
+    // 从 sessionStorage 恢复微信绑定数据（wx-bind-callback 页面写入的）
+    const savedOpenid = sessionStorage.getItem('wx_bind_openid');
+    if (savedOpenid) {
+      setWxOpenid(savedOpenid);
+      setWxNickname(sessionStorage.getItem('wx_bind_nickname') || '');
+      setWxAvatar(sessionStorage.getItem('wx_bind_avatar') || '');
+      // 如果已绑定微信且从回调跳回，自动填入昵称
+      const savedNick = sessionStorage.getItem('wx_bind_nickname');
+      if (savedNick && !nickname) setNickname(savedNick);
+      // 清除 sessionStorage
+      sessionStorage.removeItem('wx_bind_openid');
+      sessionStorage.removeItem('wx_bind_nickname');
+      sessionStorage.removeItem('wx_bind_avatar');
+    }
+
+    // 检查 URL 参数（从微信回调跳回时 ?wx=1）
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('wx') === '1' && savedOpenid) {
+      setStep(3); // 直接跳到填写资料步骤
+    }
+  }, []);
+
   const handleNext = () => {
     setError('');
-    // Step1→Step2: 选了角色后进入信息填写
-    setStep(2);
+    if (isWechat || wxOpenid) {
+      setStep(2); // 有微信环境或已绑定，进入微信绑定步骤
+    } else {
+      setStep(3); // 无微信环境，跳过绑定直接填资料
+    }
+  };
+
+  const handleSkipWx = () => {
+    setError('');
+    setStep(3); // 跳过微信绑定
+  };
+
+  const handleBindWx = () => {
+    // 跳转微信授权，回调到 /wx-bind-callback?mode=register
+    window.location.href = '/api/auth/wx/bind?mode=register';
   };
 
   const handleBack = () => {
     setError('');
-    setStep(1);
+    if (step === 3 && (isWechat || wxOpenid)) {
+      setStep(2);
+    } else if (step === 3) {
+      setStep(1);
+    } else {
+      setStep(1);
+    }
   };
 
   const validateAndSubmit = () => {
@@ -61,6 +113,13 @@ export default function RegisterPage() {
 
     try {
       const body: any = { phone, password, nickname, role_apply: roleApply };
+
+      // 如果已绑定微信，带上 openid
+      if (wxOpenid) {
+        body.wx_openid = wxOpenid;
+        if (wxNickname) body.wx_nickname = wxNickname;
+        if (wxAvatar) body.wx_avatar = wxAvatar;
+      }
 
       if (roleApply === 'broker') {
         if (!brokerProvince) { setError('请选择负责区域'); setLoading(false); return; }
@@ -97,6 +156,12 @@ export default function RegisterPage() {
     }
   };
 
+  // 步骤总数
+  const totalSteps = (isWechat || wxOpenid) ? 3 : 2;
+  const stepLabels = (isWechat || wxOpenid)
+    ? ['选择身份', '绑定微信', '填写信息']
+    : ['选择身份', '填写信息'];
+
   return (
     <div className="min-h-screen bg-[#F9F9F8] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -114,20 +179,23 @@ export default function RegisterPage() {
 
           {/* Step indicator */}
           <div className="flex items-center justify-center space-x-4 mb-8">
-            {[1, 2].map((s) => (
-              <div key={s} className="flex items-center space-x-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= s ? 'bg-[#2C4C3B] text-white' : 'bg-gray-200 text-gray-500'}`}>
-                  {step > s ? '✓' : s}
+            {stepLabels.map((label, i) => {
+              const s = i + 1;
+              return (
+                <div key={s} className="flex items-center space-x-2">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= s ? 'bg-[#2C4C3B] text-white' : 'bg-gray-200 text-gray-500'}`}>
+                    {step > s ? '✓' : s}
+                  </div>
+                  <span className={`text-sm ${step >= s ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {label}
+                  </span>
+                  {s < totalSteps && <div className={`w-12 h-0.5 ${step > s ? 'bg-[#2C4C3B]' : 'bg-gray-200'}`} />}
                 </div>
-                <span className={`text-sm ${step >= s ? 'text-gray-900' : 'text-gray-400'}`}>
-                  {s === 1 ? '选择身份' : '填写信息'}
-                </span>
-                {s < 2 && <div className={`w-12 h-0.5 ${step > s ? 'bg-[#2C4C3B]' : 'bg-gray-200'}`} />}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* Step 1: Role selection (先选身份) */}
+          {/* Step 1: Role selection */}
           {step === 1 && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -161,9 +229,70 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Step 2: Basic info + Role-specific fields */}
+          {/* Step 2: WeChat binding (only shown if WeChat detected or already bound) */}
           {step === 2 && (
             <div className="space-y-4">
+              {wxOpenid ? (
+                // 已绑定微信
+                <div className="text-center py-4">
+                  <div className="text-5xl mb-4">✅</div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">微信已绑定</h3>
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    {wxAvatar && (
+                      <img src={wxAvatar} alt="" className="w-12 h-12 rounded-full" />
+                    )}
+                    <span className="text-gray-700 font-medium">{wxNickname || '微信用户'}</span>
+                  </div>
+                  <p className="text-sm text-gray-500">注册后可直接用微信扫码登录</p>
+                </div>
+              ) : (
+                // 未绑定微信
+                <div className="text-center py-4">
+                  <div className="text-5xl mb-4">🔗</div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">绑定微信</h3>
+                  <p className="text-sm text-gray-500 mb-6">绑定后可直接用微信扫码登录，无需输入密码</p>
+
+                  <button
+                    onClick={handleBindWx}
+                    className="w-full bg-[#07C160] hover:bg-[#06AE56] text-white py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-7.062-6.122zm-2.18 2.769c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982z"/>
+                    </svg>
+                    微信一键绑定
+                  </button>
+
+                  <button
+                    onClick={handleSkipWx}
+                    className="w-full mt-3 bg-gray-100 hover:bg-gray-200 text-gray-600 py-3 rounded-xl font-medium transition-colors"
+                  >
+                    暂不绑定，跳过
+                  </button>
+                </div>
+              )}
+
+              <div className="flex space-x-3">
+                <button onClick={handleBack} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-medium transition-colors">
+                  上一步
+                </button>
+                <button onClick={() => setStep(3)} className="flex-1 bg-[#2C4C3B] hover:bg-[#1E3529] text-white py-3 rounded-xl font-medium transition-colors">
+                  下一步
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Basic info + Role-specific fields */}
+          {step === 3 && (
+            <div className="space-y-4">
+              {/* 微信绑定状态提示 */}
+              {wxOpenid && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2">
+                  {wxAvatar && <img src={wxAvatar} alt="" className="w-6 h-6 rounded-full" />}
+                  <span className="text-sm text-green-700">✅ 微信已绑定：{wxNickname || '微信用户'}</span>
+                </div>
+              )}
+
               {/* 基本信息 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">手机号</label>
