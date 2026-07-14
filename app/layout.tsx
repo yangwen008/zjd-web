@@ -2,6 +2,7 @@ export const runtime = 'edge';
 export const revalidate = 300;
 
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { getHomepageConfig } from '@/lib/data';
 
@@ -65,6 +66,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ClientShell config={config}>
           {children}
         </ClientShell>
+        {/* 百度自动推送 */}
+        <Script id="baidu-push" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: `
+          var bp = document.createElement('script');
+          bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+          bp.async = true;
+          document.body.appendChild(bp);
+        `}} />
       </body>
     </html>
   );
