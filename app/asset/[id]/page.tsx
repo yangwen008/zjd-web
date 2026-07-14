@@ -106,11 +106,11 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     { icon: '💧', label: '自来水', status: '已通' },
     { icon: '📶', label: '网络', status: '5G覆盖' },
     { icon: '🚽', label: '污水化粪池', status: '已建' },
-    { icon: '️', label: '自建路', status: '已硬化' },
-    { icon: '️', label: '容积率', status: '≤1.5' },
+    { icon: '🛣️', label: '自建路', status: '已硬化' },
+    { icon: '🏗️', label: '容积率', status: '≤1.5' },
   ];
   let envItems = [
-    { label: '舒适度', value: '±1级', icon: '️' },
+    { label: '舒适度', value: '±1级', icon: '🌡️' },
     { label: '空气质量', value: '51-100(良)', icon: '🌬️' },
     { label: '水质', value: 'II类', icon: '💧' },
     { label: '噪声指数', value: '20-40 dB', icon: '🔇' },
@@ -258,9 +258,11 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold text-gray-900">{asset.title}</h1>
               <div className="flex gap-2">
+                {/* 👇 修复点：补充了缺失的 text 属性 */}
                 <ShareButton 
                   url={`${siteUrl}/asset/${asset.id}`}
                   title={asset.title}
+                  text={asset.title}
                 />
               </div>
             </div>
