@@ -360,6 +360,108 @@ export async function getJSSDKSignature(url: string): Promise<JSSDKSignature> {
   };
 }
 
+// ============ 开放平台 JSSDK 签名（PC/手机统一，分享卡片用） ============
+
+/**
+ * 获取开放平台 access_token，带 D1 缓存
+ */
+async function getOpenAccessToken(): Promise<string> {
+  if (!WX_OPEN_APPID || !WX_OPEN_APPSECRET) {
+    throw new Error('WX_OPEN_APPID or WX_OPEN_APPSECRET not configured');
+  }
+
+  // 查缓存
+  const cached = await queryOne<{ value: string; updated_at: string }>(
+    `SELECT value, updated_at FROM homepage_config WHERE key = 'wx_open_access_token'`
+  );
+
+  if (cached) {
+    const updatedAt = new Date(cached.updated_at).getTime();
+    const now = Date.now();
+    if (now - updatedAt < 115 * 60 * 1000) {
+      return cached.value;
+    }
+  }
+
+  // 重新获取（直接调微信 API，不走代理）
+  const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${WX_OPEN_APPID}&secret=${WX_OPEN_APPSECRET}`;
+  const res = await fetch(url);
+  const data = await res.json() as { access_token?: string; errcode?: number; errmsg?: string };
+
+  if (!data.access_token) {
+    throw new Error(`Failed to get open access_token: ${data.errmsg} (${data.errcode})`);
+  }
+
+  // 写入缓存
+  await execute(
+    `INSERT OR REPLACE INTO homepage_config (key, value, updated_at) VALUES ('wx_open_access_token', ?, datetime('now'))`,
+    data.access_token
+  );
+
+  return data.access_token;
+}
+
+/**
+ * 获取开放平台 jsapi_ticket，带 D1 缓存
+ */
+async function getOpenJsapiTicket(): Promise<string> {
+  const accessToken = await getOpenAccessToken();
+
+  const cached = await queryOne<{ value: string; updated_at: string }>(
+    `SELECT value, updated_at FROM homepage_config WHERE key = 'wx_open_jsapi_ticket'`
+  );
+
+  if (cached) {
+    const updatedAt = new Date(cached.updated_at).getTime();
+    const now = Date.now();
+    if (now - updatedAt < 115 * 60 * 1000) {
+      return cached.value;
+    }
+  }
+
+  const ticketRes = await fetch(
+    `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`
+  );
+  const ticketData = await ticketRes.json() as { ticket?: string; errcode?: number; errmsg?: string };
+
+  if (!ticketData.ticket) {
+    throw new Error(`Failed to get open jsapi_ticket: ${ticketData.errmsg} (${ticketData.errcode})`);
+  }
+
+  await execute(
+    `INSERT OR REPLACE INTO homepage_config (key, value, updated_at) VALUES ('wx_open_jsapi_ticket', ?, datetime('now'))`,
+    ticketData.ticket
+  );
+
+  return ticketData.ticket;
+}
+
+/**
+ * 生成开放平台 JSSDK 签名
+ * 用于前端 wx.config() 调用，支持自定义分享卡片
+ */
+export async function getOpenJSSDKSignature(url: string): Promise<JSSDKSignature> {
+  const ticket = await getOpenJsapiTicket();
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const nonceStr = Math.random().toString(36).substring(2, 15);
+  const signStr = `jsapi_ticket=${ticket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(signStr);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+  const signature = Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  return {
+    appId: WX_OPEN_APPID,
+    timestamp,
+    nonceStr,
+    signature,
+  };
+}
+
 // ============ 自定义菜单（可选） ============
 
 interface MenuButton {
