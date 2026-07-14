@@ -1,5 +1,6 @@
 export const runtime = 'edge';
 export const revalidate = 60; // 1分钟缓存
+
 import type { Metadata } from 'next';
 import { getAssetById, getAssets, getHomepageConfig, incrementViews } from '@/lib/data';
 import { notFound } from 'next/navigation';
@@ -105,9 +106,9 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     { icon: '⚡', label: '通电', status: '已通' },
     { icon: '💧', label: '自来水', status: '已通' },
     { icon: '📶', label: '网络', status: '5G覆盖' },
-    { icon: '', label: '污水化粪池', status: '已建' },
-    { icon: '️', label: '自建路', status: '已硬化' },
-    { icon: '️', label: '容积率', status: '≤1.5' },
+    { icon: '🚽', label: '污水化粪池', status: '已建' },
+    { icon: '🛣️', label: '自建路', status: '已硬化' },
+    { icon: '🏗️', label: '容积率', status: '≤1.5' },
   ];
   let envItems = [
     { label: '舒适度', value: '±1级', icon: '🌡️' },
@@ -142,7 +143,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
   const firstImageRaw = imageUrls.length > 0
     ? (typeof imageUrls[0] === 'object' ? (imageUrls[0] as any).url || (imageUrls[0] as any).thumb || '' : imageUrls[0])
     : '';
-  
+  // 绝对 URL 直接用，已含 /api/images/ 的直接拼域名，其他走代理
   // JSSDK 分享图片：优先用资产图片，外链也尝试用
   let shareImage = `${siteUrl}/logo-share.jpg`;
   if (firstImageRaw) {
@@ -191,74 +192,29 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      
-      {/* 👇 【唯一新增】微信 JSSDK 分享脚本（纯注入，绝不修改下方任何原有组件和结构） 👇 */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              if (!/micromessenger/i.test(navigator.userAgent)) return;
-              var config = {
-                title: ${JSON.stringify(asset.title || '宅基地交易所')},
-                desc: ${JSON.stringify(asset.description ? asset.description.replace(/<[^>]*>/g, '').substring(0, 100) : '')},
-                imgUrl: ${JSON.stringify(shareImage)},
-                link: window.location.href.split('#')[0]
-              };
-              var loadWx = function() {
-                if (window.wx) initWx();
-                else {
-                  var s = document.createElement('script');
-                  s.src = 'https://res.wx.qq.com/open/js/jweixin-1.6.0.js';
-                  s.onload = initWx;
-                  document.head.appendChild(s);
-                }
-              };
-              var initWx = function() {
-                fetch('http://112.44.232.181:8443/jssdk?url=' + encodeURIComponent(config.link))
-                  .then(function(res) { return res.json(); })
-                  .then(function(data) {
-                    if (!data.success || !data.data) return;
-                    window.wx.config({
-                      debug: false,
-                      appId: data.data.appId,
-                      timestamp: data.data.timestamp,
-                      nonceStr: data.data.nonceStr,
-                      signature: data.data.signature,
-                      jsApiList: ['updateAppMessageShareConfig', 'updateTimelineShareData']
-                    });
-                    window.wx.ready(function() {
-                      window.wx.updateAppMessageShareConfig({ title: config.title, desc: config.desc, link: config.link, imgUrl: config.imgUrl });
-                      window.wx.updateTimelineShareData({ title: config.title, link: config.link, imgUrl: config.imgUrl });
-                    });
-                  });
-              };
-              loadWx();
-            })();
-          `,
-        }}
-      />
-      {/* 👆 【新增结束】 👆 */}
-
-      <main className="pt-20 pb-16 ">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
+<main className="pt-20 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
-          <div className="text-sm text-gray-400 mb-6 ">
-            <a href="/" className="hover:text-brand-green ">首页 </a>
-            <span className="mx-2 ">/ </span>
-            <a href="/search " className="hover:text-brand-green ">搜索 </a>
-            <span className="mx-2 ">/ </span>
-            <span className="text-gray-700 ">{asset.title} </span>
+          <div className="text-sm text-gray-400 mb-6">
+            <a href="/" className="hover:text-brand-green">首页</a>
+            <span className="mx-2">/</span>
+            <a href="/search" className="hover:text-brand-green">搜索</a>
+            <span className="mx-2">/</span>
+            <span className="text-gray-700">{asset.title}</span>
           </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{ alignItems: 'start' }}>
             {/* Main content */}
             <div className="lg:col-span-2 space-y-6">
+              
               {/* ✅ 修改点：使用新的 MediaGallery 组件替换原来的单图展示 */}
               <MediaGallery images={imageUrls} video={asset.video_url} />
+
               {/* Title */}
               <div>
                 <div className="flex items-center space-x-2 mb-2 flex-wrap">
                   <span className="text-xs bg-brand-green text-white px-2 py-0.5 rounded">
-                    {((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方原矿' : asset.source_type === 'village' ? '村委直营' : '个人发布')}
+                                        {((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方原矿' : asset.source_type === 'village' ? '村委直营' : '个人发布')}
                   </span>
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{asset.asset_type || '资产'}</span>
                   {asset.certification === 'certified' && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">✅ 已确权</span>}
@@ -278,6 +234,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   </a>
                 )}
               </div>
+
               {/* Key metrics */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
@@ -292,6 +249,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   </div>
                 ))}
               </div>
+
               {/* 权证信息 */}
               {(() => {
                 let certData: any = null;
@@ -299,7 +257,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                 if (!certData && asset.certification === 'uncertified') return null;
                 return (
                   <div className="bg-white rounded-xl border border-gray-100 p-6">
-                    <h2 className="font-bold text-gray-900 mb-4"> 权证信息</h2>
+                    <h2 className="font-bold text-gray-900 mb-4">📋 权证信息</h2>
                     <div className="grid grid-cols-3 gap-4">
                       <div className="text-center p-3 bg-gray-50 rounded-lg">
                         <div className="text-xs text-gray-400 mb-1">权属类型</div>
@@ -319,6 +277,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   </div>
                 );
               })()}
+
               {/* Description */}
               {asset.description && (
                 <div className="bg-white rounded-xl border border-gray-100 p-6">
@@ -326,6 +285,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   <div className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: asset.description }} />
                 </div>
               )}
+
               {/* Infrastructure details */}
               <div className="bg-white rounded-xl border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 mb-4">基础设施配套明细</h2>
@@ -341,6 +301,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   ))}
                 </div>
               </div>
+
               {/* Environment */}
               <div className="bg-white rounded-xl border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 mb-4">环境与产业集群</h2>
@@ -354,13 +315,14 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   ))}
                 </div>
               </div>
+
               {/* 交通信息 */}
               {(() => {
                 let transport: any = null;
                 try { if (asset.transport_info) transport = JSON.parse(asset.transport_info); } catch {}
                 if (!transport) return null;
                 const items = [
-                  transport.highway && { icon: '', label: '距高速出口', value: transport.highway },
+                  transport.highway && { icon: '🚗', label: '距高速出口', value: transport.highway },
                   transport.rail && { icon: '🚄', label: '距高铁站', value: transport.rail },
                   transport.airport && { icon: '✈️', label: '距机场', value: transport.airport },
                   transport.bus && { icon: '🚌', label: '公交', value: transport.bus },
@@ -384,11 +346,15 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   </div>
                 );
               })()}
+
+
             </div>
+
             {/* Sidebar */}
             <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
               {/* 预约带看 */}
               <BookingButton assetId={asset.id} assetTitle={asset.title} />
+
               {/* 参投认购 */}
               <InvestCard
                 assetId={asset.id}
@@ -400,12 +366,14 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                 minShares={asset.invest_min_shares || 1}
                 soldShares={asset.invest_sold_shares || 0}
               />
+
               {/* 一键分享 */}
               <ShareButton
                 title={asset.title}
                 text={`${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`}
                 url={`https://zjd.cn/asset/${asset.id}`}
               />
+
               {/* 发布者信息 */}
               {asset.user_id && (
                 <a href={`/publisher/${asset.user_id}`} className="block bg-white rounded-xl border border-gray-100 p-5 card-hover">
@@ -435,11 +403,13 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   </div>
                 </a>
               )}
+
               {/* Contact + Attachments */}
               <ContactCard
                 phone={asset.contact_phone}
                 name={asset.contact_name}
               />
+
               {/* Similar assets */}
               {similarFiltered.length > 0 && (
                 <div className="bg-white rounded-xl border border-gray-100 p-6">
@@ -447,7 +417,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   <div className="space-y-3">
                     {similarFiltered.map((s) => (
                       <a key={s.id} href={`/asset/${s.id}`} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-lg">️</div>
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-lg">🏘️</div>
                         <div>
                           <div className="text-sm font-medium text-gray-700">{s.title}</div>
                           <div className="text-xs text-gray-400">{s.area_mu ? `${s.area_mu}亩` : ''} {s.price_year ? `¥${s.price_year}万/年` : ''}</div>
@@ -461,6 +431,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
           </div>
         </div>
       </main>
+      
     </>
   );
 }
