@@ -55,7 +55,7 @@ export default function LoginPage() {
         new window.WxLogin({
           self_redirect: false,
           id: 'wx_qr_container',
-          appid: 'wxb71ad5e8339aa601',
+          appid: 'wxdf0895ffafe30943',
           scope: 'snsapi_login',
           redirect_uri: encodeURIComponent('https://zjd.cn/wx-open-callback'),
           state: Math.random().toString(36).substring(2),
