@@ -35,7 +35,7 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
           if (!wx) return;
 
           wx.config({
-            debug: window.location.search.includes('wxdebug=1'),
+            debug: true, // 强制开启调试，查看 JSSDK 错误日志
             appId: data.data.appId,
             timestamp: data.data.timestamp,
             nonceStr: data.data.nonceStr,
