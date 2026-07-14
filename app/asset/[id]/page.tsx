@@ -215,7 +215,6 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
           </div>
         </div>
 
-        {/* 👇 修复点：将 videoUrl 改为 video */}
         <MediaGallery images={imageUrls} video={asset.video_url} />
 
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -270,7 +269,12 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
             </div>
 
             <div className="space-y-6">
-              <ContactCard assetId={asset.id} contactName={asset.contact_name || ''} contactPhone={asset.contact_phone || ''} contactWechat={asset.contact_wechat || ''} />
+              {/* 👇 修复点：移除了 ContactCard 中不存在的 assetId 属性 */}
+              <ContactCard 
+                contactName={asset.contact_name || ''} 
+                contactPhone={asset.contact_phone || ''} 
+                contactWechat={asset.contact_wechat || ''} 
+              />
               <BookingButton assetId={asset.id} assetTitle={asset.title} />
             </div>
           </div>
