@@ -5,14 +5,13 @@ import { queryOne, execute } from './db';
 
 // ============ 配置 ============
 
-// 微信 API 代理（国内服务器反代）
-// Cloudflare Workers 出口 IP 不在微信公众平台 IP 白名单，必须走代理
-// 代理服务器只做透明转发，AppSecret 从环境变量读取拼在 URL 参数里
-const WX_API_PROXY = 'http://112.44.232.181:8443/weixin-proxy';
+// 微信 API 代理（国内服务器，IP 已在微信白名单）
+// 代理服务器自带 access_token + jsapi_ticket 缓存，可直接生成 JSSDK 签名
+const WX_API_PROXY = 'http://112.44.232.181:8443';
 
 function wxApiUrl(path: string): string {
   // 通过国内代理访问微信 API，避免 Cloudflare Workers IP 白名单问题
-  return `${WX_API_PROXY}${path}`;
+  return `https://api.weixin.qq.com${path}`;
 }
 
 interface WxConfig {
@@ -41,7 +40,7 @@ export async function getOpenOAuthToken(code: string): Promise<WxOAuthToken> {
   if (!WX_OPEN_APPID || !WX_OPEN_APPSECRET) {
     throw new Error('WX_OPEN_APPID or WX_OPEN_APPSECRET not configured');
   }
-  const url = wxApiUrl(`/sns/oauth2/access_token?appid=${WX_OPEN_APPID}&secret=${WX_OPEN_APPSECRET}&code=${code}&grant_type=authorization_code`);
+  const url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${WX_OPEN_APPID}&secret=${WX_OPEN_APPSECRET}&code=${code}&grant_type=authorization_code`;
   const res = await fetch(url);
   const data = await res.json() as WxOAuthToken & { errcode?: number; errmsg?: string };
 
@@ -385,7 +384,7 @@ async function getOpenAccessToken(): Promise<string> {
   }
 
   // 重新获取（直接调微信 API，不走代理）
-  const url = wxApiUrl(`/cgi-bin/token?grant_type=client_credential&appid=${WX_OPEN_APPID}&secret=${WX_OPEN_APPSECRET}`);
+  const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${WX_OPEN_APPID}&secret=${WX_OPEN_APPSECRET}`;
   const res = await fetch(url);
   const data = await res.json() as { access_token?: string; errcode?: number; errmsg?: string };
 
@@ -421,7 +420,7 @@ async function getOpenJsapiTicket(): Promise<string> {
   }
 
   const ticketRes = await fetch(
-    wxApiUrl(`/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`)
+    `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`
   );
   const ticketData = await ticketRes.json() as { ticket?: string; errcode?: number; errmsg?: string };
 

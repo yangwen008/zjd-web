@@ -5,7 +5,8 @@ import { getOpenJSSDKSignature } from '@/lib/wechat';
 
 /**
  * GET /api/wx/jssdk?url=xxx
- * 返回 JSSDK 签名，供前端 wx.config() 使用
+ * 使用微信开放平台 AppID 生成 JSSDK 签名
+ * 开放平台 access_token 不受 IP 白名单限制，无需代理
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
