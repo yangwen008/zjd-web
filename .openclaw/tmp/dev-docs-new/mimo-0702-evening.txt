@@ -1,0 +1,21 @@
+2026-07-02 晚上工作总结
+
+一、项目分析与学习
+
+二、Bug 修复（5项）
+
+三、功能开发（4项）
+
+四、移动端全站优化（6个页面）
+
+五、域名与部署
+
+六、Git 提交记录（共 10 次 push）
+text
+a7640bc  chore: add business plan PPT for download331b480  fix: badge logic - only project_publisher shows '交易所'ac06590  fix: use local logo as OG image367b257  feat: OG metadata + mobile share buttone26f52f  fix: leads page field name mismatche7f584b  feat: full mobile responsive optimization5691a09  fix: wx login redirect + menu button name lengthed9ca5c  fix: use next/navigation redirect in Server Component3657488  fix: wx-callback redirect to Route Handler14b9735  chore: trigger rebuild for WX_APPSECRET update
+a7640bc  chore: add business plan PPT for download331b480  fix: badge logic - only project_publisher shows '交易所'ac06590  fix: use local logo as OG image367b257  feat: OG metadata + mobile share buttone26f52f  fix: leads page field name mismatche7f584b  feat: full mobile responsive optimization5691a09  fix: wx login redirect + menu button name lengthed9ca5c  fix: use next/navigation redirect in Server Component3657488  fix: wx-callback redirect to Route Handler14b9735  chore: trigger rebuild for WX_APPSECRET update
+
+七、数据库变更
+
+八、待办
+

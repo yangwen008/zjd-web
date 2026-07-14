@@ -1,0 +1,16 @@
+2026-07-14 开发工作总结
+核心突破
+微信手机端登录故障修复 — 排查了 6 小时，最终发现根因是代理服务器被 Cloudflare 拦截（Error 1003），改为直接调用微信 API 后恢复。
+完成 6 项功能/修复
+文件变更
+新增 4 个文件：open-login API、open-callback 页面、wx-scan-login 页面、wx.d.ts 类型
+修改 4 个文件：wechat.ts、login/route.ts、login/page.tsx、jssdk/route.ts、WxShareConfig.tsx
+17 次 push 到 main
+数据库无变更
+关键经验
+待办
+🟡 Cloudflare 更新 WX_APPSECRET
+🟡 JSSDK 调试模式关闭
+🟢 注册页下拉框问题
+详细记录已保存到 memory/2026-07-14.md。
+

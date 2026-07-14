@@ -1,0 +1,30 @@
+2026/6/29日 千问
+一、 Dashboard 用户后台（补齐缺失的子页面与API）
+mimo 之前只搭了侧边栏骨架，我们昨天把里面的核心业务页面全部填满了，并且实现了多角色数据隔离。
+app/dashboard/assets/page.tsx & app/api/dashboard/assets/route.ts
+目的：实现“我的资产”列表页。普通用户只能看自己发布的，Admin 登录后可以通过按钮切换查看“全站资产”。
+app/dashboard/leads/page.tsx & app/api/dashboard/leads/route.ts
+目的：实现“我的线索”页面。实现了角色差异化：合伙人/村委看到的是“谁对我的资产感兴趣”，普通用户看到的是“我关注了哪些资产”。
+app/dashboard/favorites/page.tsx & app/api/dashboard/favorites/route.ts
+目的：实现“我的收藏”页面，以卡片形式展示用户感兴趣的资产。
+二、 资产发布系统（核心业务流打通）
+这是整个系统“造血”的功能，我们实现了从前端表单到后端入库的完整闭环。 4. app/dashboard/assets/new/page.tsx
+目的：发布资产的前端表单。增加了手机 GPS 一键定位功能，以及图片/视频的本地选择、预览和上传功能。
+app/api/dashboard/publish/route.ts
+目的：发布资产的后端 API。处理了不同角色的发布逻辑，修复了 D1 数据库不支持 undefined 的报错（自动转为 null），并修复了 TypeScript 的严格类型校验。
+三、 多媒体存储系统（R2 私有化存储）
+为了让用户能上传真实的图片和视频，且不暴露 R2 存储桶的公开权限（防盗链），我们搭建了完整的代理上传链路。 6. app/api/upload/r2/route.ts & app/api/upload/r2/direct/route.ts
+目的：处理前端传来的文件，校验大小和类型后，将其安全地存入 Cloudflare R2 存储桶。
+app/api/images/route.ts
+目的：图片/视频代理 API。因为 R2 是私有的，前端请求这个 API，由 API 去 R2 里把文件取出来再返回给浏览器，实现了安全的私有化访问。
+四、 首页统计与系统稳定性修复
+app/api/dashboard/stats/route.ts
+目的：Dashboard 首页的统计数据 API。修复了之前因为“返回了资产列表而不是统计数字”导致前端 toLocaleString() 报错、整个 Dashboard 页面崩溃（显示“出了点问题”）的致命 Bug。
+五、 前台资产详情页升级（视觉与体验提升）
+app/asset/[id]/media-gallery.tsx
+目的：全新开发的客户端轮播组件。支持图片和视频混合轮播，默认视频排在第一位，支持左右箭头切换、底部缩略图导航。
+app/asset/[id]/page.tsx
+目的：前台资产详情页主文件。将原来只能显示单张图片的模块，替换为了我们新写的 MediaGallery 轮播组件，大幅提升了前台的展示效果。
+
+架构师寄语： 昨天我们解决了很多 Next.js 的路由冲突（比如 page.tsx 和 route.ts 不能放同一个文件夹）、TypeScript 类型报错以及数据库字段空值问题。现在，用户注册 -> 登录 -> 发布带图/视频的资产 -> 后台审核 -> 前台轮播展示 这条最核心的主线流程已经彻底跑通了！
+

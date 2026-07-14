@@ -1,0 +1,53 @@
+2026-07-06 下午 开发工作总结
+
+一、微信分享修复（持续推进）
+修改文件：
+lib/wechat.ts — 代理 URL 配置、jsapi_ticket 缓存
+components/shared/WxShareConfig.tsx — 前端直接调代理服务器获取签名
+当前状态： JSSDK 签名因代理服务器未重启（SSH 被 fail2ban 封），待解决。OG 标签方案已生效（浏览器分享到微信显示标题+图片）。
+
+二、SEO 优化
+新增文件：
+app/sitemap.ts — 动态生成 sitemap（静态页+资产页+大宗页+合伙人页）
+app/robots.ts — 允许搜索引擎抓前台，禁止抓后台/API，屏蔽 AI 爬虫
+
+三、Admin 后台增强
+修改文件：
+app/admin/bulk-projects/page.tsx — 编辑弹窗新增交通信息+权证信息 JSON 输入
+app/api/admin/bulk-projects/route.ts — add 操作支持 transport_info/cert_info
+app/admin/assets/page.tsx — 分页状态+分页按钮+页码显示
+app/api/admin/assets/route.ts — 返回 total 总数
+app/api/admin/fix-images/route.ts — 批量下载外部图片上传 R2
+
+四、数据采集系统
+新增文件：
+app/api/admin/scrape-import/route.ts — 一键采集+入库 API
+app/api/admin/import-images/route.ts — 批量图片下载上传 API
+修改文件：
+app/admin/scrapers/page.tsx — 新增「⚡ 一键采集」面板
+app/api/admin/import-tuliu/route.ts — 导入时默认自动下载图片上传 R2
+当前状态： 一键采集因聚土网反爬虫拦截（Cloudflare Worker 返回 403 Forbidden）无法使用，需本地脚本或代理服务器。
+
+五、前端优化
+修改文件：
+app/page.tsx — 首页缓存从 5 分钟延长到 1 小时
+app/loading.tsx — 新增首页骨架屏
+app/search/loading.tsx — 新增搜索页骨架屏
+components/shared/Skeleton.tsx — 通用骨架屏组件
+
+六、数据库变更
+迁移脚本：
+sql/detail-upgrade.sql — assets/bulk_projects 新增交通信息+权证信息字段
+sql/scraper-upgrade.sql — 配方表新增字段
+已执行的 D1 迁移：
+sql
+ALTER TABLE assets ADD COLUMN transport_info TEXT;ALTER TABLE assets ADD COLUMN cert_info TEXT;ALTER TABLE bulk_projects ADD COLUMN transport_info TEXT;ALTER TABLE bulk_projects ADD COLUMN cert_info TEXT;ALTER TABLE scrapers_recipes ADD COLUMN source_name TEXT;ALTER TABLE scrapers_recipes ADD COLUMN scraper_type TEXT DEFAULT 'playwright';ALTER TABLE scrapers_recipes ADD COLUMN province_code TEXT;INSERT INTO regions ... (877条区县数据)
+ALTER TABLE assets ADD COLUMN transport_info TEXT;ALTER TABLE assets ADD COLUMN cert_info TEXT;ALTER TABLE bulk_projects ADD COLUMN transport_info TEXT;ALTER TABLE bulk_projects ADD COLUMN cert_info TEXT;ALTER TABLE scrapers_recipes ADD COLUMN source_name TEXT;ALTER TABLE scrapers_recipes ADD COLUMN scraper_type TEXT DEFAULT 'playwright';ALTER TABLE scrapers_recipes ADD COLUMN province_code TEXT;INSERT INTO regions ... (877条区县数据)
+
+七、今日 Git 提交清单（共 16 次 push）
+text
+a165f72 fix: 聚土网采集URL修复651159b fix: 聚土网解析器修复d90d965 fix: 聚土网标题解析修复145a1ee fix: 聚土网HTML解析器修复314cfe4 feat: 一键采集+入库55ba45a feat: Admin资产列表分页5b5bac1 feat: 导入数据默认上传R2850f570 fix: fix-images TS类型错误fc91c4e feat: 批量修复外部图片API0489d40 feat: 首屏加载优化2b21b69 fix: import-tuliu R2类型错误e1b5c97 feat: 多项功能优化（合并提交）3f93b0b feat: SEO优化d51fec0 feat: Admin大宗编辑弹窗补全8f7fe5a fix: 微信API代理转发04a3c5d fix: 微信API改为直连
+a165f72 fix: 聚土网采集URL修复651159b fix: 聚土网解析器修复d90d965 fix: 聚土网标题解析修复145a1ee fix: 聚土网HTML解析器修复314cfe4 feat: 一键采集+入库55ba45a feat: Admin资产列表分页5b5bac1 feat: 导入数据默认上传R2850f570 fix: fix-images TS类型错误fc91c4e feat: 批量修复外部图片API0489d40 feat: 首屏加载优化2b21b69 fix: import-tuliu R2类型错误e1b5c97 feat: 多项功能优化（合并提交）3f93b0b feat: SEO优化d51fec0 feat: Admin大宗编辑弹窗补全8f7fe5a fix: 微信API代理转发04a3c5d fix: 微信API改为直连
+
+八、待解决事项
+

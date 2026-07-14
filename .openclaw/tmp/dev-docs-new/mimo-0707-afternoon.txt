@@ -1,0 +1,26 @@
+今日（2026-07-07）下午开发工作总结如下：
+共 25 次提交，分为 6 大模块：
+
+一、共享表单组件抽取（重构）
+将重复表单代码抽取为可复用组件，大幅减少代码冗余（+3020 / -2699 行）
+
+二、发布者页面分页
+/publisher/[id] 资产超过 12 个时支持翻页
+
+三、图片显示修复
+images 字段格式从 ["url"] 变为 [{url, thumb}] 后，多页面解析未兼容导致图片不显示
+
+四、资产联系人默认值
+无经办人电话/姓名时，自动使用发布者注册信息兜底
+数据库：无表结构变更，仅 SQL 查询逻辑调整
+
+五、采集内容卡片标签显示「第三方」
+数据库：
+sql/add-source-site.sql — 新增 source_site TEXT 字段 + 回填老采集数据
+需手动执行：
+sql
+ALTER TABLE assets ADD COLUMN source_site TEXT;UPDATE assets SET source_site = '1' WHERE source_url IS NOT NULL AND source_url != '';
+ALTER TABLE assets ADD COLUMN source_site TEXT;UPDATE assets SET source_site = '1' WHERE source_url IS NOT NULL AND source_url != '';
+
+六、今日较早的工作
+

@@ -1,0 +1,63 @@
+2026-07-01 晚上 工作总结
+
+一、构建修复
+问题：app/admin/audit/page.tsx JSX 标签不匹配导致 build 失败 修复：删除多余的 </div> 标签 文件：app/admin/audit/page.tsx提交：a7911fe
+
+二、安全与逻辑修复（4项）
+提交：3782a80, a303e5b
+
+三、功能优化
+3.1 热点寻源页显示图片
+问题：/regions 页传给 AssetCard 缺少 imageUrl、badge、certification
+文件：app/regions/page.tsx
+提交：9b56deb
+3.2 推荐内容全局优先排序
+问题：部分查询未加 featured DESC 排序
+修改：lib/data.ts（4处）、app/api/admin/assets/route.ts、app/api/admin/bulk-projects/route.ts
+提交：de1da7b, 0485480
+3.3 种植类型新增
+新增资产类型"种植"（🌾）
+文件：sql/seed.sql、app/dashboard/assets/new/page.tsx、app/dashboard/assets/[id]/edit/page.tsx
+D1 执行：INSERT INTO asset_types (name, icon, description, sort_order) VALUES ('种植', '🌾', '种植用地经营权流转', 10)
+提交：088af92
+
+四、采集系统大改造
+4.1 Bug 修复
+4.2 新增功能
+提交：7901727, c598713, c886f2e, 9c58f77, bf08094, c59086e, f82b0ec
+
+五、四川农交所采集器
+5.1 采集脚本
+新文件：scrapers/cdaee.js
+直接调用 JSON API（无需 Playwright）
+自动提取：标题、地址、面积、价格、流转年限、资产类型
+支持 --pages、--dry-run 参数
+提交：c598713
+5.2 来源账号自动管理
+新文件：lib/source-account.ts — 来源账号匹配与自动创建
+新文件：app/api/admin/source-accounts/route.ts — 来源账号管理 API
+新文件：sql/source_accounts.sql — 来源映射表 DDL
+逻辑：解析采集数据地址 → 匹配城市 → 自动创建农交所账号 → 绑定 user_id → 自动上架
+提交：46bb73b, 59c94a1
+5.3 前台标签体系
+采集内容（project_publisher 角色）→ 固定显示 "交易所" 标签
+非采集内容保持：官方、村委、个人
+API 返回 publisher_name 和 publisher_role
+文件：lib/data.ts、app/page.tsx、app/search/page.tsx、app/regions/page.tsx、app/asset/[id]/page.tsx
+提交：e73dd31, 7c476d1, 8abdafd, bf7561c
+
+六、数据库变更
+已执行的 D1 迁移：
+sql
+-- 1. 新增种植资产类型INSERT INTO asset_types (name, icon, description, sort_order)VALUES ('种植', '🌾', '种植用地经营权流转', 10);-- 2. 来源账号映射表CREATE TABLE IF NOT EXISTS source_accounts (  id INTEGER PRIMARY KEY AUTOINCREMENT,  name TEXT NOT NULL,  province TEXT,  city TEXT,  district TEXT,  user_id INTEGER,  auto_approve INTEGER DEFAULT 1,  enabled INTEGER DEFAULT 1,  created_at TEXT DEFAULT (datetime('now')),  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL);CREATE INDEX idx_source_city ON source_accounts(city);CREATE INDEX idx_source_province ON source_accounts(province);INSERT INTO source_accounts (name, province, city, user_id, auto_approve)VALUES ('四川省农村产权综合交易平台', '四川省', NULL, NULL, 1);
+-- 1. 新增种植资产类型INSERT INTO asset_types (name, icon, description, sort_order)VALUES ('种植', '🌾', '种植用地经营权流转', 10);-- 2. 来源账号映射表CREATE TABLE IF NOT EXISTS source_accounts (  id INTEGER PRIMARY KEY AUTOINCREMENT,  name TEXT NOT NULL,  province TEXT,  city TEXT,  district TEXT,  user_id INTEGER,  auto_approve INTEGER DEFAULT 1,  enabled INTEGER DEFAULT 1,  created_at TEXT DEFAULT (datetime('now')),  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL);CREATE INDEX idx_source_city ON source_accounts(city);CREATE INDEX idx_source_province ON source_accounts(province);INSERT INTO source_accounts (name, province, city, user_id, auto_approve)VALUES ('四川省农村产权综合交易平台', '四川省', NULL, NULL, 1);
+自动创建的数据：
+用户表：成都农交所、成都农交所德阳子公司（role=project_publisher, status=active）
+来源映射表：对应的城市级映射记录
+资产表：18条四川省农村产权数据（status=approved）
+
+七、今日提交总览（共 18 次 push）
+text
+a7911fe  fix: audit page JSX syntax error3782a80  fix: 4 security & logic issuesa303e5b  fix: PBKDF2 salt type cast9b56deb  fix: regions page imageUrlde1da7b  feat: featured sort first0485480  fix: admin sort featured first088af92  feat: add 种植 asset typec598713  feat: cdaee.js scraper7901727  feat: scraping system overhaulc886f2e  fix: auto-create system recipe9c58f77  fix: cdaee scraper recipe IDbf08094  feat: scraper runs on Workersc59086e  feat: staging batch importf82b0ec  fix: staging action names46bb73b  feat: source account mapping59c94a1  fix: source account matchinge73dd31  feat: show publisher name7c476d1  fix: duplicate user_id8abdafd  feat: exchange badge logicbf7561c  fix: fixed 交易所 badge
+a7911fe  fix: audit page JSX syntax error3782a80  fix: 4 security & logic issuesa303e5b  fix: PBKDF2 salt type cast9b56deb  fix: regions page imageUrlde1da7b  feat: featured sort first0485480  fix: admin sort featured first088af92  feat: add 种植 asset typec598713  feat: cdaee.js scraper7901727  feat: scraping system overhaulc886f2e  fix: auto-create system recipe9c58f77  fix: cdaee scraper recipe IDbf08094  feat: scraper runs on Workersc59086e  feat: staging batch importf82b0ec  fix: staging action names46bb73b  feat: source account mapping59c94a1  fix: source account matchinge73dd31  feat: show publisher name7c476d1  fix: duplicate user_id8abdafd  feat: exchange badge logicbf7561c  fix: fixed 交易所 badge
+

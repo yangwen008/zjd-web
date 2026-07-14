@@ -1,0 +1,66 @@
+2026-07-05 下午 开发工作总结
+
+一、微信分享修复
+修改文件：
+lib/wechat.ts — 新增 getJsapiTicket() 缓存函数
+components/shared/WxShareConfig.tsx — 新增 wx.error() 回调 + ?wxdebug=1 debug 模式
+app/asset/[id]/page.tsx — OG 图片 URL 三重判断（http直接用/api_images拼域名/其他加前缀）
+结论： OG 标签方案已生效（浏览器分享到微信显示标题+图片），JSSDK 方案因 IP 白名单问题待解决。
+
+二、爬虫采集系统
+新增文件：
+scrapers/tuliu-nongfang.js — 土流网 Playwright 采集器
+scrapers/jutubao.js — 聚土网 Playwright 采集器
+app/api/admin/import-tuliu/route.ts — 批量导入 API（去重+审计）
+sql/tuliu-migration.sql — 来源账号初始化（土流网+聚土网）
+sql/scraper-upgrade.sql — 配方表新增字段
+修改文件：
+app/admin/scrapers/page.tsx — 全面重构：分类 Tab、预置模板、采集模式选择
+app/api/scrape/route.ts — 新增 source_name/scraper_type/province_code 字段支持
+.github/workflows/scrape.yml — 支持选择爬虫脚本（catcher/cdaee/tuliu/jutubao）
+
+三、详情页全面升级
+修改文件：
+app/asset/[id]/page.tsx — ZJD-xxxxx 编号、权证信息模块、交通信息模块、腾讯地图
+app/bulk-projects/[id]/page.tsx — 交通信息模块、腾讯地图
+lib/data.ts — Asset/BulkProject 接口新增 transport_info、cert_info 字段
+sql/schema.sql — assets/bulk_projects 表新增字段
+sql/detail-upgrade.sql — 迁移脚本
+详情页最终结构：
+text
+面包屑 → 媒体轮播 → 来源标签+ZJD编号 → 核心指标 → 权证信息 → 资产描述→ 基建配套 → 交通信息 → 环境指标 → 腾讯地图 | 侧边栏(预约/参投/分享/发布者/联系方式/相似推荐)
+面包屑 → 媒体轮播 → 来源标签+ZJD编号 → 核心指标 → 权证信息 → 资产描述→ 基建配套 → 交通信息 → 环境指标 → 腾讯地图 | 侧边栏(预约/参投/分享/发布者/联系方式/相似推荐)
+
+四、用户发布系统增强
+修改文件：
+app/dashboard/assets/new/page.tsx — 交通信息下拉 + 权证信息下拉 + 区县下拉
+app/dashboard/assets/[id]/edit/page.tsx — 同上（含数据预填充）
+app/dashboard/bulk-projects/new/page.tsx — 同上
+app/dashboard/bulk-projects/[id]/edit/page.tsx — 同上
+app/api/dashboard/publish/route.ts — INSERT 支持新字段
+交通信息选项：
+🚗 距高速出口：15分钟内/30分钟内/60分钟内/60分钟以上
+🚄 距高铁站：15分钟内/30分钟内/60分钟内/60分钟以上
+✈️ 距机场：30分钟内/60分钟内/90分钟内/90分钟以上
+🚌 公交：有直达/需转车/无公交
+🚇 地铁：有站点/规划中/无地铁
+权证信息选项：
+权属类型：集体/国有/个人
+权证类型：不动产权证书/宅基地使用权证/土地承包经营权证/暂无
+
+五、Admin 后台增强
+修改文件：
+app/admin/users/page.tsx — 用户编辑弹窗（基本信息+角色+合伙人专属+密码重置）
+app/api/admin/users/route.ts — 新增 update-profile action + 密码哈希
+app/admin/assets/page.tsx — 全选 checkbox + 批量删除按钮 + 发布时间列
+app/api/admin/assets/route.ts — 新增 DELETE 端点 + PUT 支持新字段
+app/api/admin/bulk-projects/route.ts — PUT 支持新字段
+
+六、地理信息数据
+新增文件：
+sql/regions-districts.sql — 覆盖 28 个省份 877 个区县
+
+七、数据库变更汇总
+
+八、待解决事项
+
