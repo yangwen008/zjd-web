@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
   const state = crypto.randomUUID();
 
-  const authUrl = getOAuthUrl(callbackUrl, state, 'snsapi_base');
+  const authUrl = getOAuthUrl(callbackUrl, state, 'snsapi_userinfo');
 
   return NextResponse.redirect(authUrl);
 }
