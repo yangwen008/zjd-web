@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const siteUrl = 'https://zjd.cn';
 
-  // OG 图片：优先用资产图片，外链用 logo 兜底
+  // OG 图片：只用 R2 图片或 logo，外链图片微信爬虫无法访问
   let imageUrl = `${siteUrl}/logo-share.jpg`;
   if (asset.images) {
     try {
@@ -26,15 +26,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       if (Array.isArray(arr) && arr.length > 0) {
         const first = arr[0];
         const rawUrl = typeof first === 'object' ? (first.url || first.thumb || '') : first;
-        if (rawUrl) {
-          if (rawUrl.startsWith('/api/images/')) {
-            // R2 本地图片，直接用
-            imageUrl = `${siteUrl}${rawUrl}`;
-          } else if (rawUrl.startsWith('http')) {
-            // 外链图片（Unsplash等），也尝试用
-            imageUrl = rawUrl;
-          }
+        if (rawUrl && rawUrl.startsWith('/api/images/')) {
+          // R2 本地图片，微信爬虫可访问
+          imageUrl = `${siteUrl}${rawUrl}`;
         }
+        // 外链图片（Unsplash等）跳过，微信爬虫无法访问，用 logo 兜底
       }
     } catch {}
   }
