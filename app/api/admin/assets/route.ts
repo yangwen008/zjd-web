@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { query, queryOne, execute } from '@/lib/db';
 import type { Asset } from '@/lib/data';
+import { baiduPushAsset } from '@/lib/baidu-push';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -74,6 +75,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Invalid status' }, { status: 400 });
       }
       await execute('UPDATE assets SET status = ? WHERE id = ?', status, id);
+      // 审核通过时自动推送百度
+      if (status === 'approved') {
+        baiduPushAsset(id).catch(() => {});
+      }
       return NextResponse.json({ success: true });
     }
 
