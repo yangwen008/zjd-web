@@ -119,6 +119,7 @@ export async function PUT(request: Request) {
     if (transport_info !== undefined) { fields.push('transport_info = ?'); args.push(typeof transport_info === 'object' ? JSON.stringify(transport_info) : transport_info); }
     if (cert_info !== undefined) { fields.push('cert_info = ?'); args.push(typeof cert_info === 'object' ? JSON.stringify(cert_info) : cert_info); }
     if (certification !== undefined) { fields.push('certification = ?'); args.push(certification); }
+    if (body.views !== undefined) { fields.push('views = ?'); args.push(parseInt(body.views) || 0); }
     fields.push("updated_at = datetime('now')");
 
     args.push(id);

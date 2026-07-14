@@ -385,12 +385,15 @@ export default function AdminAssetsPage() {
               </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">资产类型</label><input type="text" value={formData.asset_type || ''} onChange={(e) => setFormData({...formData, asset_type: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">描述</label><RichTextEditor value={formData.description || ''} onChange={(val) => setFormData({...formData, description: val})} placeholder="描述资产亮点、周边环境、交通情况等..." /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">确权状态</label>
-                <select value={(formData as any).certification || 'uncertified'} onChange={(e) => setFormData({...formData, certification: e.target.value} as any)} className="w-full px-3 py-2 border border-gray-200 rounded-lg">
-                  <option value="uncertified">❌ 未确权</option>
-                  <option value="pending">⏳ 待确权</option>
-                  <option value="certified">✅ 已确权</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">确权状态</label>
+                  <select value={(formData as any).certification || 'uncertified'} onChange={(e) => setFormData({...formData, certification: e.target.value} as any)} className="w-full px-3 py-2 border border-gray-200 rounded-lg">
+                    <option value="uncertified">❌ 未确权</option>
+                    <option value="pending">⏳ 待确权</option>
+                    <option value="certified">✅ 已确权</option>
+                  </select>
+                </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">浏览量</label><input type="number" min="0" value={formData.views ?? ''} onChange={(e) => setFormData({...formData, views: parseInt(e.target.value) || 0})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" /></div>
               </div>
 
               {/* 图片管理 */}
