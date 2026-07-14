@@ -161,7 +161,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     name: asset.title,
     description: asset.description?.replace(/<[^>]*>/g, '').substring(0, 200),
     url: `${siteUrl}/asset/${asset.id}`,
-    image: imageUrl,
+    image: shareImage,
     address: {
       '@type': 'PostalAddress',
       addressLocality: asset.city || '',
