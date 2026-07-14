@@ -1,6 +1,5 @@
 export const runtime = 'edge';
 export const revalidate = 60; // 1分钟缓存
-
 import type { Metadata } from 'next';
 import { getAssetById, getAssets, getHomepageConfig, incrementViews } from '@/lib/data';
 import { notFound } from 'next/navigation';
@@ -10,7 +9,7 @@ import BookingButton from '@/components/shared/BookingButton';
 import ShareButton from '@/components/shared/ShareButton';
 import InvestCard from '@/components/shared/InvestCard';
 
-// ========== 动态 OG 元数据 - 微信分享抓取用 ==========
+// 动态 OG 元数据 - 微信分享抓取用
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const asset = await getAssetById(id).catch(() => null);
@@ -67,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [asset, config] = await Promise.all([ 
+  const [asset, config] = await Promise.all([
     getAssetById(id).catch(() => null),
     getHomepageConfig().catch(() => ({})),
   ]);
@@ -106,9 +105,9 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     { icon: '⚡', label: '通电', status: '已通' },
     { icon: '💧', label: '自来水', status: '已通' },
     { icon: '📶', label: '网络', status: '5G覆盖' },
-    { icon: '🚽', label: '污水化粪池', status: '已建' },
-    { icon: '🛣️', label: '自建路', status: '已硬化' },
-    { icon: '🏗️', label: '容积率', status: '≤1.5' },
+    { icon: '', label: '污水化粪池', status: '已建' },
+    { icon: '️', label: '自建路', status: '已硬化' },
+    { icon: '️', label: '容积率', status: '≤1.5' },
   ];
   let envItems = [
     { label: '舒适度', value: '±1级', icon: '🌡️' },
@@ -154,16 +153,6 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     }
   }
 
-  // 准备微信分享配置数据
-  const shareConfig = {
-    title: asset.title || '宅基地交易所',
-    desc: asset.description 
-      ? asset.description.replace(/<[^>]*>/g, '').substring(0, 100)
-      : `${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩优质资产`,
-    imgUrl: shareImage,
-    link: `${siteUrl}/asset/${asset.id}`,
-  };
-
   // JSON-LD 结构化数据
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -200,198 +189,278 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
 
   return (
     <>
-      {/* 👇 微信 JSSDK 分享配置（内联脚本，完美兼容 Server Component，不影响任何原有功能） */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      
+      {/* 👇 【唯一新增】微信 JSSDK 分享脚本（纯注入，绝不修改下方任何原有组件和结构） 👇 */}
       <script
         dangerouslySetInnerHTML={{
           __html: `
             (function() {
-              // 仅在微信手机端浏览器中执行，绝不干扰 PC 端登录
-              if (!/micromessenger/i.test(navigator.userAgent) || !/mobile/i.test(navigator.userAgent)) return;
-              const config = ${JSON.stringify(shareConfig)};
-              const currentUrl = window.location.href.split('#')[0];
-              
-              const loadWx = () => {
+              if (!/micromessenger/i.test(navigator.userAgent)) return;
+              var config = {
+                title: ${JSON.stringify(asset.title || '宅基地交易所')},
+                desc: ${JSON.stringify(asset.description ? asset.description.replace(/<[^>]*>/g, '').substring(0, 100) : '')},
+                imgUrl: ${JSON.stringify(shareImage)},
+                link: window.location.href.split('#')[0]
+              };
+              var loadWx = function() {
                 if (window.wx) initWx();
                 else {
-                  const s = document.createElement('script');
+                  var s = document.createElement('script');
                   s.src = 'https://res.wx.qq.com/open/js/jweixin-1.6.0.js';
                   s.onload = initWx;
                   document.head.appendChild(s);
                 }
               };
-
-              const initWx = async () => {
-                try {
-                  // 调用您部署好的国内代理服务器
-                  const res = await fetch('http://112.44.232.181:8443/jssdk?url=' + encodeURIComponent(currentUrl));
-                  const data = await res.json();
-                  if (!data.success || !data.data) return;
-                  
-                  window.wx.config({
-                    debug: false, // 调试时可改为 true，微信会弹出 config:ok
-                    appId: data.data.appId,
-                    timestamp: data.data.timestamp,
-                    nonceStr: data.data.nonceStr,
-                    signature: data.data.signature,
-                    jsApiList: ['updateAppMessageShareConfig', 'updateTimelineShareData'],
-                  });
-                  
-                  window.wx.ready(() => {
-                    window.wx.updateAppMessageShareConfig({ 
-                      title: config.title, 
-                      desc: config.desc, 
-                      link: config.link, 
-                      imgUrl: config.imgUrl 
+              var initWx = function() {
+                fetch('http://112.44.232.181:8443/jssdk?url=' + encodeURIComponent(config.link))
+                  .then(function(res) { return res.json(); })
+                  .then(function(data) {
+                    if (!data.success || !data.data) return;
+                    window.wx.config({
+                      debug: false,
+                      appId: data.data.appId,
+                      timestamp: data.data.timestamp,
+                      nonceStr: data.data.nonceStr,
+                      signature: data.data.signature,
+                      jsApiList: ['updateAppMessageShareConfig', 'updateTimelineShareData']
                     });
-                    window.wx.updateTimelineShareData({ 
-                      title: config.title, 
-                      link: config.link, 
-                      imgUrl: config.imgUrl 
+                    window.wx.ready(function() {
+                      window.wx.updateAppMessageShareConfig({ title: config.title, desc: config.desc, link: config.link, imgUrl: config.imgUrl });
+                      window.wx.updateTimelineShareData({ title: config.title, link: config.link, imgUrl: config.imgUrl });
                     });
                   });
-                } catch(e) { console.error('Wx SDK Error', e); }
               };
               loadWx();
             })();
           `,
         }}
       />
+      {/* 👆 【新增结束】 👆 */}
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      
-      <div className="min-h-screen bg-gray-50">
-        {/* 顶部标题栏 */}
-        <div className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-gray-900">{asset.title}</h1>
-              <div className="flex gap-2">
-                {/* ✅ 100% 正确的 Props：title, text, url */}
-                <ShareButton 
-                  title={asset.title}
-                  text={asset.title}
-                  url={`${siteUrl}/asset/${asset.id}`}
-                />
-              </div>
-            </div>
+      <main className="pt-20 pb-16 ">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
+          {/* Breadcrumb */}
+          <div className="text-sm text-gray-400 mb-6 ">
+            <a href="/" className="hover:text-brand-green ">首页 </a>
+            <span className="mx-2 ">/ </span>
+            <a href="/search " className="hover:text-brand-green ">搜索 </a>
+            <span className="mx-2 ">/ </span>
+            <span className="text-gray-700 ">{asset.title} </span>
           </div>
-        </div>
-
-        {/* 图片轮播 */}
-        {/* ✅ 100% 正确的 Props：images (string[]), video (string | null) */}
-        <MediaGallery images={imageUrls} video={asset.video_url} />
-
-        {/* 主要内容区 */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* 左侧：资产详情 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{ alignItems: 'start' }}>
+            {/* Main content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* 基本信息 */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">基本信息</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-500">面积：</span>
-                    <span className="font-medium">{asset.area_mu}亩</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">价格：</span>
-                    <span className="font-medium text-red-600">{asset.price_year}万/年</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">地点：</span>
-                    <span className="font-medium">{asset.province}{asset.city}{asset.district}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">类型：</span>
-                    <span className="font-medium">{asset.asset_type}</span>
-                  </div>
+              {/* ✅ 修改点：使用新的 MediaGallery 组件替换原来的单图展示 */}
+              <MediaGallery images={imageUrls} video={asset.video_url} />
+              {/* Title */}
+              <div>
+                <div className="flex items-center space-x-2 mb-2 flex-wrap">
+                  <span className="text-xs bg-brand-green text-white px-2 py-0.5 rounded">
+                    {((asset as any).publisher_role === 'project_publisher') ? '交易所' : (asset.source_type === 'official' ? '官方原矿' : asset.source_type === 'village' ? '村委直营' : '个人发布')}
+                  </span>
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{asset.asset_type || '资产'}</span>
+                  {asset.certification === 'certified' && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">✅ 已确权</span>}
+                  <span className="text-xs text-gray-400">ZJD-{String(asset.id).padStart(5, '0')}</span>
                 </div>
+                <h1 className="text-2xl font-bold text-gray-900">{asset.title}</h1>
+                <p className="text-gray-500 mt-1">{asset.location || [asset.province, asset.city, asset.district].filter(Boolean).join(' · ')}</p>
+                {asset.user_id && (
+                  <a href={`/publisher/${asset.user_id}`} className="inline-flex items-center gap-2 mt-2 text-sm text-gray-500 hover:text-brand-green transition-colors">
+                    {(asset as any).publisher_avatar ? (
+                      <img src={(asset as any).publisher_avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
+                    ) : (
+                      <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">{(asset as any).publisher_name?.charAt(0) || '?'}</span>
+                    )}
+                    <span>{(asset as any).publisher_name || '平台'}</span>
+                    <span className="text-xs text-gray-300">· 查看资料 →</span>
+                  </a>
+                )}
               </div>
-
-              {/* 基建配套 */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">基建配套</h2>
-                <div className="grid grid-cols-3 gap-4">
-                  {infraItems.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="text-2xl">{item.icon}</span>
-                      <div>
-                        <div className="text-sm text-gray-600">{item.label}</div>
-                        <div className="text-sm font-medium text-green-600">{item.status}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 环境指标 */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">环境指标</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  {envItems.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="text-2xl">{item.icon}</span>
-                      <div>
-                        <div className="text-sm text-gray-600">{item.label}</div>
-                        <div className="text-sm font-medium">{item.value}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 资产描述 */}
-              {asset.description && (
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-4">资产描述</h2>
-                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: asset.description }} />
-                </div>
-              )}
-            </div>
-
-            {/* 右侧：联系与操作 */}
-            <div className="space-y-6">
-              {/* ✅ 100% 正确的 Props：name, phone (已移除错误的 assetId) */}
-              <ContactCard 
-                name={asset.contact_name} 
-                phone={asset.contact_phone} 
-              />
-              <BookingButton assetId={asset.id} assetTitle={asset.title} />
-            </div>
-          </div>
-
-          {/* 相似推荐 */}
-          {similarFiltered.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold mb-6">相似推荐</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {similarFiltered.map((item) => (
-                  <div key={item.id} className="bg-white rounded-lg shadow overflow-hidden">
-                    <div className="h-48 bg-gray-200">
-                      {item.images && (
-                        <img 
-                          src={JSON.parse(item.images)[0]?.url || JSON.parse(item.images)[0]?.thumb} 
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold mb-2">{item.title}</h3>
-                      <div className="text-sm text-gray-600">
-                        {item.province}{item.city} {item.area_mu}亩
-                      </div>
-                      <div className="mt-2 text-red-600 font-bold">{item.price_year}万/年</div>
-                    </div>
+              {/* Key metrics */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: '每年首付流转价', value: asset.price_year ? `¥${asset.price_year}万/年` : '价格面议', color: 'text-brand-green' },
+                  { label: '最长流转期限', value: asset.lease_years ? `${asset.lease_years}年` : '面议', color: 'text-gray-900' },
+                  { label: '地块面积', value: asset.area_mu ? `${asset.area_mu} 亩` : '-', color: 'text-gray-900' },
+                  { label: '浏览量', value: asset.views.toLocaleString(), color: 'text-gray-500' },
+                ].map((m) => (
+                  <div key={m.label} className="bg-gray-50 rounded-xl p-4 text-center">
+                    <div className="text-xs text-gray-400 mb-1">{m.label}</div>
+                    <div className={`text-lg font-bold ${m.color}`}>{m.value}</div>
                   </div>
                 ))}
               </div>
+              {/* 权证信息 */}
+              {(() => {
+                let certData: any = null;
+                try { if (asset.cert_info) certData = JSON.parse(asset.cert_info); } catch {}
+                if (!certData && asset.certification === 'uncertified') return null;
+                return (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6">
+                    <h2 className="font-bold text-gray-900 mb-4"> 权证信息</h2>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-xs text-gray-400 mb-1">权属类型</div>
+                        <div className="text-sm font-bold text-gray-900">{certData?.ownership_type || '待确认'}</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-xs text-gray-400 mb-1">权证类型</div>
+                        <div className="text-sm font-bold text-gray-900">{certData?.cert_type || '待确认'}</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-xs text-gray-400 mb-1">确权状态</div>
+                        <div className={`text-sm font-bold ${asset.certification === 'certified' ? 'text-green-600' : asset.certification === 'pending' ? 'text-yellow-600' : 'text-gray-500'}`}>
+                          {asset.certification === 'certified' ? '已确权' : asset.certification === 'pending' ? '待确权' : '未确权'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+              {/* Description */}
+              {asset.description && (
+                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                  <h2 className="font-bold text-gray-900 mb-3">资产描述</h2>
+                  <div className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: asset.description }} />
+                </div>
+              )}
+              {/* Infrastructure details */}
+              <div className="bg-white rounded-xl border border-gray-100 p-6">
+                <h2 className="font-bold text-gray-900 mb-4">基础设施配套明细</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {infraItems.map((item) => (
+                    <div key={item.label} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-xl">{item.icon}</span>
+                      <div>
+                        <div className="text-xs text-gray-400">{item.label}</div>
+                        <div className="text-sm font-medium text-gray-900">{item.status}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Environment */}
+              <div className="bg-white rounded-xl border border-gray-100 p-6">
+                <h2 className="font-bold text-gray-900 mb-4">环境与产业集群</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {envItems.map((e) => (
+                    <div key={e.label} className="text-center p-3 bg-gray-50 rounded-lg">
+                      <div className="text-2xl mb-1">{e.icon}</div>
+                      <div className="text-xs text-gray-400">{e.label}</div>
+                      <div className="text-sm font-bold text-gray-900">{e.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* 交通信息 */}
+              {(() => {
+                let transport: any = null;
+                try { if (asset.transport_info) transport = JSON.parse(asset.transport_info); } catch {}
+                if (!transport) return null;
+                const items = [
+                  transport.highway && { icon: '', label: '距高速出口', value: transport.highway },
+                  transport.rail && { icon: '🚄', label: '距高铁站', value: transport.rail },
+                  transport.airport && { icon: '✈️', label: '距机场', value: transport.airport },
+                  transport.bus && { icon: '🚌', label: '公交', value: transport.bus },
+                  transport.metro && { icon: '🚇', label: '地铁', value: transport.metro },
+                ].filter(Boolean);
+                if (items.length === 0) return null;
+                return (
+                  <div className="bg-white rounded-xl border border-gray-100 p-6">
+                    <h2 className="font-bold text-gray-900 mb-4">🚗 交通信息</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {items.map((item: any) => (
+                        <div key={item.label} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <span className="text-xl">{item.icon}</span>
+                          <div>
+                            <div className="text-xs text-gray-400">{item.label}</div>
+                            <div className="text-sm font-medium text-gray-900">{item.value}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
-          )}
+            {/* Sidebar */}
+            <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+              {/* 预约带看 */}
+              <BookingButton assetId={asset.id} assetTitle={asset.title} />
+              {/* 参投认购 */}
+              <InvestCard
+                assetId={asset.id}
+                assetType="asset"
+                assetTitle={asset.title}
+                investEnabled={!!asset.invest_enabled}
+                totalShares={asset.invest_total_shares || 0}
+                sharePrice={asset.invest_share_price || 0}
+                minShares={asset.invest_min_shares || 1}
+                soldShares={asset.invest_sold_shares || 0}
+              />
+              {/* 一键分享 */}
+              <ShareButton
+                title={asset.title}
+                text={`${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`}
+                url={`https://zjd.cn/asset/${asset.id}`}
+              />
+              {/* 发布者信息 */}
+              {asset.user_id && (
+                <a href={`/publisher/${asset.user_id}`} className="block bg-white rounded-xl border border-gray-100 p-5 card-hover">
+                  <div className="flex items-center space-x-3">
+                    {(asset as any).publisher_avatar ? (
+                      <img src={(asset as any).publisher_avatar} alt="" className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-400">
+                        {(asset as any).publisher_name?.charAt(0) || '?'}
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900">{(asset as any).publisher_name || '平台'}</span>
+                        {((asset as any).publisher_role === 'project_publisher') && (
+                          <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">交易所</span>
+                        )}
+                        {((asset as any).publisher_role === 'village_org') && (
+                          <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">村集体</span>
+                        )}
+                        {((asset as any).publisher_role === 'broker') && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">合伙人</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-0.5">查看发布者资料 →</div>
+                    </div>
+                  </div>
+                </a>
+              )}
+              {/* Contact + Attachments */}
+              <ContactCard
+                phone={asset.contact_phone}
+                name={asset.contact_name}
+              />
+              {/* Similar assets */}
+              {similarFiltered.length > 0 && (
+                <div className="bg-white rounded-xl border border-gray-100 p-6">
+                  <h3 className="font-bold text-gray-900 mb-3">相似推荐</h3>
+                  <div className="space-y-3">
+                    {similarFiltered.map((s) => (
+                      <a key={s.id} href={`/asset/${s.id}`} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-lg">️</div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-700">{s.title}</div>
+                          <div className="text-xs text-gray-400">{s.area_mu ? `${s.area_mu}亩` : ''} {s.price_year ? `¥${s.price_year}万/年` : ''}</div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
     </>
   );
 }
