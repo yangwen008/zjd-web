@@ -11,7 +11,8 @@ import { queryOne, execute } from './db';
 const WX_API_PROXY = 'http://112.44.232.181:8443/weixin-proxy';
 
 function wxApiUrl(path: string): string {
-  return `${WX_API_PROXY}${path}`;
+  // Cloudflare Workers 可以直接访问微信 API，不需要代理
+  return `https://api.weixin.qq.com${path}`;
 }
 
 interface WxConfig {
