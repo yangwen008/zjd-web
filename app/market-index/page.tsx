@@ -1,7 +1,20 @@
 export const runtime = 'edge';
 export const revalidate = 300;
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: '土地价格大盘 - zjd.cn 乡村闲置资产数字交易所',
+  description: '全国各省乡村土地流转价格中位数、涨跌趋势、砍价空间。实时行情数据，助力资产定价决策。',
+  keywords: '土地价格,流转行情,宅基地价格,乡村土地中位数,土地流转大盘',
+  alternates: { canonical: '/market-index' },
+  openGraph: {
+    title: '土地价格大盘 - zjd.cn',
+    description: '全国各省乡村土地流转价格实时行情。',
+    url: 'https://zjd.cn/market-index',
+  },
+};
 import { getMarketData, getHomepageConfig, getAllProvinceEmojis } from '@/lib/data';
 
 function getChangeStyle(pct: number): string {

@@ -1,7 +1,20 @@
 export const runtime = 'edge';
 export const revalidate = 300;
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: '隐居基建指数 - zjd.cn 乡村闲置资产数字交易所',
+  description: '全国乡村地区5G信号、医疗配套、电网冗余度评分。数字化基建硬指标，助力隐居选址决策。',
+  keywords: '乡村基建,5G信号,医疗配套,隐居选址,乡村基建指数',
+  alternates: { canonical: '/infra-rating' },
+  openGraph: {
+    title: '隐居基建指数 - zjd.cn',
+    description: '全国乡村地区5G信号、医疗配套、电网冗余度评分。',
+    url: 'https://zjd.cn/infra-rating',
+  },
+};
 import { getInfraRatings, getHomepageConfig } from '@/lib/data';
 
 function getSignalColor(ms: number): string {

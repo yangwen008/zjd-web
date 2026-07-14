@@ -42,6 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title: `${asset.title} - zjd.cn`,
     description: desc,
+    alternates: { canonical: `/asset/${asset.id}` },
     openGraph: {
       title: asset.title,
       description: desc,
@@ -153,8 +154,44 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     }
   }
 
+  // JSON-LD 结构化数据
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstate',
+    name: asset.title,
+    description: asset.description?.replace(/<[^>]*>/g, '').substring(0, 200),
+    url: `${siteUrl}/asset/${asset.id}`,
+    image: imageUrl,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: asset.city || '',
+      addressRegion: asset.province || '',
+      streetAddress: asset.address || '',
+    },
+    ...(asset.area_mu ? { floorSize: { '@type': 'QuantitativeValue', value: asset.area_mu, unitText: '亩' } } : {}),
+    ...(asset.price_year ? { price: { '@type': 'MonetaryAmount', value: asset.price_year, currency: 'CNY', description: '万元/年' } } : {}),
+    offers: {
+      '@type': 'Offer',
+      price: asset.price_year || 0,
+      priceCurrency: 'CNY',
+      availability: 'https://schema.org/InStock',
+    },
+  };
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '首页', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: '搜索', item: `${siteUrl}/search` },
+      { '@type': 'ListItem', position: 3, name: asset.title, item: `${siteUrl}/asset/${asset.id}` },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 <main className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
