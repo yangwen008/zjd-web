@@ -2,7 +2,7 @@ export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
 import { queryOne, execute } from '@/lib/db';
-import { getOpenOAuthToken, getWxUserInfo } from '@/lib/wechat';
+import { getOpenOAuthToken } from '@/lib/wechat';
 import { createSession } from '@/lib/auth';
 
 /**
@@ -23,10 +23,14 @@ export async function POST(request: Request) {
     // 1. 用 code 换 token（开放平台）
     const tokenData = await getOpenOAuthToken(code);
 
-    // 2. 获取用户信息
+    // 2. 获取用户信息（直接调用微信API，不走代理）
     let wxUser = null;
     try {
-      wxUser = await getWxUserInfo(tokenData.access_token, tokenData.openid);
+      const userInfoRes = await fetch(`https://api.weixin.qq.com/sns/userinfo?access_token=${tokenData.access_token}&openid=${tokenData.openid}&lang=zh_CN`);
+      const userInfoData = await userInfoRes.json() as any;
+      if (!userInfoData.errcode) {
+        wxUser = userInfoData;
+      }
     } catch {}
 
     // 3. 查找已有用户（优先 open_platform 的 openid，其次 unionid）

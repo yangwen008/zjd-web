@@ -28,6 +28,29 @@ function getWxConfig(): WxConfig {
   return { appId, appSecret };
 }
 
+// ============ 微信开放平台配置（PC扫码登录） ============
+
+const WX_OPEN_APPID = (process.env as Record<string, string>).WX_OPEN_APPID || '';
+const WX_OPEN_APPSECRET = (process.env as Record<string, string>).WX_OPEN_APPSECRET || '';
+
+/**
+ * 用 code 换取开放平台 OAuth token（PC扫码登录用）
+ */
+export async function getOpenOAuthToken(code: string): Promise<WxOAuthToken> {
+  if (!WX_OPEN_APPID || !WX_OPEN_APPSECRET) {
+    throw new Error('WX_OPEN_APPID or WX_OPEN_APPSECRET not configured');
+  }
+  const url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${WX_OPEN_APPID}&secret=${WX_OPEN_APPSECRET}&code=${code}&grant_type=authorization_code`;
+  const res = await fetch(url);
+  const data = await res.json() as WxOAuthToken & { errcode?: number; errmsg?: string };
+
+  if ((data as any).errcode) {
+    throw new Error(`Open OAuth token error: ${(data as any).errmsg} (${(data as any).errcode})`);
+  }
+
+  return data;
+}
+
 // ============ Access Token 管理 (带 D1 缓存) ============
 
 interface TokenCache {
