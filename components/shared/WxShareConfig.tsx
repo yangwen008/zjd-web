@@ -35,7 +35,7 @@ export default function WxShareConfig({ title, desc, link, imgUrl }: WxShareConf
           if (!wx) return;
 
           wx.config({
-            debug: true,
+            debug: false,
             appId: data.data.appId,
             timestamp: data.data.timestamp,
             nonceStr: data.data.nonceStr,
