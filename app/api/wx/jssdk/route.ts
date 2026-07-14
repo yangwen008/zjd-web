@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
-import { getOpenJSSDKSignature } from '@/lib/wechat';
+import { getJSSDKSignature } from '@/lib/wechat';
 
 /**
  * GET /api/wx/jssdk?url=xxx
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const signature = await getOpenJSSDKSignature(url);
+    const signature = await getJSSDKSignature(url);
     return NextResponse.json({ success: true, data: signature });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
