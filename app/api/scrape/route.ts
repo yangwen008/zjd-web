@@ -133,9 +133,10 @@ export async function POST(request: Request) {
           recipeId = sysRecipe.id;
         }
       }
+      // 去重：只检查同一配方且状态为 raw 的数据
       if (recipeId) {
         const existing = await queryOne<{ id: number }>(
-          'SELECT id FROM staging_raw WHERE recipe_id = ? AND raw_data = ? LIMIT 1',
+          "SELECT id FROM staging_raw WHERE recipe_id = ? AND raw_data = ? AND status = 'raw' LIMIT 1",
           recipeId, rawDataStr
         );
         if (existing) {
