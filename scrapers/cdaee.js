@@ -4,8 +4,9 @@
  * AI标题重写在 Workers 端完成（/api/admin/staging action=ai-rename）
  * 
  * 用法：
- *   node scrapers/cdaee.js              # 采集资产资源（默认3页）
- *   node scrapers/cdaee.js --pages 5    # 采集5页
+ *   node scrapers/cdaee.js              # 采集最近7天数据
+ *   node scrapers/cdaee.js --since 2026-07-01  # 从指定日期开始采集
+ *   node scrapers/cdaee.js --pages 5    # 最多采集5页
  *   node scrapers/cdaee.js --dry-run    # 预览不入库
  *   node scrapers/cdaee.js --no-image   # 不采集图片（保留所有记录）
  */
@@ -19,12 +20,12 @@ const PAGE_SIZE = 20;
 
 const CATEGORY_NUM = '018003001';
 
-async function fetchPage(pageNum, pageSize) {
+async function fetchPage(pageNum, pageSize, sinceDate) {
   const param = {
     token: '',
     pn: pageNum * pageSize,
     rn: pageSize,
-    sdt: '',
+    sdt: sinceDate || '',
     edt: '',
     wd: '',
     inc_wd: '',
@@ -206,14 +207,51 @@ async function saveToStaging(items, recipeId) {
   return res.json();
 }
 
+// 读取上次采集日期（从 recipe 的 last_run_at 字段）
+async function getLastScrapeDate(recipeId) {
+  try {
+    const res = await fetch(`${CF_API_URL}/api/scrape`, {
+      headers: { 'Authorization': `Bearer ${CF_API_TOKEN}` },
+    });
+    const data = await res.json();
+    const recipes = data.recipes || [];
+    const recipe = recipes.find(r => r.id === recipeId);
+    if (recipe?.last_run_at) {
+      // 返回上次运行日期的前一天（确保不漏数据）
+      const d = new Date(recipe.last_run_at);
+      d.setDate(d.getDate() - 1);
+      return d.toISOString().split('T')[0]; // YYYY-MM-DD
+    }
+  } catch {}
+  // 默认采集最近7天
+  const d = new Date();
+  d.setDate(d.getDate() - 7);
+  return d.toISOString().split('T')[0];
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const maxPages = parseInt(args.find((_, i, a) => a[i - 1] === '--pages') || '3');
   const dryRun = args.includes('--dry-run');
   const noImage = args.includes('--no-image');
+  let sinceDate = args.find((_, i, a) => a[i - 1] === '--since') || '';
+
+  // 如果没有指定日期，从 recipe 的 last_run_at 推算
+  if (!sinceDate) {
+    const recipeId = await getSystemRecipeId();
+    if (recipeId) {
+      sinceDate = await getLastScrapeDate(recipeId);
+    } else {
+      // 默认7天
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      sinceDate = d.toISOString().split('T')[0];
+    }
+  }
 
   console.log('🌾 四川省农村产权综合交易平台 采集器');
-  console.log(`📄 采集页数: ${maxPages}`);
+  console.log(`📄 最多采集: ${maxPages} 页`);
+  console.log(`📅 采集起始日期: ${sinceDate}`);
   console.log(`🔧 模式: ${dryRun ? '预览(dry-run)' : '入库'}`);
   console.log(`🖼️ 图片采集: ${noImage ? '关闭' : '开启（仅保留有图片的内容）'}`);
   console.log('');
@@ -224,7 +262,7 @@ async function main() {
   for (let page = 0; page < maxPages; page++) {
     console.log(`📥 采集第 ${page + 1}/${maxPages} 页...`);
     try {
-      const result = await fetchPage(page, PAGE_SIZE);
+      const result = await fetchPage(page, PAGE_SIZE, sinceDate);
       const records = result.records || [];
       console.log(`   获取 ${records.length} 条 (总计: ${result.totalcount})`);
 
@@ -275,6 +313,16 @@ async function main() {
       console.log(`   使用配方 ID: ${recipeId}`);
       const result = await saveToStaging(totalItems, recipeId);
       if (result.success) {
+        // 更新配方的 last_run_at
+        await fetch(`${CF_API_URL}/api/scrape`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${CF_API_TOKEN}`,
+          },
+          body: JSON.stringify({ action: 'update-status', recipeId, status: 'success' }),
+        }).catch(() => {});
+
         console.log('✅ 保存成功，请到后台「暂存数据清洗」页面审核入库');
         console.log('💡 提示：在后台点击「AI重写标题」按钮可批量优化标题');
       } else {
