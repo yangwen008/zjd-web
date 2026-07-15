@@ -12,7 +12,7 @@
  */
 
 const CF_API_URL = process.env.CF_API_URL || 'https://zjd.cn';
-const CF_API_TOKEN = proces…OKEN || '';
+const CF_API_TOKEN = process.env.CF_API_TOKEN || '';
 
 const API_URL = 'https://www.cdaee.com/inteligentsearch_new/rest/esinteligentsearch/getFullTextDataNew';
 const DETAIL_BASE = 'https://www.cdaee.com';
@@ -182,12 +182,15 @@ function transformRecord(record) {
 }
 
 async function getSystemRecipeId() {
-  const res = await fetch(`${CF_API_URL}/api/scrape`, {
-    headers: { 'Authorization': `Bearer ${CF_API_TOKEN}` },
-  });
+  const headers = {};
+  if (CF_API_TOKEN) headers['Authorization'] = `Bearer ${CF_API_TOKEN}`;
+  const res = await fetch(`${CF_API_URL}/api/scrape`, { headers });
   const data = await res.json();
   const recipes = data.recipes || [];
-  const sys = recipes.find(r => r.name === '系统内置采集器');
+  // 优先找 source_name=cdaee，其次找名字包含“四川”或“农交所”的
+  const sys = recipes.find(r => r.source_name === 'cdaee')
+    || recipes.find(r => r.name && (r.name.includes('四川') || r.name.includes('农交所')))
+    || recipes.find(r => r.name === '系统内置采集器');
   return sys?.id || null;
 }
 
