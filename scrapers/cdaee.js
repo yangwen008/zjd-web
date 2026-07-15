@@ -6,6 +6,7 @@
  * 用法：
  *   node scrapers/cdaee.js              # 采集最近7天数据
  *   node scrapers/cdaee.js --since 2026-07-01  # 从指定日期开始采集
+ *   node scrapers/cdaee.js --recipe-id 2      # 指定配方ID
  *   node scrapers/cdaee.js --pages 5    # 最多采集5页
  *   node scrapers/cdaee.js --dry-run    # 预览不入库
  *   node scrapers/cdaee.js --no-image   # 不采集图片（保留所有记录）
@@ -181,13 +182,15 @@ function transformRecord(record) {
   };
 }
 
-async function getSystemRecipeId() {
+async function getSystemRecipeId(recipeId) {
+  // 如果指定了配方 ID，直接使用
+  if (recipeId) return parseInt(recipeId);
+
   const headers = {};
   if (CF_API_TOKEN) headers['Authorization'] = `Bearer ${CF_API_TOKEN}`;
   const res = await fetch(`${CF_API_URL}/api/scrape`, { headers });
   const data = await res.json();
   const recipes = data.recipes || [];
-  // 优先找 source_name=cdaee，其次找名字包含“四川”或“农交所”的
   const sys = recipes.find(r => r.source_name === 'cdaee')
     || recipes.find(r => r.name && (r.name.includes('四川') || r.name.includes('农交所')))
     || recipes.find(r => r.name === '系统内置采集器');
@@ -238,10 +241,11 @@ async function main() {
   const dryRun = args.includes('--dry-run');
   const noImage = args.includes('--no-image');
   let sinceDate = args.find((_, i, a) => a[i - 1] === '--since') || '';
+  const recipeIdArg = args.find((_, i, a) => a[i - 1] === '--recipe-id') || '';
 
   // 如果没有指定日期，从 recipe 的 last_run_at 推算
   if (!sinceDate) {
-    const recipeId = await getSystemRecipeId();
+    const recipeId = await getSystemRecipeId(recipeIdArg);
     if (recipeId) {
       sinceDate = await getLastScrapeDate(recipeId);
     } else {
@@ -311,8 +315,8 @@ async function main() {
   } else {
     console.log('💾 保存到暂存区...');
     try {
-      const recipeId = await getSystemRecipeId();
-      if (!recipeId) { console.error('❌ 未找到系统内置采集器配方，请先在后台创建'); process.exit(1); }
+      const recipeId = await getSystemRecipeId(recipeIdArg);
+      if (!recipeId) { console.error('❌ 未找到配方，请用 --recipe-id 指定配方ID'); process.exit(1); }
       console.log(`   使用配方 ID: ${recipeId}`);
       const result = await saveToStaging(totalItems, recipeId);
       if (result.success) {
