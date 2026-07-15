@@ -222,10 +222,10 @@ export default function AdminStagingPage() {
               <div className="pt-2 border-t border-gray-200">
                 <span className="text-gray-500 text-xs">图片预览:</span>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {(parsedData.images || []).slice(0, 4).map((url: string, i: number) => (
-                    <img key={i} src={url} alt="" className="w-16 h-16 object-cover rounded border border-gray-200" />
+                  {((parsedData.images || []).length > 0 ? parsedData.images : parsedData._images || []).slice(0, 4).map((url: string, i: number) => (
+                    <img key={i} src={url.startsWith('http') ? url : `https://www.cdaee.com${url}`} alt="" className="w-16 h-16 object-cover rounded border border-gray-200" />
                   ))}
-                  {(!parsedData.images || parsedData.images.length === 0) && <span className="text-gray-400 text-xs">无图片</span>}
+                  {((parsedData.images || []).length === 0 && (parsedData._images || []).length === 0) && <span className="text-gray-400 text-xs">无图片</span>}
                 </div>
               </div>
             </div>
