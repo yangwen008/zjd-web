@@ -1,11 +1,12 @@
 /**
  * 四川省农村产权综合交易平台 采集器
- * 直接调用 JSON API，无需 Playwright
+ * 直接调用 JSON API + 详情页图片采集
  * 
  * 用法：
- *   node scrapers/cdaee.js              # 采集资产资源（默认）
+ *   node scrapers/cdaee.js              # 采集资产资源（默认3页）
  *   node scrapers/cdaee.js --pages 5    # 采集5页
  *   node scrapers/cdaee.js --dry-run    # 预览不入库
+ *   node scrapers/cdaee.js --no-image   # 不采集图片（保留所有记录）
  */
 
 const CF_API_URL = process.env.CF_API_URL || 'https://zjd.cn';
@@ -71,7 +72,6 @@ async function fetchPage(pageNum, pageSize) {
 
 /**
  * 从地址字符串提取省/市/区
- * 格式："四川省/成都市/都江堰市/青城山镇"
  */
 function parseAddress(xmdz) {
   if (!xmdz) return { province: '', city: '', district: '' };
@@ -84,11 +84,59 @@ function parseAddress(xmdz) {
 }
 
 /**
+ * 从详情页提取图片 URL 列表
+ * 图片在附件列表的 data-attachurl 属性中，过滤 jpg/png/jpeg/bmp
+ */
+async function fetchDetailImages(detailUrl) {
+  try {
+    const res = await fetch(detailUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://www.cdaee.com/',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return [];
+
+    const html = await res.text();
+    const images = [];
+
+    // 匹配 data-attachurl 属性中的图片路径
+    const attachRegex = /data-attachurl\s*=\s*['"]([^'"]+)['"]/gi;
+    let match;
+    while ((match = attachRegex.exec(html)) !== null) {
+      const path = match[1];
+      // 只保留图片文件
+      const ext = path.split('.').pop().toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'bmp', 'gif', 'webp'].includes(ext)) {
+        const fullUrl = path.startsWith('http') ? path : `${DETAIL_BASE}${path}`;
+        images.push(fullUrl);
+      }
+    }
+
+    // 备用：匹配 <img> 标签中的 nccq_nas 图片
+    if (images.length === 0) {
+      const imgRegex = /<img[^>]*src\s*=\s*['"]([^'"]*nccq_nas[^'"]*)['"]/gi;
+      while ((match = imgRegex.exec(html)) !== null) {
+        const src = match[1];
+        const fullUrl = src.startsWith('http') ? src : `${DETAIL_BASE}${src}`;
+        images.push(fullUrl);
+      }
+    }
+
+    return images;
+  } catch {
+    return [];
+  }
+}
+
+/**
  * 将 API 记录转换为我们的资产格式
  */
 function transformRecord(record) {
   const addr = parseAddress(record.xmdz);
-  
+
   // 价格：gpjg 是单价(元/亩/年)，转为万元
   let priceYear = null;
   if (record.gpjg && parseFloat(record.gpjg) > 0) {
@@ -97,7 +145,6 @@ function transformRecord(record) {
     if (unit.includes('万元')) {
       priceYear = price;
     } else if (unit.includes('元/亩')) {
-      // 假设按面积计算年租金
       const area = parseFloat(record.tdmj) || 1;
       priceYear = Math.round((price * area) / 10000 * 100) / 100;
     } else {
@@ -114,7 +161,7 @@ function transformRecord(record) {
   }
 
   // 资产类型推断
-  let assetType = '种植'; // 默认
+  let assetType = '种植';
   const title = (record.customtitle || record.title || '').toLowerCase();
   if (title.includes('宅基地') || title.includes('住房') || title.includes('农房')) assetType = '宅基地';
   else if (title.includes('林地') || title.includes('林木')) assetType = '林地';
@@ -128,7 +175,6 @@ function transformRecord(record) {
   else if (title.includes('堰塘') || title.includes('鱼塘') || title.includes('养殖')) assetType = '种植';
   else if (title.includes('集体建设用地') || title.includes('经营性')) assetType = '厂房';
 
-  // 详情链接
   const detailUrl = record.linkurl ? `${DETAIL_BASE}${record.linkurl}` : '';
 
   return {
@@ -180,13 +226,16 @@ async function main() {
   const args = process.argv.slice(2);
   const maxPages = parseInt(args.find((_, i, a) => a[i - 1] === '--pages') || '3');
   const dryRun = args.includes('--dry-run');
+  const noImage = args.includes('--no-image');
 
   console.log('🌾 四川省农村产权综合交易平台 采集器');
   console.log(`📄 采集页数: ${maxPages}`);
   console.log(`🔧 模式: ${dryRun ? '预览(dry-run)' : '入库'}`);
+  console.log(`🖼️ 图片采集: ${noImage ? '关闭' : '开启（仅保留有图片的内容）'}`);
   console.log('');
 
   let totalItems = [];
+  let skippedNoImage = 0;
 
   for (let page = 0; page < maxPages; page++) {
     console.log(`📥 采集第 ${page + 1}/${maxPages} 页...`);
@@ -195,10 +244,29 @@ async function main() {
       const records = result.records || [];
       console.log(`   获取 ${records.length} 条 (总计: ${result.totalcount})`);
 
-      const items = records.map(transformRecord);
-      totalItems.push(...items);
+      for (const record of records) {
+        const item = transformRecord(record);
 
-      // 请求间隔
+        if (!noImage && item.source_url) {
+          // 采集详情页图片
+          console.log(`   🖼️ ${item.title.substring(0, 30)}...`);
+          const images = await fetchDetailImages(item.source_url);
+          if (images.length > 0) {
+            item._images = images;
+            console.log(`      ✅ ${images.length} 张图片`);
+          } else {
+            console.log(`      ⏭️ 无图片，跳过`);
+            skippedNoImage++;
+            continue; // 跳过无图片的记录
+          }
+          // 请求间隔，避免被封
+          await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+        }
+
+        totalItems.push(item);
+      }
+
+      // 翻页间隔
       if (page < maxPages - 1) {
         await new Promise(r => setTimeout(r, 1000 + Math.random() * 1000));
       }
@@ -207,7 +275,7 @@ async function main() {
     }
   }
 
-  console.log(`\n📊 采集完成，共 ${totalItems.length} 条`);
+  console.log(`\n📊 采集完成: ${totalItems.length} 条有图片，${skippedNoImage} 条无图片跳过`);
 
   if (dryRun) {
     console.log('\n--- 预览前5条 ---');
@@ -216,6 +284,7 @@ async function main() {
       console.log(`    📍 ${item.location}`);
       console.log(`    📐 ${item.area_mu || '-'}亩 | 💰 ${item.price_year || '-'}万/年 | ⏱ ${item.lease_years || '-'}年`);
       console.log(`    🏷️ ${item.asset_type} | 来源: ${item.source_url || '-'}`);
+      console.log(`    🖼️ 图片: ${(item._images || []).length} 张`);
     });
   } else {
     console.log('💾 保存到暂存区...');

@@ -137,13 +137,43 @@ export async function POST(request: Request) {
         const userId = source?.user_id || null;
         const status = source?.auto_approve ? 'approved' : 'pending';
 
+        // 处理采集到的图片：下载并上传到 R2
+        let imagesJson = '[]';
+        const rawImages = a._images as string[] | undefined;
+        if (rawImages && rawImages.length > 0) {
+          const uploadedUrls: string[] = [];
+          for (const imgUrl of rawImages.slice(0, 8)) {
+            try {
+              const imgRes = await fetch(imgUrl, {
+                headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://www.cdaee.com/' },
+                signal: AbortSignal.timeout(8000),
+              });
+              if (imgRes.ok) {
+                const ct = imgRes.headers.get('content-type') || '';
+                if (ct.startsWith('image/')) {
+                  const buffer = await imgRes.arrayBuffer();
+                  if (buffer.byteLength < 5 * 1024 * 1024) {
+                    const ext = ct.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
+                    const key = `scraped/${Date.now()}-${Math.random().toString(36).substring(2, 6)}.${ext}`;
+                    const env = getEnv();
+                    await env.R2.put(key, buffer, { httpMetadata: { contentType: ct } });
+                    uploadedUrls.push(`/api/images/${key}`);
+                  }
+                }
+              }
+            } catch { /* 单张图片失败不影响整体 */ }
+          }
+          if (uploadedUrls.length > 0) imagesJson = JSON.stringify(uploadedUrls);
+        }
+
         await execute(
-          `INSERT INTO assets (title, description, location, province, city, district, area_mu, price_year, lease_years, asset_type, source_type, source_url, contact_name, contact_phone, certification, user_id, status, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+          `INSERT INTO assets (title, description, location, province, city, district, area_mu, price_year, lease_years, asset_type, source_type, source_url, images, contact_name, contact_phone, certification, user_id, status, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
           a.title || 'Untitled', a.description || null, a.location || null,
           a.province || null, a.city || null, a.district || null,
           a.area_mu || null, a.price_year || null, a.lease_years || null,
           a.asset_type || '种植', a.source_type || 'official', a.source_url || null,
+          imagesJson,
           a.contact_name || null, a.contact_phone || null, a.certification || 'uncertified',
           userId, status
         );
