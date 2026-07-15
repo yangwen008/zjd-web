@@ -1,16 +1,18 @@
 /**
  * 四川省农村产权综合交易平台 采集器
- * 直接调用 JSON API + 详情页图片采集
+ * 直接调用 JSON API + 详情页图片采集 + AI标题重写
  * 
  * 用法：
  *   node scrapers/cdaee.js              # 采集资产资源（默认3页）
  *   node scrapers/cdaee.js --pages 5    # 采集5页
  *   node scrapers/cdaee.js --dry-run    # 预览不入库
  *   node scrapers/cdaee.js --no-image   # 不采集图片（保留所有记录）
+ *   node scrapers/cdaee.js --no-rename  # 不重写标题
  */
 
 const CF_API_URL = process.env.CF_API_URL || 'https://zjd.cn';
 const CF_API_TOKEN = process.env.CF_API_TOKEN || '';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 const API_URL = 'https://www.cdaee.com/inteligentsearch_new/rest/esinteligentsearch/getFullTextDataNew';
 const DETAIL_BASE = 'https://www.cdaee.com';
@@ -84,6 +86,82 @@ function parseAddress(xmdz) {
 }
 
 /**
+ * 用 AI 重写标题：结合内容生成更精准的标题
+ * 批量处理，一次 API 调用重写多个标题
+ */
+async function rewriteTitles(items) {
+  if (!GEMINI_API_KEY || items.length === 0) return items;
+
+  // 构建批量重写请求
+  const lines = items.map((item, i) => {
+    const desc = (item.description || '').substring(0, 200);
+    return `[${i}] 标题: ${item.title}\n    地点: ${item.location}\n    面积: ${item.area_mu || '-'}亩 | 类型: ${item.asset_type}\n    内容: ${desc}`;
+  }).join('\n\n');
+
+  const prompt = `你是乡村资产标题优化专家。请根据以下资产信息，为每条资产重新生成一个简洁、有吸引力的标题。
+
+要求：
+1. 标题要包含地点+资产类型+核心亮点
+2. 长度控制在15-30字
+3. 保留关键数据（面积、价格等）
+4. 去掉"公告"、"项目"、"流转"等冗余后缀
+5. 风格：专业但不枯燥
+
+请严格按格式返回，每行一条：
+[序号] 新标题
+
+资产列表：
+${lines}`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 2048, temperature: 0.3 },
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      console.warn(`   ⚠️ AI标题重写失败: HTTP ${res.status}`);
+      return items;
+    }
+
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // 解析返回的标题
+    const titleMap = new Map();
+    const matches = text.matchAll(/\[(\d+)\]\s*(.+)/g);
+    for (const m of matches) {
+      const idx = parseInt(m[1]);
+      const newTitle = m[2].trim();
+      if (idx >= 0 && idx < items.length && newTitle) {
+        titleMap.set(idx, newTitle);
+      }
+    }
+
+    // 应用新标题
+    let renamed = 0;
+    for (const [idx, newTitle] of titleMap) {
+      items[idx]._originalTitle = items[idx].title;
+      items[idx].title = newTitle;
+      renamed++;
+    }
+
+    console.log(`   ✏️ AI重写标题: ${renamed}/${items.length} 条`);
+    return items;
+  } catch (err) {
+    console.warn(`   ⚠️ AI标题重写异常: ${err.message}`);
+    return items;
+  }
+}
+
+/**
  * 从详情页提取图片 URL 列表
  * 图片在附件列表的 data-attachurl 属性中，过滤 jpg/png/jpeg/bmp
  */
@@ -107,7 +185,6 @@ async function fetchDetailImages(detailUrl) {
     let match;
     while ((match = attachRegex.exec(html)) !== null) {
       const path = match[1];
-      // 只保留图片文件
       const ext = path.split('.').pop().toLowerCase();
       if (['jpg', 'jpeg', 'png', 'bmp', 'gif', 'webp'].includes(ext)) {
         const fullUrl = path.startsWith('http') ? path : `${DETAIL_BASE}${path}`;
@@ -227,11 +304,13 @@ async function main() {
   const maxPages = parseInt(args.find((_, i, a) => a[i - 1] === '--pages') || '3');
   const dryRun = args.includes('--dry-run');
   const noImage = args.includes('--no-image');
+  const noRename = args.includes('--no-rename');
 
   console.log('🌾 四川省农村产权综合交易平台 采集器');
   console.log(`📄 采集页数: ${maxPages}`);
   console.log(`🔧 模式: ${dryRun ? '预览(dry-run)' : '入库'}`);
   console.log(`🖼️ 图片采集: ${noImage ? '关闭' : '开启（仅保留有图片的内容）'}`);
+  console.log(`✏️ AI重写标题: ${noRename || !GEMINI_API_KEY ? '关闭' : '开启'}`);
   console.log('');
 
   let totalItems = [];
@@ -244,11 +323,17 @@ async function main() {
       const records = result.records || [];
       console.log(`   获取 ${records.length} 条 (总计: ${result.totalcount})`);
 
-      for (const record of records) {
-        const item = transformRecord(record);
+      // 转换所有记录
+      const items = records.map(transformRecord);
 
+      // AI 重写标题（整页批量处理）
+      if (!noRename && GEMINI_API_KEY) {
+        await rewriteTitles(items);
+      }
+
+      // 逐条采集图片
+      for (const item of items) {
         if (!noImage && item.source_url) {
-          // 采集详情页图片
           console.log(`   🖼️ ${item.title.substring(0, 30)}...`);
           const images = await fetchDetailImages(item.source_url);
           if (images.length > 0) {
@@ -257,12 +342,10 @@ async function main() {
           } else {
             console.log(`      ⏭️ 无图片，跳过`);
             skippedNoImage++;
-            continue; // 跳过无图片的记录
+            continue;
           }
-          // 请求间隔，避免被封
           await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
         }
-
         totalItems.push(item);
       }
 
@@ -281,6 +364,7 @@ async function main() {
     console.log('\n--- 预览前5条 ---');
     totalItems.slice(0, 5).forEach((item, i) => {
       console.log(`\n[${i + 1}] ${item.title}`);
+      if (item._originalTitle) console.log(`    原标题: ${item._originalTitle}`);
       console.log(`    📍 ${item.location}`);
       console.log(`    📐 ${item.area_mu || '-'}亩 | 💰 ${item.price_year || '-'}万/年 | ⏱ ${item.lease_years || '-'}年`);
       console.log(`    🏷️ ${item.asset_type} | 来源: ${item.source_url || '-'}`);
