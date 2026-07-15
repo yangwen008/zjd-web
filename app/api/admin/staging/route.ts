@@ -184,6 +184,134 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, imported });
     }
 
+    if (action === 'ai-rename') {
+      // AI 批量重写标题
+      const { ids } = body as { ids: number[] };
+      if (!ids || ids.length === 0) return NextResponse.json({ success: false, error: '缺少ids' }, { status: 400 });
+
+      const env = getEnv();
+      const apiKey = env.GEMINI_API_KEY;
+      if (!apiKey) return NextResponse.json({ success: false, error: 'GEMINI_API_KEY 未配置' }, { status: 500 });
+
+      // 读取暂存记录
+      const records = await query<{ id: number; raw_data: string }>(
+        `SELECT id, raw_data FROM staging_raw WHERE id IN (${ids.map(() => '?').join(',')})`,
+        ...ids
+      );
+
+      let renamed = 0;
+      let errors = 0;
+
+      // 按批次处理（每批最多20条）
+      for (let i = 0; i < records.length; i += 20) {
+        const batch = records.slice(i, i + 20);
+        const items: { id: number; idx: number; title: string; location: string; area_mu: number | null; asset_type: string; description: string }[] = [];
+
+        for (const record of batch) {
+          try {
+            const data = JSON.parse(record.raw_data);
+            const arr = Array.isArray(data) ? data : [data];
+            for (let j = 0; j < arr.length; j++) {
+              const a = arr[j];
+              if (a.title) {
+                items.push({
+                  id: record.id,
+                  idx: j,
+                  title: a.title,
+                  location: a.location || '',
+                  area_mu: a.area_mu || null,
+                  asset_type: a.asset_type || '',
+                  description: (a.description || '').substring(0, 150),
+                });
+              }
+            }
+          } catch { /* 跳过解析失败的 */ }
+        }
+
+        if (items.length === 0) continue;
+
+        // 构建 prompt
+        const lines = items.map((item, idx) =>
+          `[${idx}] 标题: ${item.title}\n    地点: ${item.location}\n    面积: ${item.area_mu || '-'}亩 | 类型: ${item.asset_type}\n    内容: ${item.description}`
+        ).join('\n\n');
+
+        const prompt = `你是乡村资产标题优化专家。请根据以下资产信息，为每条资产重新生成一个简洁、有吸引力的标题。
+
+要求：
+1. 标题要包含地点+资产类型+核心亮点
+2. 长度控制在15-30字
+3. 保留关键数据（面积、价格等）
+4. 去掉"公告"、"项目"、"流转"等冗余后缀
+5. 风格：专业但不枯燥
+
+请严格按格式返回，每行一条：
+[序号] 新标题
+
+资产列表：
+${lines}`;
+
+        try {
+          const aiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { maxOutputTokens: 2048, temperature: 0.3 },
+              }),
+            }
+          );
+
+          if (!aiRes.ok) { errors += items.length; continue; }
+
+          const aiData = await aiRes.json() as any;
+          const text = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+          // 解析新标题
+          const titleMap = new Map<number, string>();
+          const matches = text.matchAll(/\[(\d+)\]\s*(.+)/g);
+          for (const m of matches) {
+            const idx = parseInt(m[1]);
+            const newTitle = m[2].trim();
+            if (idx >= 0 && idx < items.length && newTitle) {
+              titleMap.set(idx, newTitle);
+            }
+          }
+
+          // 回写到暂存记录
+          const recordUpdates = new Map<number, string>(); // recordId -> updated raw_data
+          for (const [idx, newTitle] of titleMap) {
+            const item = items[idx];
+            if (!recordUpdates.has(item.id)) {
+              const record = batch.find(r => r.id === item.id);
+              if (record) recordUpdates.set(item.id, record.raw_data);
+            }
+            const rawData = recordUpdates.get(item.id);
+            if (rawData) {
+              const data = JSON.parse(rawData);
+              const arr = Array.isArray(data) ? data : [data];
+              if (arr[item.idx]) {
+                arr[item.idx]._originalTitle = arr[item.idx].title;
+                arr[item.idx].title = newTitle;
+                renamed++;
+              }
+              recordUpdates.set(item.id, JSON.stringify(arr));
+            }
+          }
+
+          // 批量更新数据库
+          for (const [recordId, newData] of recordUpdates) {
+            await execute('UPDATE staging_raw SET raw_data = ? WHERE id = ?', newData, recordId);
+          }
+        } catch {
+          errors += items.length;
+        }
+      }
+
+      return NextResponse.json({ success: true, data: { renamed, errors, total: records.length } });
+    }
+
     if (action === 'delete') {
       const { ids } = body as { ids: number[] };
       if (!ids || ids.length === 0) return NextResponse.json({ success: false, error: 'No IDs' }, { status: 400 });

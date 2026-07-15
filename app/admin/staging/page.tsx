@@ -77,6 +77,20 @@ export default function AdminStagingPage() {
     fetchItems();
   };
 
+  const handleBatchAiRename = async () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) { show('❌ 请先选择数据'); return; }
+    show(`✏️ 正在 AI 重写 ${ids.length} 条标题...`);
+    try {
+      const res = await fetch('/api/admin/staging', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'ai-rename', ids }) });
+      const d = await res.json() as any;
+      if (d.success) show(`✅ 标题重写完成：${d.data.renamed} 条成功`);
+      else show(`❌ ${d.error}`);
+    } catch { show('❌ 操作失败'); }
+    setSelected(new Set());
+    fetchItems();
+  };
+
   const handleOpen = (item: StagingItem) => {
     setActiveItem(item);
     // 尝试格式化 JSON 以便阅读
@@ -250,6 +264,7 @@ export default function AdminStagingPage() {
           <div className="flex items-center space-x-2">
             <span className="text-xs text-gray-500">已选 {selected.size} 条</span>
             <button onClick={handleBatchClean} className="px-3 py-1.5 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600">🤖 批量 AI 清洗</button>
+            <button onClick={handleBatchAiRename} className="px-3 py-1.5 text-xs bg-purple-500 text-white rounded-lg hover:bg-purple-600">✏️ AI 重写标题</button>
             <button onClick={handleBatchDelete} className="px-3 py-1.5 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600">🗑️ 批量删除</button>
           </div>
         )}
