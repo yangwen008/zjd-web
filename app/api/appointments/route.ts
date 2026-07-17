@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       if (owner?.wx_openid) {
         const { notifyAppointment } = await import('@/lib/wechat');
         const templateId = (process.env as Record<string, string>).WX_TEMPLATE_APPOINTMENT || '';
-        const siteUrl = 'https://zjd.cn';
+        const siteUrl = 'https://z.zjd.cn';
         if (templateId) {
           await notifyAppointment(owner.wx_openid, asset.title, contactName, contactPhone, assetId, siteUrl, templateId);
         }

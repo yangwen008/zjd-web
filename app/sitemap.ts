@@ -5,7 +5,7 @@ export const runtime = 'edge';
 export const revalidate = 3600; // 1小时缓存
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://zjd.cn';
+  const baseUrl = 'https://z.zjd.cn';
 
   // 静态页面
   const staticPages: MetadataRoute.Sitemap = [

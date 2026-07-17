@@ -2,6 +2,11 @@
 
 import { query, queryOne, type D1Database } from './db';
 
+// ============ 站点配置 ============
+// 所有需要站点 URL 的地方统一引用此常量
+export const SITE_URL = 'https://z.zjd.cn';
+export const SITE_DOMAIN = 'z.zjd.cn';
+
 // 去除 HTML 标签，返回纯文本
 export function stripHtml(html: string | null | undefined): string {
   if (!html) return '';
@@ -146,6 +151,7 @@ export function validateReferer(referer: string | null): boolean {
     return (
       url.hostname === 'zjd.cn' ||
       url.hostname === 'www.zjd.cn' ||
+      url.hostname === 'z.zjd.cn' ||
       url.hostname.endsWith('.zjd-web.pages.dev') ||
       url.hostname === 'zjd-web.pages.dev'
     );

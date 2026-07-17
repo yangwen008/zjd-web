@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const publisher = await getPublisherProfile(id).catch(() => null);
   if (!publisher) return { title: '发布者资料' };
   return {
-    title: `${publisher.nickname} - 发布者资料 | zjd.cn`,
+    title: `${publisher.nickname} - 发布者资料 | z.zjd.cn`,
     description: publisher.bio || publisher.broker_bio || publisher.org_name || `${publisher.nickname}的发布者主页`,
   };
 }

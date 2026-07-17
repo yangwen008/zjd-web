@@ -193,7 +193,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/" className="flex items-center gap-2 group">
               <img 
                 src="/logo.png" 
-                alt="zjd.cn" 
+                alt="z.zjd.cn" 
                 className="w-8 h-8 object-contain drop-shadow-sm group-hover:scale-105 transition-transform" 
               />
               <span className="font-bold text-gray-800 text-base tracking-tight hidden sm:block">宅基地交易所</span>

@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const project = await getBulkProjectById(id).catch(() => null);
   if (!project) return { title: '大宗项目详情' };
 
-  const siteUrl = 'https://zjd.cn';
+  const siteUrl = 'https://z.zjd.cn';
   let imageUrl = `${siteUrl}/logo.png`;
   if (project.images) {
     try {
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const desc = project.description ? project.description.replace(/<[^>]*>/g, '').substring(0, 100) : project.title;
 
   return {
-    title: `${project.title} - zjd.cn`,
+    title: `${project.title} - z.zjd.cn`,
     description: desc,
     openGraph: { title: project.title, description: desc, url: `${siteUrl}/bulk-projects/${project.id}`, images: [{ url: imageUrl, width: 800, height: 600 }], type: 'website', locale: 'zh_CN' },
   };

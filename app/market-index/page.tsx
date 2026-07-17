@@ -5,14 +5,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: '土地价格大盘 - zjd.cn 乡村闲置资产数字交易所',
+  title: '土地价格大盘 - z.zjd.cn 乡村闲置资产数字交易所',
   description: '全国各省乡村土地流转价格中位数、涨跌趋势、砍价空间。实时行情数据，助力资产定价决策。',
   keywords: '土地价格,流转行情,宅基地价格,乡村土地中位数,土地流转大盘',
   alternates: { canonical: '/market-index' },
   openGraph: {
-    title: '土地价格大盘 - zjd.cn',
+    title: '土地价格大盘 - z.zjd.cn',
     description: '全国各省乡村土地流转价格实时行情。',
-    url: 'https://zjd.cn/market-index',
+    url: 'https://z.zjd.cn/market-index',
   },
 };
 import { getMarketData, getHomepageConfig, getAllProvinceEmojis } from '@/lib/data';
@@ -58,7 +58,7 @@ export default async function MarketIndexPage() {
               <span className="text-2xl">📊</span>
               <h1 className="text-xl md:text-3xl font-bold text-gray-900">全国乡村土地流转价格数据终端</h1>
             </div>
-            <p className="text-gray-500">由 zjd.cn 资产大脑对全国产权交易所存量底价进行全自动采集、AI 清洗和指数化提取。</p>
+            <p className="text-gray-500">由 z.zjd.cn 资产大脑对全国产权交易所存量底价进行全自动采集、AI 清洗和指数化提取。</p>
           </div>
 
           {marketData.length > 0 && (

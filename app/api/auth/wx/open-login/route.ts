@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Missing code' }, { status: 400 });
     }
 
-    const siteUrl = 'https://zjd.cn';
+    const siteUrl = 'https://z.zjd.cn';
 
     // 1. 用 code 换 token（开放平台）
     const tokenData = await getOpenOAuthToken(code);

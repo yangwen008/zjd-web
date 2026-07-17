@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const redirect = searchParams.get('redirect') || '/';
 
-  const siteUrl = 'https://zjd.cn';
+  const siteUrl = 'https://z.zjd.cn';
   const callbackUrl = `${siteUrl}/wx-callback?redirect=${encodeURIComponent(redirect)}`;
 
   const state = crypto.randomUUID();

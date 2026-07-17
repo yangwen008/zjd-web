@@ -1,7 +1,7 @@
 // 百度主动推送工具
 // 资产发布/更新时自动通知百度来抓取
 
-const BAIDU_PUSH_URL = 'http://data.zz.baidu.com/urls?site=https://zjd.cn&token=09N5zmLNYP67hzX7';
+const BAIDU_PUSH_URL = 'http://data.zz.baidu.com/urls?site=https://z.zjd.cn&token=09N5zmLNYP67hzX7';
 
 /**
  * 向百度推送 URL
@@ -28,12 +28,12 @@ export async function baiduPush(urls: string[]): Promise<{ success: boolean; res
  * 推送单个资产页面
  */
 export async function baiduPushAsset(assetId: number): Promise<void> {
-  await baiduPush([`https://zjd.cn/asset/${assetId}`]);
+  await baiduPush([`https://z.zjd.cn/asset/${assetId}`]);
 }
 
 /**
  * 推送单个大宗项目页面
  */
 export async function baiduPushBulkProject(projectId: number): Promise<void> {
-  await baiduPush([`https://zjd.cn/bulk-projects/${projectId}`]);
+  await baiduPush([`https://z.zjd.cn/bulk-projects/${projectId}`]);
 }

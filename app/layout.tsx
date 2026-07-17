@@ -13,8 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     const config = await getHomepageConfig();
     return {
-      metadataBase: new URL('https://zjd.cn'),
-      title: 'zjd.cn - 乡村闲置资产数字交易所',
+      metadataBase: new URL('https://z.zjd.cn'),
+      title: 'z.zjd.cn - 乡村闲置资产数字交易所',
       description: config.footer_about || '乡村资产数字化绿色流转中枢。全网多源产权低频提纯，一键交叉碰撞，让技术重归山川。',
       keywords: '乡村资产,闲置资产,宅基地,农房,流转,数字交易所',
       verification: {
@@ -27,27 +27,27 @@ export async function generateMetadata(): Promise<Metadata> {
         icon: '/favicon.ico',
       },
       openGraph: {
-        title: 'zjd.cn - 乡村闲置资产数字交易所',
+        title: 'z.zjd.cn - 乡村闲置资产数字交易所',
         description: config.footer_about || '乡村资产数字化绿色流转中枢。',
         type: 'website',
         locale: 'zh_CN',
-        images: [{ url: 'https://zjd.cn/logo.png', width: 512, height: 512 }],
+        images: [{ url: 'https://z.zjd.cn/logo.png', width: 512, height: 512 }],
       },
       twitter: {
         card: 'summary_large_image',
-        title: 'zjd.cn - 乡村闲置资产数字交易所',
+        title: 'z.zjd.cn - 乡村闲置资产数字交易所',
         description: config.footer_about || '乡村资产数字化绿色流转中枢。',
-        images: ['https://zjd.cn/logo.png'],
+        images: ['https://z.zjd.cn/logo.png'],
       },
     };
   } catch {
     return {
-      title: 'zjd.cn - 乡村闲置资产数字交易所',
+      title: 'z.zjd.cn - 乡村闲置资产数字交易所',
       description: '乡村资产数字化绿色流转中枢。',
       openGraph: {
-        title: 'zjd.cn - 乡村闲置资产数字交易所',
+        title: 'z.zjd.cn - 乡村闲置资产数字交易所',
         description: '乡村资产数字化绿色流转中枢。',
-        images: [{ url: 'https://zjd.cn/logo.png', width: 512, height: 512 }],
+        images: [{ url: 'https://z.zjd.cn/logo.png', width: 512, height: 512 }],
       },
     };
   }

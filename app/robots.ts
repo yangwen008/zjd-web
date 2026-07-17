@@ -27,6 +27,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/',
       },
     ],
-    sitemap: 'https://zjd.cn/sitemap.xml',
+    sitemap: 'https://z.zjd.cn/sitemap.xml',
   };
 }

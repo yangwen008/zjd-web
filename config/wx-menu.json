@@ -6,22 +6,22 @@
         {
           "type": "view",
           "name": "搜索资产",
-          "url": "https://zjd.cn/search"
+          "url": "https://z.zjd.cn/search"
         },
         {
           "type": "view",
           "name": "热点寻源",
-          "url": "https://zjd.cn/regions"
+          "url": "https://z.zjd.cn/regions"
         },
         {
           "type": "view",
           "name": "村委直发",
-          "url": "https://zjd.cn/search?source=village"
+          "url": "https://z.zjd.cn/search?source=village"
         },
         {
           "type": "view",
           "name": "大宗路演",
-          "url": "https://zjd.cn/bulk-projects"
+          "url": "https://z.zjd.cn/bulk-projects"
         }
       ]
     },
@@ -31,17 +31,17 @@
         {
           "type": "view",
           "name": "流转大盘",
-          "url": "https://zjd.cn/market-index"
+          "url": "https://z.zjd.cn/market-index"
         },
         {
           "type": "view",
           "name": "基建指数",
-          "url": "https://zjd.cn/infra-rating"
+          "url": "https://z.zjd.cn/infra-rating"
         },
         {
           "type": "view",
           "name": "找合伙人",
-          "url": "https://zjd.cn/brokers"
+          "url": "https://z.zjd.cn/brokers"
         }
       ]
     },
@@ -51,22 +51,22 @@
         {
           "type": "view",
           "name": "我的资产",
-          "url": "https://zjd.cn/dashboard/assets"
+          "url": "https://z.zjd.cn/dashboard/assets"
         },
         {
           "type": "view",
           "name": "我的预约",
-          "url": "https://zjd.cn/dashboard/leads"
+          "url": "https://z.zjd.cn/dashboard/leads"
         },
         {
           "type": "view",
           "name": "我的收藏",
-          "url": "https://zjd.cn/dashboard/favorites"
+          "url": "https://z.zjd.cn/dashboard/favorites"
         },
         {
           "type": "view",
           "name": "发布资产",
-          "url": "https://zjd.cn/dashboard/assets/new"
+          "url": "https://z.zjd.cn/dashboard/assets/new"
         }
       ]
     }

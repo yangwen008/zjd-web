@@ -17,7 +17,7 @@
 
 const { chromium } = require('playwright');
 
-const CF_API_URL = process.env.CF_API_URL || 'https://zjd.cn';
+const CF_API_URL = process.env.CF_API_URL || 'https://z.zjd.cn';
 const CF_API_TOKEN = process.env.CF_API_TOKEN || '';
 
 // 命令行参数

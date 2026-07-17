@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const asset = await getAssetById(id).catch(() => null);
   if (!asset) return { title: '资产详情' };
 
-  const siteUrl = 'https://zjd.cn';
+  const siteUrl = 'https://z.zjd.cn';
 
   // OG 图片：只用 R2 图片或 logo，外链图片微信爬虫无法访问
   let imageUrl = `${siteUrl}/logo-share.jpg`;
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     : `${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`;
 
   return {
-    title: `${asset.title} - zjd.cn`,
+    title: `${asset.title} - z.zjd.cn`,
     description: desc,
     alternates: { canonical: `/asset/${asset.id}` },
     openGraph: {
@@ -138,7 +138,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     } catch {}
   }
 
-  const siteUrl = 'https://zjd.cn';
+  const siteUrl = 'https://z.zjd.cn';
   // 取第一张图片的原始 URL（兼容 {url,thumb} 和纯字符串格式）
   const firstImageRaw = imageUrls.length > 0
     ? (typeof imageUrls[0] === 'object' ? (imageUrls[0] as any).url || (imageUrls[0] as any).thumb || '' : imageUrls[0])
@@ -371,7 +371,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
               <ShareButton
                 title={asset.title}
                 text={`${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`}
-                url={`https://zjd.cn/asset/${asset.id}`}
+                url={`https://z.zjd.cn/asset/${asset.id}`}
               />
 
               {/* 发布者信息 */}

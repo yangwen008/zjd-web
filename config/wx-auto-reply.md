@@ -3,7 +3,7 @@
 ## 关注后自动回复
 
 ```
-欢迎来到 zjd.cn 乡村闲置资产数字交易所 🏘️
+欢迎来到 z.zjd.cn 乡村闲置资产数字交易所 🏘️
 
 这里汇集全国乡村闲置资产，一键搜索、在线预约带看。
 
@@ -11,7 +11,7 @@
 🔹 看行情 → 点击底部菜单「看行情」
 🔹 发布资产 → 登录后即可免费发布
 
-🌐 官网：zjd.cn
+🌐 官网：z.zjd.cn
 📞 客服：13696266999
 ```
 
@@ -19,13 +19,13 @@
 
 | 关键词 | 回复内容 |
 |--------|---------|
-| 资产、找房、搜索 | 搜索全国乡村资产 👉 https://zjd.cn/search |
-| 发布、出租、转让 | 免费发布资产 👉 https://zjd.cn/dashboard/assets/new |
-| 合伙人、中介、经纪人 | 查看本地合伙人 👉 https://zjd.cn/brokers |
-| 行情、价格、市场 | 查看流转行情 👉 https://zjd.cn/market-index |
-| 宅基地 | 搜索宅基地资产 👉 https://zjd.cn/search?search=宅基地 |
-| 林地 | 搜索林地资产 👉 https://zjd.cn/search?search=林地 |
-| 茶园 | 搜索茶园资产 👉 https://zjd.cn/search?search=茶园 |
+| 资产、找房、搜索 | 搜索全国乡村资产 👉 https://z.zjd.cn/search |
+| 发布、出租、转让 | 免费发布资产 👉 https://z.zjd.cn/dashboard/assets/new |
+| 合伙人、中介、经纪人 | 查看本地合伙人 👉 https://z.zjd.cn/brokers |
+| 行情、价格、市场 | 查看流转行情 👉 https://z.zjd.cn/market-index |
+| 宅基地 | 搜索宅基地资产 👉 https://z.zjd.cn/search?search=宅基地 |
+| 林地 | 搜索林地资产 👉 https://z.zjd.cn/search?search=林地 |
+| 茶园 | 搜索茶园资产 👉 https://z.zjd.cn/search?search=茶园 |
 
 ## 公众号简介
 

@@ -21,7 +21,7 @@ export default function WxScanLoginPage() {
           id: 'wx_qr_container',
           appid: 'wxdf0895ffafe30943',
           scope: 'snsapi_login',
-          redirect_uri: encodeURIComponent('https://zjd.cn/wx-open-callback'),
+          redirect_uri: encodeURIComponent('https://z.zjd.cn/wx-open-callback'),
           state: Math.random().toString(36).substring(2),
           style: 'white',
           href: '',

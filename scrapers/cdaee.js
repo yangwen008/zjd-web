@@ -12,7 +12,7 @@
  *   node scrapers/cdaee.js --no-image   # 不采集图片（保留所有记录）
  */
 
-const CF_API_URL = process.env.CF_API_URL || 'https://zjd.cn';
+const CF_API_URL = process.env.CF_API_URL || 'https://z.zjd.cn';
 const CF_API_TOKEN = process.env.CF_API_TOKEN || '';
 
 const API_URL = 'https://www.cdaee.com/inteligentsearch_new/rest/esinteligentsearch/getFullTextDataNew';

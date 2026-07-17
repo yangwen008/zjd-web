@@ -6,16 +6,16 @@ export default function Footer({ config }: FooterProps) {
   // 【绝对保留】：原有的数据读取逻辑和默认值完全不动
   const companyName = config?.company_name || '绵阳网安科技有限公司';
   const companyPhone = config?.company_phone || '13696266999';
-  const companyEmail = config?.company_email || 'contact@zjd.cn';
+  const companyEmail = config?.company_email || 'contact@z.zjd.cn';
   const icpNumber = config?.icp_number || '蜀ICP备16015085号-5';
   const footerAbout = config?.footer_about || '乡村闲置资产数字交易所。全网多源产权低频提纯，让技术重归山川。';
 
   return (
-    // 【修改1】：背景改为 zjd.cn 的浅灰绿 #edf4f0，文字改为深色 #1E2022，增加顶部边框
+    // 【修改1】：背景改为 z.zjd.cn 的浅灰绿 #edf4f0，文字改为深色 #1E2022，增加顶部边框
     <footer className="bg-[#edf4f0] text-[#1E2022] pt-16 pb-8 border-t border-[#2C4C3B]/10 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* 【修改2】：网格改为 12 列布局，匹配 zjd.cn 的 4-2-2-4 黄金比例 */}
+        {/* 【修改2】：网格改为 12 列布局，匹配 z.zjd.cn 的 4-2-2-4 黄金比例 */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
           
           {/* Brand - 占 4 列 */}
