@@ -98,7 +98,17 @@ export async function GET(request: Request) {
     return res;
   } catch (error: any) {
     console.error('WeChat OAuth callback error:', error);
-    const errMsg = encodeURIComponent(error?.message || 'unknown');
-    return NextResponse.redirect(`${siteUrl}/login?error=wx_failed&detail=${errMsg}`);
+    // 直接返回错误页面，方便调试
+    const errMsg = error?.message || 'unknown';
+    return new Response(
+      `<!DOCTYPE html><html><head><meta charset="utf-8"><title>微信登录失败</title></head>
+       <body style="font-family:sans-serif;padding:40px;text-align:center">
+         <h1>❌ 微信登录失败</h1>
+         <p style="color:#666">错误信息：${errMsg}</p>
+         <p style="color:#999;font-size:12px">Code: ${code}</p>
+         <a href="/login" style="color:#1a4731">← 返回登录页</a>
+       </body></html>`,
+      { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
   }
 }
