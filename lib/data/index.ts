@@ -45,3 +45,12 @@ export {
   getPublisherProfile, getPublisherAssets, getPublisherAssetCount,
   type PublisherProfile,
 } from './publisher';
+
+// 专业服务商
+export {
+  getProfessionals, getProfessionalsCount, getProfessionalById,
+  getProfessionalsForAsset, getProfessionalStats, getProfessionalReviews,
+  createProfessionalOrder, parseServices, parseServiceAreas,
+  getProfTypeLabel, getProfTypeIcon,
+  type Professional, type ProfessionalFilters, type ServiceItem,
+} from './professionals';

@@ -525,3 +525,64 @@ CREATE TABLE IF NOT EXISTS investments (
 CREATE INDEX IF NOT EXISTS idx_invest_asset ON investments(asset_id, asset_type);
 CREATE INDEX IF NOT EXISTS idx_invest_user ON investments(user_id);
 CREATE INDEX IF NOT EXISTS idx_invest_status ON investments(status);
+
+-- 28. 专业服务商表（公证处/律师/风水师）
+CREATE TABLE IF NOT EXISTS professionals (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id       INTEGER,
+  prof_type     TEXT NOT NULL,                -- notary/lawyer/fengshui
+  name          TEXT NOT NULL,
+  org_name      TEXT,
+  phone         TEXT,
+  phone_encrypted TEXT,
+  avatar_url    TEXT,
+  bio           TEXT,
+  license_no    TEXT,
+  qualification TEXT,
+  province      TEXT,
+  city          TEXT,
+  district      TEXT,
+  service_areas TEXT,                         -- JSON
+  services      TEXT,                         -- JSON
+  pricing_model TEXT DEFAULT 'negotiable',
+  price_min     REAL,
+  price_max     REAL,
+  rating        REAL DEFAULT 5.0,
+  review_count  INTEGER DEFAULT 0,
+  order_count   INTEGER DEFAULT 0,
+  verified      INTEGER DEFAULT 0,
+  status        TEXT DEFAULT 'active',
+  created_at    TEXT DEFAULT (datetime('now')),
+  updated_at    TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_professionals_type ON professionals(prof_type);
+CREATE INDEX IF NOT EXISTS idx_professionals_province ON professionals(province);
+CREATE INDEX IF NOT EXISTS idx_professionals_city ON professionals(city);
+CREATE INDEX IF NOT EXISTS idx_professionals_rating ON professionals(rating DESC);
+CREATE INDEX IF NOT EXISTS idx_professionals_status ON professionals(status);
+
+-- 29. 服务预约/评价表
+CREATE TABLE IF NOT EXISTS professional_orders (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  professional_id INTEGER NOT NULL,
+  asset_id      INTEGER,
+  user_id       INTEGER NOT NULL,
+  service_name  TEXT NOT NULL,
+  status        TEXT DEFAULT 'pending',
+  contact_name  TEXT,
+  contact_phone TEXT,
+  notes         TEXT,
+  review_rating INTEGER,
+  review_text   TEXT,
+  created_at    TEXT DEFAULT (datetime('now')),
+  updated_at    TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (professional_id) REFERENCES professionals(id) ON DELETE CASCADE,
+  FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE SET NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_porders_professional ON professional_orders(professional_id);
+CREATE INDEX IF NOT EXISTS idx_porders_user ON professional_orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_porders_asset ON professional_orders(asset_id);

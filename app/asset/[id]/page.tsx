@@ -2,7 +2,8 @@ export const runtime = 'edge';
 export const revalidate = 60; // 1分钟缓存
 
 import type { Metadata } from 'next';
-import { getAssetById, getAssets, getHomepageConfig, incrementViews } from '@/lib/data';
+import { getAssetById, getAssets, getHomepageConfig, incrementViews, getProfessionalsForAsset, type Professional } from '@/lib/data';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import MediaGallery from './media-gallery';
 import ContactCard from '@/components/shared/ContactCard';
@@ -85,6 +86,13 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
     limit: 3,
   }).catch(() => []);
   const similarFiltered = similar.filter((a) => a.id !== asset.id).slice(0, 3);
+
+  // 获取交易保障服务商（同城市/省份的公证处、律师、风水师）
+  const professionals = await getProfessionalsForAsset(
+    asset.province || '',
+    asset.city || null,
+    1
+  ).catch(() => ({ notary: [] as Professional[], lawyer: [] as Professional[], fengshui: [] as Professional[] }));
 
   // 解析图片列表（兼容 {url,thumb} 新格式和纯字符串旧格式）
   let imageUrls: string[] = [];
@@ -373,6 +381,40 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                 text={`${asset.province || ''}·${asset.city || ''} ${asset.area_mu || ''}亩 ${asset.price_year ? asset.price_year + '万/年' : '面议'}`}
                 url={`https://z.zjd.cn/asset/${asset.id}`}
               />
+
+              {/* 交易保障服务 */}
+              {(professionals.notary.length > 0 || professionals.lawyer.length > 0 || professionals.fengshui.length > 0) && (
+                <div className="bg-white rounded-xl border border-gray-100 p-5">
+                  <h3 className="font-bold text-gray-900 mb-3">🛡️ 交易保障服务</h3>
+                  <div className="space-y-3">
+                    {([
+                      { type: 'notary', icon: '📋', label: '公证服务', list: professionals.notary },
+                      { type: 'lawyer', icon: '⚖️', label: '法律服务', list: professionals.lawyer },
+                      { type: 'fengshui', icon: '🏔️', label: '风水勘察', list: professionals.fengshui },
+                    ] as const).map(group => (
+                      group.list.length > 0 && (
+                        <Link
+                          key={group.type}
+                          href={`/services/${group.list[0].id}`}
+                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <span className="text-xl">{group.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-900">{group.label}</div>
+                            <div className="text-xs text-gray-500 truncate">
+                              {group.list[0].org_name || group.list[0].name} ⭐{group.list[0].rating.toFixed(1)}
+                            </div>
+                          </div>
+                          <span className="text-xs text-brand-green">预约 →</span>
+                        </Link>
+                      )
+                    ))}
+                    <Link href="/services" className="block text-center text-xs text-brand-green hover:underline pt-1">
+                      查看全部服务商 →
+                    </Link>
+                  </div>
+                </div>
+              )}
 
               {/* 发布者信息 */}
               {asset.user_id && (

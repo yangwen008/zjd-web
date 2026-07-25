@@ -41,6 +41,12 @@ const NAV_GROUPS = [
     ],
   },
   {
+    title: '交易服务',
+    items: [
+      { icon: '🛡️', label: '服务商管理', href: '/admin/professionals' },
+    ],
+  },
+  {
     title: '系统与数据',
     items: [
       { icon: '🗺️', label: '行政区划', href: '/admin/regions' },
