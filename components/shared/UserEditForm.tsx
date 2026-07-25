@@ -43,13 +43,16 @@ const ROLE_LABELS: Record<string, { label: string; icon: string; color: string }
   village_org: { label: '村集体', icon: '🏛️', color: 'bg-purple-100 text-purple-700' },
   data_editor: { label: '数据录入员', icon: '📊', color: 'bg-green-100 text-green-700' },
   project_publisher: { label: '项目发布者', icon: '🏢', color: 'bg-yellow-100 text-yellow-700' },
+  notary: { label: '公证处', icon: '📋', color: 'bg-blue-100 text-blue-700' },
+  lawyer: { label: '律师', icon: '⚖️', color: 'bg-amber-100 text-amber-700' },
+  fengshui: { label: '风水师', icon: '🏔️', color: 'bg-emerald-100 text-emerald-700' },
   admin: { label: '平台运营', icon: '🔧', color: 'bg-red-100 text-red-700' },
   superadmin: { label: '超级管理员', icon: '👑', color: 'bg-red-100 text-red-700' },
 };
 
 const BROKER_ROLES = new Set(['broker', 'village_org']);
-const ORG_ROLES = new Set(['village_org', 'broker', 'project_publisher']);
-const BIO_ROLES = new Set(['village_org', 'project_publisher']);
+const ORG_ROLES = new Set(['village_org', 'broker', 'project_publisher', 'notary', 'lawyer']);
+const BIO_ROLES = new Set(['village_org', 'project_publisher', 'fengshui']);
 
 /* ───────── Component ───────── */
 

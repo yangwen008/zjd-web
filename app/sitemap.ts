@@ -64,5 +64,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   } catch {}
 
-  return [...staticPages, ...assetPages, ...bulkPages, ...brokerPages];
+  // 服务中心
+  const servicesPage: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/services`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+  ];
+
+  return [...staticPages, ...assetPages, ...bulkPages, ...brokerPages, ...servicesPage];
 }

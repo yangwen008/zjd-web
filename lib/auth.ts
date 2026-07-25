@@ -263,6 +263,9 @@ export const ROLE_LABELS: Record<string, string> = {
   village_org: '村集体',
   data_editor: '数据录入员',
   project_publisher: '项目发布者',
+  notary: '公证处',
+  lawyer: '律师',
+  fengshui: '风水师',
   admin: '平台运营',
   superadmin: '超级管理员',
 };
@@ -273,6 +276,9 @@ export const ROLE_LEVELS: Record<string, number> = {
   village_org: 20,
   data_editor: 15,
   project_publisher: 25,
+  notary: 20,
+  lawyer: 20,
+  fengshui: 15,
   admin: 50,
   superadmin: 100,
 };

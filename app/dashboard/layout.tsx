@@ -20,7 +20,7 @@ const MENU_ITEMS = [
   { divider: true, roles: ['project_publisher', 'admin', 'superadmin'] },
   { icon: '🏢', label: '大宗项目管理', href: '/dashboard/bulk-projects', roles: ['project_publisher', 'admin', 'superadmin'] },
   { icon: '➕', label: '发布大宗项目', href: '/dashboard/bulk-projects/new', roles: ['project_publisher', 'admin', 'superadmin'] },
-  { icon: '📋', label: '我的线索', href: '/dashboard/leads', roles: ['broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
+  { icon: '📋', label: '我的线索', href: '/dashboard/leads', roles: ['broker', 'village_org', 'project_publisher', 'notary', 'lawyer', 'fengshui', 'admin', 'superadmin'] },
   { divider: true, roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
   { icon: '❤️', label: '我的收藏', href: '/dashboard/favorites', roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
   { icon: '💰', label: '我的参投', href: '/dashboard/investments', roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
@@ -33,6 +33,9 @@ const ROLE_BADGES: Record<string, { label: string; color: string }> = {
   village_org: { label: '村集体', color: 'bg-purple-100 text-purple-600' },
   data_editor: { label: '数据录入员', color: 'bg-green-100 text-green-600' },
   project_publisher: { label: '项目发布者', color: 'bg-yellow-100 text-yellow-600' },
+  notary: { label: '公证处', color: 'bg-blue-100 text-blue-700' },
+  lawyer: { label: '律师', color: 'bg-amber-100 text-amber-700' },
+  fengshui: { label: '风水师', color: 'bg-emerald-100 text-emerald-700' },
   admin: { label: '平台运营', color: 'bg-red-100 text-red-600' },
   superadmin: { label: '超级管理员', color: 'bg-red-100 text-red-600' },
 };

@@ -80,6 +80,9 @@ export default function AdminAuditPage() {
     broker: '合伙人',
     village_org: '村集体',
     project_publisher: '大宗用户',
+    notary: '公证处',
+    lawyer: '律师',
+    fengshui: '风水师',
   };
 
   const handleApproveAsset = async (id: number) => {

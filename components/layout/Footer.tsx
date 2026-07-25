@@ -54,6 +54,7 @@ export default function Footer({ config }: FooterProps) {
               <li><a href="/bulk-projects" className="hover:text-[#2C4C3B] transition-colors">🏢 大宗项目路演</a></li>
               <li><a href="/infra-rating" className="hover:text-[#2C4C3B] transition-colors">🛰️ 隐居新基建指标</a></li>
               <li><a href="/brokers" className="hover:text-[#2C4C3B] transition-colors">🌾 地陪合伙人名册</a></li>
+              <li><a href="/services" className="hover:text-[#2C4C3B] transition-colors">🛡️ 交易服务中心</a></li>
             </ul>
           </div>
 

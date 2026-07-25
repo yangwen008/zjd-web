@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     if (!user) return NextResponse.json({ success: false, error: '未登录' }, { status: 401 });
 
     // 合伙人/村委看「谁解锁了我发布的资产」，普通用户看「我解锁了哪些资产」
-    const isProvider = ['broker', 'village_org', 'project_publisher', 'admin', 'superadmin'].includes(user.role);
+    const isProvider = ['broker', 'village_org', 'project_publisher', 'notary', 'lawyer', 'fengshui', 'admin', 'superadmin'].includes(user.role);
 
     let results;
     if (isProvider) {

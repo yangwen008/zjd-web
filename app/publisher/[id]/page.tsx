@@ -13,6 +13,9 @@ const ROLE_LABELS: Record<string, string> = {
   village_org: '村集体',
   data_editor: '数据录入员',
   project_publisher: '交易所/机构',
+  notary: '公证处',
+  lawyer: '律师',
+  fengshui: '风水师',
   admin: '平台运营',
   superadmin: '超级管理员',
 };
@@ -22,6 +25,9 @@ const ROLE_COLORS: Record<string, string> = {
   broker: 'bg-blue-100 text-blue-700',
   village_org: 'bg-red-100 text-red-700',
   project_publisher: 'bg-yellow-100 text-yellow-700',
+  notary: 'bg-blue-100 text-blue-700',
+  lawyer: 'bg-amber-100 text-amber-700',
+  fengshui: 'bg-emerald-100 text-emerald-700',
   admin: 'bg-purple-100 text-purple-700',
   superadmin: 'bg-purple-100 text-purple-700',
 };

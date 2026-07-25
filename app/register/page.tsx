@@ -9,6 +9,9 @@ const ROLES = [
   { key: 'broker', label: '合伙人', icon: '🤝', desc: '发布房源、查看客户线索', needReview: true },
   { key: 'village_org', label: '村集体', icon: '🏛️', desc: '发布村委直发资产、查看线索', needReview: true, needLicense: true },
   { key: 'project_publisher', label: '大宗用户', icon: '🏢', desc: '发布大宗路演项目', needReview: true },
+  { key: 'notary', label: '公证处', icon: '📋', desc: '提供农村产权公证服务', needReview: true, needLicense: true },
+  { key: 'lawyer', label: '律师', icon: '⚖️', desc: '提供法律咨询与合同审查', needReview: true, needLicense: true },
+  { key: 'fengshui', label: '风水师', icon: '🏔️', desc: '提供风水勘察与选址建议', needReview: true },
 ];
 
 export default function RegisterPage() {
@@ -116,6 +119,15 @@ export default function RegisterPage() {
       if (roleApply === 'village_org') {
         if (!orgName) { setError('请填写村委/机构名称'); setLoading(false); return; }
         body.org_name = orgName;
+      }
+
+      if (roleApply === 'notary' || roleApply === 'lawyer') {
+        if (!orgName) { setError(roleApply === 'notary' ? '请填写公证处名称' : '请填写律所名称'); setLoading(false); return; }
+        body.org_name = orgName;
+      }
+
+      if (roleApply === 'fengshui') {
+        body.broker_bio = brokerBio;
       }
 
       const res = await fetch('/api/auth/register', {
@@ -339,6 +351,34 @@ export default function RegisterPage() {
                   <p className="text-sm font-medium text-gray-700 mb-2">🏢 大宗项目信息</p>
                   <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
                     <p className="text-xs text-blue-700">📋 审核通过后，您可以在用户后台发布大宗路演项目（含面积、收益率、商业计划等专属字段）。</p>
+                  </div>
+                </div>
+              )}
+
+              {(roleApply === 'notary' || roleApply === 'lawyer') && (
+                <div className="space-y-3 pt-2 border-t border-gray-100">
+                  <p className="text-sm font-medium text-gray-700">{roleApply === 'notary' ? '📋 公证处信息' : '⚖️ 律师信息'}</p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{roleApply === 'notary' ? '公证处名称 *' : '律所名称 *'}</label>
+                    <input type="text" value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder={roleApply === 'notary' ? '如：成都市蜀都公证处' : '如：四川明炬律师事务所'}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#2C4C3B]" />
+                  </div>
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+                    <p className="text-xs text-blue-700">📋 注册后需上传执业许可证，管理员审核通过后即可在「交易服务中心」展示。</p>
+                  </div>
+                </div>
+              )}
+
+              {roleApply === 'fengshui' && (
+                <div className="space-y-3 pt-2 border-t border-gray-100">
+                  <p className="text-sm font-medium text-gray-700">🏔️ 风水师信息</p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">个人简介</label>
+                    <textarea value={brokerBio} onChange={(e) => setBrokerBio(e.target.value)} rows={2} placeholder="简单介绍您的从业经验、擅长领域..."
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#2C4C3B] resize-none" />
+                  </div>
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+                    <p className="text-xs text-blue-700">📋 审核通过后，您将在「交易服务中心」以中性展示方式出现。</p>
                   </div>
                 </div>
               )}

@@ -62,7 +62,8 @@ export default function DashboardPage() {
     { label: '查看我的资产', desc: '管理已发布的资产', href: '/dashboard/assets', icon: '🏠', roles: ['user', 'broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
     { label: '发布大宗项目', desc: '发布大型路演项目', href: '/dashboard/bulk-projects', icon: '🏢', roles: ['project_publisher', 'admin', 'superadmin'] },
     { label: '查看线索', desc: '跟进客户意向', href: '/dashboard/leads', icon: '📋', roles: ['broker', 'village_org', 'project_publisher', 'admin', 'superadmin'] },
-    { label: '修改个人资料', desc: '更新个人信息', href: '/dashboard/profile', icon: '👤', roles: ['user', 'broker', 'village_org', 'data_editor', 'project_publisher', 'admin', 'superadmin'] },
+    { label: '我的服务订单', desc: '查看预约和评价', href: '/dashboard/leads', icon: '📋', roles: ['notary', 'lawyer', 'fengshui'] },
+    { label: '修改个人资料', desc: '更新个人信息', href: '/dashboard/profile', icon: '👤', roles: ['user', 'broker', 'village_org', 'data_editor', 'project_publisher', 'notary', 'lawyer', 'fengshui', 'admin', 'superadmin'] },
   ].filter((a) => a.roles.includes(user.role));
 
   // 时间段问候
@@ -81,6 +82,9 @@ export default function DashboardPage() {
           {user.role === 'user' && ' · 您可以发布闲置资产、收藏感兴趣的资产'}
           {user.role === 'data_editor' && ' · 您可以录入和维护基建数据'}
           {user.role === 'project_publisher' && ' · 您可以发布大宗路演项目'}
+          {user.role === 'notary' && ' · 您可以在交易服务中心展示公证服务'}
+          {user.role === 'lawyer' && ' · 您可以在交易服务中心展示法律服务'}
+          {user.role === 'fengshui' && ' · 您可以在交易服务中心展示风水勘察服务'}
         </p>
       </div>
 
