@@ -56,7 +56,7 @@ export default function AdminProfessionalsPage() {
       const params = new URLSearchParams();
       if (activeType) params.set('type', activeType);
       const res = await fetch(`/api/admin/professionals?${params.toString()}`);
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) setProfessionals(data.data || []);
     } catch {} finally { setLoading(false); }
   };
@@ -86,7 +86,7 @@ export default function AdminProfessionalsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         setMessage(editingId ? '✅ 更新成功' : '✅ 新增成功');
         setShowForm(false);

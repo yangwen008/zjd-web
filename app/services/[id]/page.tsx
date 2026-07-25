@@ -67,7 +67,7 @@ export default function ProfessionalDetailPage() {
     setLoading(true);
     fetch(`/api/professionals/${id}`)
       .then(r => r.json())
-      .then(d => {
+      .then((d: any) => {
         if (d.success) {
           setData(d.data);
           setReviews(d.reviews || []);
@@ -90,7 +90,7 @@ export default function ProfessionalDetailPage() {
           ...bookingForm,
         }),
       });
-      const d = await res.json();
+      const d: any = await res.json();
       if (d.success) {
         setBookingStatus('success');
         setBookingMsg('预约成功！服务商将尽快联系您。');

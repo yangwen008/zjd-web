@@ -79,7 +79,7 @@ export default function ServicesPage() {
       params.set('limit', '20');
 
       const res = await fetch(`/api/professionals?${params.toString()}`);
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         setProfessionals(data.data || []);
         setTotal(data.pagination?.total || 0);
@@ -93,7 +93,7 @@ export default function ServicesPage() {
   useEffect(() => {
     fetch('/api/professionals?stats=1')
       .then(r => r.json())
-      .then(d => { if (d.success) setStats(d.stats); })
+      .then((d: any) => { if (d.success) setStats(d.stats); })
       .catch(() => {});
   }, []);
 
