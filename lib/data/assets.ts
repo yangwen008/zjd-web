@@ -7,6 +7,7 @@ export interface Asset {
   publisher_name?: string;
   publisher_role?: string;
   publisher_avatar?: string;
+  asset_code?: string;
   title: string;
   description: string | null;
   location: string | null;
@@ -199,12 +200,24 @@ export async function getAssetStats(): Promise<{
 }
 
 export async function searchAssets(keyword: string, limit: number = 20): Promise<Asset[]> {
-  return query<Asset>(
+  // 先尝试 FTS5 全文搜索
+  const ftsResults = await query<Asset>(
     `SELECT assets.* FROM assets
      JOIN assets_fts ON assets.id = assets_fts.rowid
      WHERE assets.status = ? AND assets_fts MATCH ?
      ORDER BY assets.featured DESC, assets.views DESC LIMIT ?`,
     'approved', keyword, limit
+  ).catch(() => [] as Asset[]);
+
+  if (ftsResults.length > 0) return ftsResults;
+
+  // FTS5 无结果时，用 LIKE 搜索编号和标题
+  const likePattern = `%${keyword}%`;
+  return query<Asset>(
+    `SELECT * FROM assets
+     WHERE status = ? AND (asset_code LIKE ? OR title LIKE ? OR location LIKE ?)
+     ORDER BY featured DESC, views DESC LIMIT ?`,
+    'approved', likePattern, likePattern, likePattern, limit
   );
 }
 

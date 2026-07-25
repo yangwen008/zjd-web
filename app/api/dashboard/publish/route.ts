@@ -67,14 +67,18 @@ export async function POST(request: Request) {
       const invest_share_price = body.invest_share_price ? parseFloat(body.invest_share_price) : null;
       const invest_min_shares = body.invest_min_shares ? parseInt(body.invest_min_shares) : 1;
 
-      // 8. 执行插入
+      // 8. 生成资产编号
+      const { generateAssetCodeFromDB } = await import('@/lib/pinyin');
+      const assetCode = await generateAssetCodeFromDB(body.province || '', body.city || null, body.district || null, 'asset');
+
+      // 9. 执行插入
       await execute(
         `INSERT INTO assets
         (title, description, location, province, city, district, address, area_mu, price_year, price_total, lease_years,
          asset_type, source_type, images, video_url, infra_details, transport_info, cert_info, certification, gps_lat, gps_lng, contact_name, contact_phone,
          invest_enabled, invest_total_shares, invest_share_price, invest_min_shares,
-         user_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
+         user_id, asset_code, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
         body.title,
         body.description || '',
         location,
@@ -103,6 +107,7 @@ export async function POST(request: Request) {
         invest_share_price,
         invest_min_shares,
         user.id,
+        assetCode,
       );
 
       return NextResponse.json({ success: true, message: '发布成功，等待审核' });

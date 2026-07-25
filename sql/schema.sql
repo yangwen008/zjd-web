@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS assets (
   transport_info TEXT,             -- 交通信息JSON
   cert_info TEXT,                  -- 权证信息JSON
   certification TEXT DEFAULT 'uncertified', -- 确权状态: certified/uncertified/pending
+  asset_code    TEXT,                       -- 资产编号: 省-市-区-序号
   invest_enabled      INTEGER DEFAULT 0,    -- 是否开放参投
   invest_total_shares INTEGER,              -- 总份数
   invest_share_price  REAL,                 -- 每份单价(万)
@@ -51,6 +52,7 @@ CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
 CREATE INDEX IF NOT EXISTS idx_assets_source ON assets(source_type);
 CREATE INDEX IF NOT EXISTS idx_assets_views ON assets(views DESC);
 CREATE INDEX IF NOT EXISTS idx_assets_featured ON assets(featured, status);
+CREATE INDEX IF NOT EXISTS idx_assets_code ON assets(asset_code);
 -- 架构师补充：后台审核列表高频查询复合索引
 CREATE INDEX IF NOT EXISTS idx_assets_status_created ON assets(status, created_at DESC);
 

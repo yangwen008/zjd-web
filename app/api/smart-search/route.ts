@@ -103,7 +103,7 @@ async function searchAssets(keyword: string, userProvince: string, limit: number
   }
 
   const { where, args } = buildLikeConditions(
-    ['a.title', 'a.description', 'a.location', 'a.province', 'a.city', 'a.asset_type', 'a.address'],
+    ['a.title', 'a.description', 'a.location', 'a.province', 'a.city', 'a.asset_type', 'a.address', 'a.asset_code'],
     tokens
   );
 
