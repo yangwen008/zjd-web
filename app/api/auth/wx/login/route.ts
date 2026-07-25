@@ -11,9 +11,12 @@ import { getOAuthUrl } from '@/lib/wechat';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const redirect = searchParams.get('redirect') || '/';
+  const mode = searchParams.get('mode') || '';
 
   const siteUrl = 'https://z.zjd.cn';
-  const callbackUrl = `${siteUrl}/wx-callback?redirect=${encodeURIComponent(redirect)}`;
+  // mode=register 时，回调到注册页并携带 openid 等数据
+  const callbackRedirect = mode === 'register' ? `/register?wx=1` : redirect;
+  const callbackUrl = `${siteUrl}/wx-callback?redirect=${encodeURIComponent(callbackRedirect)}&mode=${mode}`;
 
   const state = crypto.randomUUID();
 

@@ -17,6 +17,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const redirect = searchParams.get('redirect') || '/';
+  const mode = searchParams.get('mode') || '';
 
   if (!code) {
     return NextResponse.json({ success: false, error: 'Missing code parameter' }, { status: 400 });
@@ -35,6 +36,15 @@ export async function GET(request: Request) {
     } catch {
       // snsapi_base 模式下拿不到用户信息，只有 openid
       wxUser = null;
+    }
+
+    // 2.5 注册模式：只获取微信数据，跳回注册页继续填资料
+    if (mode === 'register') {
+      const nickname = wxUser?.nickname || '';
+      const avatar = wxUser?.headimgurl || '';
+      const openid = tokenData.openid;
+      const registerUrl = `/register?wx=1&openid=${encodeURIComponent(openid)}&nickname=${encodeURIComponent(nickname)}&avatar=${encodeURIComponent(avatar)}`;
+      return NextResponse.redirect(`${siteUrl}${registerUrl}`);
     }
 
     // 3. 查找已有用户（优先 wx_openid，其次 unionid）
