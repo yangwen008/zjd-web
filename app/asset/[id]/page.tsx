@@ -3,6 +3,7 @@ export const revalidate = 60; // 1分钟缓存
 
 import type { Metadata } from 'next';
 import { getAssetById, getAssets, getHomepageConfig, incrementViews, getProfessionalsForAsset, type Professional } from '@/lib/data';
+import { generateAssetCode } from '@/lib/pinyin';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import MediaGallery from './media-gallery';
@@ -226,7 +227,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
                   </span>
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{asset.asset_type || '资产'}</span>
                   {asset.certification === 'certified' && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">✅ 已确权</span>}
-                  <span className="text-xs text-gray-400">ZJD-{String(asset.id).padStart(5, '0')}</span>
+                  <span className="text-xs text-gray-400">{generateAssetCode(asset.province || '全国', asset.city, asset.district, asset.id)}</span>
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900">{asset.title}</h1>
                 <p className="text-gray-500 mt-1">{asset.location || [asset.province, asset.city, asset.district].filter(Boolean).join(' · ')}</p>

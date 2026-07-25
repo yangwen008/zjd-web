@@ -10,6 +10,7 @@ import BrokerCard from "@/components/test-home/BrokerCard";
 import CTASection from "@/components/test-home/CTASection";
 
 import { stripHtml } from '@/lib/utils';
+import { generateAssetCode } from '@/lib/pinyin';
 import { 
   getHotAssets, 
   getMarketData, 
@@ -126,7 +127,7 @@ function toVillageFormat(asset: Asset, defaultImage: string) {
 function toBulkFormat(bp: BulkProject) {
   return {
     id: bp.id.toString(),
-    code: bp.code || `ZJD-${bp.id.toString().padStart(3, '0')}`,
+    code: bp.code || generateAssetCode(bp.province || '全国', bp.city, bp.district, bp.id),
     title: bp.title,
     description: stripHtml(bp.description) || '包含完整空间、宽敞院落。权属已归属乡村经济合作社。',
     area: bp.area_sqm ? `约${bp.area_sqm}㎡` : (bp.area_mu ? `约${Math.round(bp.area_mu * 666.7)}㎡` : '-'),

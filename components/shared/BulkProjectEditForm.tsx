@@ -602,7 +602,7 @@ export default function BulkProjectEditForm({
               value={formData.code}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
-              placeholder="如：ZJD-001（留空自动生成）"
+              placeholder="如：SC-CD-CZ-001（留空自动生成）"
             />
           </div>
           <div>

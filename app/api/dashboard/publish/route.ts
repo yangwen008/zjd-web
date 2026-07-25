@@ -124,12 +124,11 @@ export async function POST(request: Request) {
 
       const location = [body.province, body.city, body.district, body.location].filter(Boolean).join('');
 
-      // 自动生成编号
+      // 自动生成编号（地理位置+序号格式）
       let code = body.code;
       if (!code) {
-        const countRow = await queryOne<{ cnt: number }>('SELECT COUNT(*) as cnt FROM bulk_projects');
-        const nextNum = (countRow?.cnt || 0) + 1;
-        code = `ZJD-${nextNum.toString().padStart(3, '0')}`;
+        const { generateAssetCodeFromDB } = await import('@/lib/pinyin');
+        code = await generateAssetCodeFromDB(body.province || '', body.city || null, body.district || null, 'bulk');
       }
 
       let imagesJson = '[]';

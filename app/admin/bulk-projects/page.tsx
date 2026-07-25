@@ -219,7 +219,7 @@ export default function AdminBulkProjectsPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">项目编号</label>
-              <input type="text" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="ZJD-001" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
+              <input type="text" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="SC-CD-CZ-001" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-brand-green" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">规划用途</label>

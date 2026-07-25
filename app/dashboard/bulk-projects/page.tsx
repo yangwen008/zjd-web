@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { generateAssetCode } from '@/lib/pinyin';
 
 interface BulkProject {
   id: number;
@@ -87,7 +88,7 @@ export default function BulkProjectsPage() {
             <tbody className="divide-y divide-gray-50">
               {projects.map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50/50">
-                  <td className="px-4 py-3 text-gray-400 font-mono">{p.code || `ZJD-${p.id.toString().padStart(3, '0')}`}</td>
+                  <td className="px-4 py-3 text-gray-400 font-mono">{p.code || generateAssetCode(p.province || '全国', p.city, p.district, p.id)}</td>
                   <td className="px-4 py-3 font-medium text-gray-900 max-w-[200px] truncate">{p.title}</td>
                   <td className="px-4 py-3 text-gray-500">{[p.province, p.city].filter(Boolean).join(' ')}</td>
                   <td className="px-4 py-3 text-gray-500">{p.price_start ? `¥${p.price_start}万/年` : '-'}</td>
