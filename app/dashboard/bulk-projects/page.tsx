@@ -9,6 +9,7 @@ interface BulkProject {
   code: string | null;
   province: string | null;
   city: string | null;
+  district: string | null;
   area_mu: number | null;
   price_start: number | null;
   yield_rate: number | null;
