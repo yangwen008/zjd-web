@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/search/search",
+    "pages/messages/messages",
+    "pages/profile/profile",
+    "pages/asset/detail",
+    "pages/asset/asset",
+    "pages/broker/list/list",
+    "pages/broker/detail/detail",
+    "pages/bulk/list/list",
+    "pages/bulk/detail/detail",
+    "pages/services/index/index",
+    "pages/services/detail/detail",
+    "pages/region/region",
+    "pages/login/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#1a4731",
+    "navigationBarTitleText": "宅基地交易所",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#999999",
+    "selectedColor": "#1a4731",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/search/search", "text": "发现" },
+      { "pagePath": "pages/messages/messages", "text": "消息" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "获取您的位置信息，用于推荐附近资产和计算距离"
+    }
+  },
+  "requiredPrivateInfos": ["getLocation"],
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,70 @@
+<!-- pages/index/index.wxml — 首页 -->
+<import src="../../components/asset-card.wxml" />
+
+<view class="page">
+  <!-- 顶栏 -->
+  <view class="topbar">
+    <view class="topbar-location" bind:tap="chooseCity">
+      <text class="location-icon">📍</text>
+      <text class="location-text">{{locationText}}</text>
+      <text class="location-arrow">▼</text>
+    </view>
+    <view class="topbar-search" bind:tap="goSearch">
+      <text class="search-icon">🔍</text>
+      <text class="search-placeholder">搜索资产、地点、类型...</text>
+    </view>
+  </view>
+
+  <!-- 金刚区 -->
+  <view class="kingkong">
+    <view class="kingkong-row">
+      <view class="kingkong-item" wx:for="{{assetTypes}}" wx:key="type" bind:tap="goFilter" data-type="{{item.type}}">
+        <view class="kingkong-icon" style="background:{{item.bg}}">
+          <text>{{item.icon}}</text>
+        </view>
+        <text class="kingkong-label">{{item.label}}</text>
+      </view>
+    </view>
+    <view class="kingkong-row">
+      <view class="kingkong-item" wx:for="{{serviceEntries}}" wx:key="path" bind:tap="goPage" data-url="{{item.path}}">
+        <view class="kingkong-icon" style="background:{{item.bg}}">
+          <text>{{item.icon}}</text>
+        </view>
+        <text class="kingkong-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 推荐轮播 -->
+  <view class="section" wx:if="{{featuredAssets.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">🔥 精选推荐</text>
+    </view>
+    <scroll-view scroll-x class="featured-scroll">
+      <view class="featured-card" wx:for="{{featuredAssets}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+        <image class="featured-img" src="{{item.firstImage}}" mode="aspectFill" />
+        <view class="featured-overlay">
+          <text class="featured-title">{{item.title}}</text>
+          <text class="featured-price">{{item.priceText}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 为您推荐 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">📍 为您推荐</text>
+      <text class="section-more" bind:tap="goSearch">查看全部 →</text>
+    </view>
+    <view class="asset-list">
+      <template is="assetCard" wx:for="{{assets}}" wx:key="id" data="{{...item}}" />
+    </view>
+    <view class="loading" wx:if="{{loading}}">加载中...</view>
+    <view class="empty" wx:if="{{!loading && assets.length === 0}}">
+      <text class="empty-icon">🏘️</text>
+      <text class="empty-text">暂无资产</text>
+    </view>
+    <view class="no-more" wx:if="{{!loading && noMore}}">没有更多了</view>
+  </view>
+</view>

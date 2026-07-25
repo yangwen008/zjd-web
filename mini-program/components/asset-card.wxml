@@ -1,0 +1,25 @@
+<!-- components/asset-card.wxml — 资产卡片模板 -->
+<template name="assetCard">
+  <view class="asset-card" bind:tap="goAsset" data-id="{{id}}">
+    <view class="card-image">
+      <image class="card-img" src="{{firstImage || '/static/logo.png'}}" mode="aspectFill" />
+      <view class="card-badges">
+        <text class="badge {{badgeClass}}" wx:if="{{badge}}">{{badge}}</text>
+        <text class="badge" style="background:rgba(40,167,69,0.85)" wx:if="{{certification === 'certified'}}">已确权</text>
+      </view>
+    </view>
+    <view class="card-info">
+      <view class="card-row">
+        <text class="card-price">{{priceText}}</text>
+        <text class="card-lease">最长{{lease_years || 20}}年</text>
+      </view>
+      <view class="card-row">
+        <text class="card-field">📐 {{areaText}}</text>
+        <text class="card-field">🏛️ 权属</text>
+      </view>
+      <view class="card-row">
+        <text class="card-location">📍 {{locationText}}</text>
+      </view>
+    </view>
+  </view>
+</template>

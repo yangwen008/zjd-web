@@ -1,0 +1,55 @@
+<!-- custom-tab-bar/index.wxml — 自定义底部导航栏（含语音按钮） -->
+<view class="tabbar">
+  <!-- 左侧Tab -->
+  <view class="tabbar-item {{current === 0 ? 'active' : ''}}" bind:tap="switchTab" data-index="0" data-url="/pages/index/index">
+    <text class="tabbar-icon">🏠</text>
+    <text class="tabbar-text">首页</text>
+  </view>
+  <view class="tabbar-item {{current === 1 ? 'active' : ''}}" bind:tap="switchTab" data-index="1" data-url="/pages/search/index">
+    <text class="tabbar-icon">🔍</text>
+    <text class="tabbar-text">发现</text>
+  </view>
+
+  <!-- 中间语音按钮 -->
+  <view class="tabbar-center">
+    <view class="voice-btn {{isRecording ? 'recording' : ''}}" bind:touchstart="startRecord" bind:touchend="stopRecord" bind:touchcancel="stopRecord">
+      <text class="voice-icon">🎤</text>
+      <text class="voice-text">{{isRecording ? '松开' : '说话'}}</text>
+    </view>
+  </view>
+
+  <!-- 右侧Tab -->
+  <view class="tabbar-item {{current === 2 ? 'active' : ''}}" bind:tap="switchTab" data-index="2" data-url="/pages/messages/index">
+    <text class="tabbar-icon">💬</text>
+    <text class="tabbar-text">消息</text>
+  </view>
+  <view class="tabbar-item {{current === 3 ? 'active' : ''}}" bind:tap="switchTab" data-index="3" data-url="/pages/profile/index">
+    <text class="tabbar-icon">👤</text>
+    <text class="tabbar-text">我的</text>
+  </view>
+</view>
+
+<!-- 语音结果弹窗 -->
+<view class="voice-overlay" wx:if="{{showResult}}" bind:tap="closeResult">
+  <view class="voice-result" catch:tap="noop">
+    <view class="voice-result-header">
+      <text class="voice-result-title">🎤 语音搜索</text>
+      <text class="voice-result-close" bind:tap="closeResult">✕</text>
+    </view>
+    <view class="voice-result-text" wx:if="{{voiceText}}">"{{voiceText}}"</view>
+    <view class="voice-result-reply">{{voiceReply}}</view>
+    <scroll-view scroll-y class="voice-result-list">
+      <view class="voice-result-item" wx:for="{{voiceResults}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+        <image class="result-item-img" src="{{item.firstImage || '/static/logo.png'}}" mode="aspectFill" />
+        <view class="result-item-info">
+          <text class="result-item-title">{{item.title}}</text>
+          <text class="result-item-price">{{item.priceText}}</text>
+          <text class="result-item-loc">{{item.province}}·{{item.city}}</text>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="voice-result-more" wx:if="{{voiceResults.length > 0}}" bind:tap="goSearch">查看全部结果 →</view>
+    <view class="voice-result-empty" wx:if="{{!voiceLoading && voiceResults.length === 0 && voiceText}}">未找到匹配的资产</view>
+    <view class="voice-result-loading" wx:if="{{voiceLoading}}">识别中...</view>
+  </view>
+</view>

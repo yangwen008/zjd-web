@@ -1,0 +1,35 @@
+<!-- pages/login/index.wxml -->
+<view class="page">
+  <view class="login-header">
+    <image class="logo" src="/static/logo.png" mode="aspectFit" />
+    <text class="title">宅基地交易所</text>
+    <text class="subtitle">乡村闲置资产数字流转平台</text>
+  </view>
+
+  <view class="login-body">
+    <!-- 手机号快捷登录 -->
+    <button class="btn-wechat" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">
+      📱 手机号快捷登录
+    </button>
+
+    <!-- 分隔线 -->
+    <view class="divider">
+      <view class="divider-line"></view>
+      <text class="divider-text">或</text>
+      <view class="divider-line"></view>
+    </view>
+
+    <!-- 手机号密码登录 -->
+    <view class="form-group">
+      <input class="input" placeholder="手机号" type="number" maxlength="11" bindinput="onPhoneInput" value="{{phone}}" />
+    </view>
+    <view class="form-group">
+      <input class="input" placeholder="密码" password bindinput="onPasswordInput" value="{{password}}" />
+    </view>
+    <button class="btn-login" bind:tap="login">登录</button>
+
+    <view class="register-link" bind:tap="goRegister">
+      还没有账号？<text class="link">立即注册</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,127 @@
+/* custom-tab-bar/index.wxss */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 110rpx;
+  background: #ffffff;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -2rpx 20rpx rgba(0,0,0,0.05);
+  z-index: 999;
+}
+
+.tabbar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100rpx;
+  padding-bottom: 10rpx;
+}
+
+.tabbar-item.active .tabbar-text {
+  color: #1a4731;
+}
+
+.tabbar-icon {
+  font-size: 40rpx;
+  margin-bottom: 4rpx;
+}
+
+.tabbar-text {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+/* 中间语音按钮 */
+.tabbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 10rpx;
+}
+
+.voice-btn {
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a4731, #2d6a4f);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: -40rpx;
+  box-shadow: 0 8rpx 24rpx rgba(26,71,49,0.4);
+  transition: all 0.2s;
+}
+
+.voice-btn.recording {
+  transform: scale(1.1);
+  background: linear-gradient(135deg, #c0392b, #e74c3c);
+  box-shadow: 0 8rpx 24rpx rgba(192,57,43,0.4);
+}
+
+.voice-icon { font-size: 40rpx; }
+.voice-text { font-size: 18rpx; color: #ffffff; margin-top: 2rpx; }
+
+/* 语音结果弹窗 */
+.voice-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.voice-result {
+  width: 100%;
+  max-height: 70vh;
+  background: #ffffff;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 40rpx;
+}
+
+.voice-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.voice-result-title { font-size: 32rpx; font-weight: bold; }
+.voice-result-close { font-size: 36rpx; color: #999; padding: 10rpx; }
+.voice-result-text { font-size: 28rpx; color: #666; margin-bottom: 20rpx; font-style: italic; }
+.voice-result-reply { font-size: 28rpx; color: #333; margin-bottom: 30rpx; font-weight: 500; }
+.voice-result-list { max-height: 50vh; }
+
+.voice-result-item {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.result-item-img {
+  width: 160rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  margin-right: 20rpx;
+}
+
+.result-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.result-item-title { font-size: 28rpx; font-weight: 500; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.result-item-price { font-size: 30rpx; color: #1a4731; font-weight: bold; }
+.result-item-loc { font-size: 22rpx; color: #999; }
+.voice-result-more { text-align: center; color: #1a4731; font-size: 28rpx; padding: 30rpx 0; }
+.voice-result-empty, .voice-result-loading { text-align: center; color: #999; font-size: 28rpx; padding: 60rpx 0; }
