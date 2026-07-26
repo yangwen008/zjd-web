@@ -28,6 +28,27 @@ Page({
     this.checkFavorite()
   },
 
+  // 记录浏览历史
+  saveHistory(asset) {
+    let history = wx.getStorageSync('viewHistory') || []
+    // 去重
+    history = history.filter(h => h.id !== asset.id)
+    // 插入到最前面
+    history.unshift({
+      id: asset.id,
+      title: asset.title,
+      images: asset.images,
+      price_year: asset.price_year,
+      province: asset.province,
+      city: asset.city,
+      district: asset.district,
+      viewedAt: Date.now()
+    })
+    // 最多保留50条
+    if (history.length > 50) history = history.slice(0, 50)
+    wx.setStorageSync('viewHistory', history)
+  },
+
   async loadAsset() {
     try {
       const res = await app.request({ url: '/api/assets/' + this.assetId })
@@ -68,6 +89,9 @@ Page({
           'village_org': '村集体',
           'admin': '平台运营'
         }
+
+        // 记录浏览历史
+        this.saveHistory(asset)
 
         this.setData({
           asset,

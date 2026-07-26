@@ -1,6 +1,49 @@
+<!-- pages/search/search.wxml — 看过/收藏页 -->
 <view class="page">
-  <view style="display:flex;flex-direction:column;align-items:center;padding-top:200rpx">
-    <text style="font-size:80rpx">🚧</text>
-    <text style="font-size:28rpx;color:#999;margin-top:20rpx">页面开发中...</text>
+  <!-- Tab切换 -->
+  <view class="tabs">
+    <view class="tab {{activeTab === 'history' ? 'active' : ''}}" bind:tap="switchTab" data-tab="history">
+      <text>👀 看过</text>
+    </view>
+    <view class="tab {{activeTab === 'fav' ? 'active' : ''}}" bind:tap="switchTab" data-tab="fav">
+      <text>❤️ 收藏</text>
+    </view>
+  </view>
+
+  <!-- 看过列表 -->
+  <view class="list" wx:if="{{activeTab === 'history'}}">
+    <view class="empty" wx:if="{{!loading && historyList.length === 0}}">
+      <text class="empty-icon">👀</text>
+      <text class="empty-text">还没有浏览记录</text>
+      <text class="empty-hint">去首页看看吧</text>
+    </view>
+    <view class="history-item" wx:for="{{historyList}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+      <image class="item-img" src="{{item.firstImage}}" mode="aspectFill" />
+      <view class="item-info">
+        <text class="item-title">{{item.title}}</text>
+        <text class="item-price">{{item.priceText}}</text>
+        <text class="item-loc">📍 {{item.locationText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 收藏列表 -->
+  <view class="list" wx:if="{{activeTab === 'fav'}}">
+    <view class="empty" wx:if="{{!loading && favList.length === 0}}">
+      <text class="empty-icon">❤️</text>
+      <text class="empty-text">还没有收藏</text>
+      <text class="empty-hint">点击资产详情页的爱心收藏</text>
+    </view>
+    <view class="history-item" wx:for="{{favList}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id || item.asset_id}}">
+      <image class="item-img" src="{{item.firstImage}}" mode="aspectFill" />
+      <view class="item-info">
+        <text class="item-title">{{item.title || item.asset_title}}</text>
+        <text class="item-price">{{item.priceText}}</text>
+        <text class="item-loc">📍 {{item.locationText || item.asset_province}}</text>
+      </view>
+      <view class="item-remove" catch:tap="removeFav" data-id="{{item.asset_id}}">
+        <text>✕</text>
+      </view>
+    </view>
   </view>
 </view>
