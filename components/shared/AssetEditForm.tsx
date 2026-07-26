@@ -20,6 +20,7 @@ export interface Asset {
   lease_years: number | string;
   asset_type: string;
   certification: string;
+  transfer_type: string;
   contact_name: string;
   contact_phone: string;
   gps_lat: string;
@@ -75,6 +76,15 @@ const CERTIFICATION_OPTIONS = [
   { key: 'certified',   label: '✅ 已确权', desc: '已完成权属登记' },
 ];
 
+const TRANSFER_OPTIONS = [
+  { key: 'lease', label: '租赁', desc: '按年租赁使用权', color: 'bg-green-100 text-green-700 border-green-300' },
+  { key: 'transfer', label: '转让', desc: '一次性买断使用权', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { key: 'grant', label: '出让', desc: '政府出让土地使用权', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+  { key: 'cooperation', label: '合作', desc: '合作开发经营', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  { key: 'equity', label: '入股', desc: '以土地入股分红', color: 'bg-red-100 text-red-700 border-red-300' },
+];
+];
+
 const DEFAULT_INFRA = [
   { key: 'electricity', icon: '⚡', label: '通电',     enabled: true, status: '已通' },
   { key: 'water',       icon: '💧', label: '自来水',   enabled: true, status: '已通' },
@@ -122,6 +132,7 @@ export default function AssetEditForm({
     lease_years: '20',
     asset_type: '宅基地',
     certification: 'uncertified',
+    transfer_type: 'lease',
     contact_name: '',
     contact_phone: '',
     gps_lat: '',
@@ -1023,6 +1034,28 @@ export default function AssetEditForm({
               <option value="暂无">暂无</option>
             </select>
           </div>
+        </div>
+      </div>
+
+      {/* ═══ 10.5 流转方式 ═══ */}
+      <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-4">
+        <h3 className="font-bold text-gray-800 border-b pb-2">🔄 流转方式</h3>
+        <div className="grid grid-cols-5 gap-3">
+          {TRANSFER_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, transfer_type: opt.key }))}
+              className={`p-4 rounded-lg border-2 text-left transition-colors ${
+                formData.transfer_type === opt.key
+                  ? 'border-brand-green bg-brand-green/5'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="text-sm font-medium">{opt.label}</div>
+              <div className="text-xs text-gray-400 mt-1">{opt.desc}</div>
+            </button>
+          ))}
         </div>
       </div>
 

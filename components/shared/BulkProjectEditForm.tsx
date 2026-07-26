@@ -94,6 +94,7 @@ export default function BulkProjectEditForm({
     yield_rate: '',
     lease_years: '30',
     certification: 'uncertified',
+    transfer_type: 'lease',
     contact_name: '',
     contact_phone: '',
     gps_lat: '',

@@ -5,16 +5,18 @@ Page({
   data: {
     locationText: '定位中...',
     assetTypes: [
-      { type: '宅基地', icon: '🏠', label: '宅基地', bg: '#e8f5e9' },
       { type: '林地', icon: '🌾', label: '林地', bg: '#fff3e0' },
-      { type: '厂房', icon: '🏭', label: '厂房', bg: '#e3f2fd' },
       { type: '茶园', icon: '🌿', label: '茶园', bg: '#f1f8e9' },
       { type: '古宅', icon: '🏡', label: '古宅', bg: '#fce4ec' },
       { type: '种植', icon: '🌱', label: '种植', bg: '#e0f7fa' },
-      { type: '建设用地', icon: '🏗️', label: '建设用地', bg: '#fff3e0' },
+      { type: '集体建设用地', icon: '🏗️', label: '集体建设', bg: '#fff3e0' },
+      { type: '国有建设用地', icon: '🏛️', label: '国有建设', bg: '#e8eaf6' },
+      { type: '集体经营性建设用地', icon: '🏭', label: '经营性', bg: '#fff8e1' },
       { type: '养殖用地', icon: '🐟', label: '养殖', bg: '#e0f7fa' },
       { type: '荒山', icon: '⛰️', label: '荒山', bg: '#efebe9' },
-      { type: '水域', icon: '🌊', label: '水域', bg: '#e3f2fd' }
+      { type: '水域', icon: '🌊', label: '水域', bg: '#e3f2fd' },
+      { type: '厂房', icon: '🏭', label: '厂房', bg: '#e3f2fd' },
+      { type: '宅基地', icon: '🏠', label: '宅基地', bg: '#e8f5e9' }
     ],
     serviceEntries: [
       { path: '/pages/services/index/index', icon: '🛡️', label: '服务', bg: '#ede7f6' },

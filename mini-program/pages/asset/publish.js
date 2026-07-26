@@ -9,7 +9,7 @@ Page({
       contact_name: '', contact_phone: '', asset_type: '',
       certification: 'uncertified'
     },
-    typeOptions: ['宅基地', '林地', '厂房', '茶园', '古宅', '种植', '建设用地', '养殖用地', '荒山', '水域'],
+    typeOptions: ['林地', '茶园', '古宅', '种植', '集体建设用地', '国有建设用地', '集体经营性建设用地', '养殖用地', '荒山', '水域', '厂房', '宅基地'],
     typeIndex: -1,
 
     // 流转方式
