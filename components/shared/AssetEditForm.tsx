@@ -83,7 +83,6 @@ const TRANSFER_OPTIONS = [
   { key: 'cooperation', label: '合作', desc: '合作开发经营', color: 'bg-purple-100 text-purple-700 border-purple-300' },
   { key: 'equity', label: '入股', desc: '以土地入股分红', color: 'bg-red-100 text-red-700 border-red-300' },
 ];
-];
 
 const DEFAULT_INFRA = [
   { key: 'electricity', icon: '⚡', label: '通电',     enabled: true, status: '已通' },
