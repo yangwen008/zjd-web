@@ -178,7 +178,8 @@ Page({
 
   goAsset(e) { wx.navigateTo({ url: '/pages/asset/detail?id=' + e.currentTarget.dataset.id }) },
   goBack() {
-    this.setData({ filterMode: false })
+    // 从筛选模式返回看过/收藏模式
+    this.setData({ filterMode: false, activeTab: 'history' })
     this.loadData()
   },
   onPullDownRefresh() { if (this.data.filterMode) this.loadFilterAssets(true); else wx.stopPullDownRefresh() },

@@ -7,15 +7,16 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const source = searchParams.get('source') || undefined;
   const province = searchParams.get('province') || undefined;
+  const asset_type = searchParams.get('asset_type') || undefined;
   const search = searchParams.get('search') || undefined;
-  const sort = searchParams.get('sort') || 'views'; // views | price
+  const sort = searchParams.get('sort') || 'views';
   const page = parseInt(searchParams.get('page') || '1');
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
 
   try {
     const [results, total] = await Promise.all([
-      getAssets({ source, province, search, sort, page, limit }),
-      getAssetsCount({ source, province, search }),
+      getAssets({ source, province, asset_type, search, sort, page, limit }),
+      getAssetsCount({ source, province, asset_type, search }),
     ]);
 
     return NextResponse.json({

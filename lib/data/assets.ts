@@ -60,6 +60,7 @@ function enrichPublisherName(assets: Asset[]): Asset[] {
 export interface AssetFilters {
   source?: string;
   province?: string;
+  asset_type?: string;
   areaMin?: number;
   areaMax?: number;
   priceMin?: number;
@@ -73,7 +74,7 @@ export interface AssetFilters {
 
 function buildAssetQuery(params: AssetFilters, countOnly = false) {
   const {
-    source, province, areaMin, areaMax,
+    source, province, asset_type, areaMin, areaMax,
     priceMin, priceMax, search, sort,
     page = 1, limit = 20, featured,
   } = params;
@@ -92,6 +93,7 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
            WHERE assets.status = ? AND assets_fts MATCH ?`;
     args = ['approved', search];
     if (source) { sql += ' AND assets.source_type = ?'; args.push(source); }
+    if (asset_type) { sql += ' AND assets.asset_type = ?'; args.push(asset_type); }
     if (province) { sql += ' AND assets.province = ?'; args.push(province); }
     if (areaMin) { sql += ' AND assets.area_mu >= ?'; args.push(areaMin); }
     if (areaMax) { sql += ' AND assets.area_mu <= ?'; args.push(areaMax); }
@@ -104,6 +106,7 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
     sql = `${selectClause} FROM assets${joinClause} WHERE assets.status = ?`;
     args = ['approved'];
     if (source) { sql += ' AND source_type = ?'; args.push(source); }
+    if (asset_type) { sql += ' AND asset_type = ?'; args.push(asset_type); }
     if (province) { sql += ' AND province = ?'; args.push(province); }
     if (areaMin) { sql += ' AND area_mu >= ?'; args.push(areaMin); }
     if (areaMax) { sql += ' AND area_mu <= ?'; args.push(areaMax); }
