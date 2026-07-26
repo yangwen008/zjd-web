@@ -216,6 +216,7 @@ export default function AssetEditForm({
       lease_years: initialData.lease_years?.toString() || '20',
       asset_type: initialData.asset_type || '宅基地',
       certification: initialData.certification || 'uncertified',
+      transfer_type: initialData.transfer_type || 'lease',
       contact_name: initialData.contact_name || '',
       contact_phone: initialData.contact_phone || '',
       gps_lat: initialData.gps_lat?.toString() || '',
