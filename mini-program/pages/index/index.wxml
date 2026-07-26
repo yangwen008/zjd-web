@@ -15,24 +15,25 @@
     </view>
   </view>
 
-  <!-- 金刚区 -->
+  <!-- 金刚区（横向滚动） -->
   <view class="kingkong">
-    <view class="kingkong-row">
-      <view class="kingkong-item" wx:for="{{assetTypes}}" wx:key="type" bind:tap="goFilter" data-type="{{item.type}}">
-        <view class="kingkong-icon" style="background:{{item.bg}}">
-          <text>{{item.icon}}</text>
+    <scroll-view scroll-x class="kingkong-scroll">
+      <view class="kingkong-row">
+        <view class="kingkong-item" wx:for="{{assetTypes}}" wx:key="type" bind:tap="goFilter" data-type="{{item.type}}">
+          <view class="kingkong-icon" style="background:{{item.bg}}">
+            <text>{{item.icon}}</text>
+          </view>
+          <text class="kingkong-label">{{item.label}}</text>
         </view>
-        <text class="kingkong-label">{{item.label}}</text>
-      </view>
-    </view>
-    <view class="kingkong-row">
-      <view class="kingkong-item" wx:for="{{serviceEntries}}" wx:key="path" bind:tap="goPage" data-url="{{item.path}}">
-        <view class="kingkong-icon" style="background:{{item.bg}}">
-          <text>{{item.icon}}</text>
+        <view class="kingkong-divider"></view>
+        <view class="kingkong-item" wx:for="{{serviceEntries}}" wx:key="path" bind:tap="goPage" data-url="{{item.path}}">
+          <view class="kingkong-icon" style="background:{{item.bg}}">
+            <text>{{item.icon}}</text>
+          </view>
+          <text class="kingkong-label">{{item.label}}</text>
         </view>
-        <text class="kingkong-label">{{item.label}}</text>
       </view>
-    </view>
+    </scroll-view>
   </view>
 
   <!-- 附近资产（双列瀑布流） -->

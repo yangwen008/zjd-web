@@ -10,7 +10,11 @@ Page({
       { type: '厂房', icon: '🏭', label: '厂房', bg: '#e3f2fd' },
       { type: '茶园', icon: '🌿', label: '茶园', bg: '#f1f8e9' },
       { type: '古宅', icon: '🏡', label: '古宅', bg: '#fce4ec' },
-      { type: '种植', icon: '🌱', label: '种植', bg: '#e0f7fa' }
+      { type: '种植', icon: '🌱', label: '种植', bg: '#e0f7fa' },
+      { type: '建设用地', icon: '🏗️', label: '建设用地', bg: '#fff3e0' },
+      { type: '养殖用地', icon: '🐟', label: '养殖', bg: '#e0f7fa' },
+      { type: '荒山', icon: '⛰️', label: '荒山', bg: '#efebe9' },
+      { type: '水域', icon: '🌊', label: '水域', bg: '#e3f2fd' }
     ],
     serviceEntries: [
       { path: '/pages/services/index/index', icon: '🛡️', label: '服务', bg: '#ede7f6' },
