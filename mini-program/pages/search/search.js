@@ -52,7 +52,21 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ current: 1 })
     }
-    if (!this.data.filterMode) {
+    // 检查全局筛选参数（从金刚区跳转过来）
+    const filterType = app.globalData._filterType
+    const filterSource = app.globalData._filterSource
+    if (filterType || filterSource) {
+      app.globalData._filterType = ''
+      app.globalData._filterSource = ''
+      this.setData({
+        filterMode: true,
+        filterType: filterType || '',
+        filterSource: filterSource || '',
+        filterTitle: this.getTitle(filterType, filterSource)
+      })
+      this.loadFilterAssets(true)
+    } else if (!this.data.filterMode) {
+      this.setData({ filterMode: false })
       this.loadData()
     }
   },
@@ -163,7 +177,10 @@ Page({
   },
 
   goAsset(e) { wx.navigateTo({ url: '/pages/asset/detail?id=' + e.currentTarget.dataset.id }) },
-  goBack() { wx.navigateBack() },
+  goBack() {
+    this.setData({ filterMode: false })
+    this.loadData()
+  },
   onPullDownRefresh() { if (this.data.filterMode) this.loadFilterAssets(true); else wx.stopPullDownRefresh() },
   onReachBottom() { if (this.data.filterMode && !this.data.noMore) this.loadFilterAssets(false) }
 })

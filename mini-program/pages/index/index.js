@@ -189,7 +189,12 @@ Page({
   },
 
   goSearch() { wx.switchTab({ url: '/pages/search/index' }) },
-  goFilter(e) { wx.navigateTo({ url: '/pages/search/search?type=' + encodeURIComponent(e.currentTarget.dataset.type) }) },
+  goFilter(e) {
+    // tabBar页面不能用navigateTo，用全局变量+switchTab
+    app.globalData._filterType = e.currentTarget.dataset.type
+    app.globalData._filterSource = ''
+    wx.switchTab({ url: '/pages/search/search' })
+  },
   goPage(e) { wx.navigateTo({ url: e.currentTarget.dataset.url }) },
   goAsset(e) { wx.navigateTo({ url: '/pages/asset/detail?id=' + e.currentTarget.dataset.id }) },
   chooseCity() { wx.showToast({ title: '城市切换开发中', icon: 'none' }) },
