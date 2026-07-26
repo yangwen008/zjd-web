@@ -1,37 +1,47 @@
 <!-- pages/messages/messages.wxml — 消息页 -->
 <view class="page">
-  <view class="tabs">
-    <view class="tab {{activeTab === 'all' ? 'active' : ''}}" bind:tap="switchTab" data-tab="all">
-      <text>全部</text>
-    </view>
-    <view class="tab {{activeTab === 'appointment' ? 'active' : ''}}" bind:tap="switchTab" data-tab="appointment">
-      <text>预约</text>
-    </view>
-    <view class="tab {{activeTab === 'lead' ? 'active' : ''}}" bind:tap="switchTab" data-tab="lead">
-      <text>线索</text>
-    </view>
-    <view class="tab {{activeTab === 'system' ? 'active' : ''}}" bind:tap="switchTab" data-tab="system">
-      <text>系统</text>
-    </view>
+  <!-- 未登录提示 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-prompt">
+    <text class="prompt-icon">💬</text>
+    <text class="prompt-text">登录后查看消息</text>
+    <button class="btn-login" bind:tap="goLogin">去登录</button>
   </view>
 
-  <view class="msg-list">
-    <view class="empty" wx:if="{{!loading && messages.length === 0}}">
-      <text class="empty-icon">💬</text>
-      <text class="empty-text">暂无消息</text>
+  <!-- 已登录：消息列表 -->
+  <view wx:else>
+    <view class="tabs">
+      <view class="tab {{activeTab === 'all' ? 'active' : ''}}" bind:tap="switchTab" data-tab="all">
+        <text>全部</text>
+      </view>
+      <view class="tab {{activeTab === 'appointment' ? 'active' : ''}}" bind:tap="switchTab" data-tab="appointment">
+        <text>预约</text>
+      </view>
+      <view class="tab {{activeTab === 'lead' ? 'active' : ''}}" bind:tap="switchTab" data-tab="lead">
+        <text>线索</text>
+      </view>
+      <view class="tab {{activeTab === 'system' ? 'active' : ''}}" bind:tap="switchTab" data-tab="system">
+        <text>系统</text>
+      </view>
     </view>
 
-    <view class="msg-item" wx:for="{{messages}}" wx:key="id" bind:tap="goDetail" data-item="{{item}}">
-      <view class="msg-icon-wrap">
-        <text class="msg-icon">{{item.icon}}</text>
+    <view class="msg-list">
+      <view class="empty" wx:if="{{!loading && messages.length === 0}}">
+        <text class="empty-icon">💬</text>
+        <text class="empty-text">暂无消息</text>
       </view>
-      <view class="msg-content">
-        <text class="msg-title">{{item.title}}</text>
-        <text class="msg-desc">{{item.desc}}</text>
-        <text class="msg-time">{{item.time}}</text>
-      </view>
-      <view class="msg-badge" wx:if="{{item.unread}}">
-        <text>{{item.unread}}</text>
+
+      <view class="msg-item" wx:for="{{messages}}" wx:key="id" bind:tap="goDetail" data-item="{{item}}">
+        <view class="msg-icon-wrap">
+          <text class="msg-icon">{{item.icon}}</text>
+        </view>
+        <view class="msg-content">
+          <text class="msg-title">{{item.title}}</text>
+          <text class="msg-desc">{{item.desc}}</text>
+          <text class="msg-time">{{item.time}}</text>
+        </view>
+        <view class="msg-badge" wx:if="{{item.unread}}">
+          <text>{{item.unread}}</text>
+        </view>
       </view>
     </view>
   </view>

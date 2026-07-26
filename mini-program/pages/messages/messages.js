@@ -5,14 +5,26 @@ Page({
   data: {
     activeTab: 'all',
     messages: [],
-    loading: false
+    loading: false,
+    isLoggedIn: false
   },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ current: 2 })
     }
+    // 检查登录状态
+    const token = app.globalData.token
+    if (!token) {
+      this.setData({ isLoggedIn: false, messages: [], loading: false })
+      return
+    }
+    this.setData({ isLoggedIn: true })
     this.loadMessages()
+  },
+
+  goLogin() {
+    wx.navigateTo({ url: '/pages/login/index' })
   },
 
   switchTab(e) {

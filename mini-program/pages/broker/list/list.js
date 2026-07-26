@@ -31,12 +31,22 @@ Page({
       if (rating) url += '&rating=' + rating
       const res = await app.request({ url })
       if (res.success && res.data) {
-        const newItems = res.data.map(b => ({
-          ...b,
-          avatarUrl: b.avatar_url || '/static/default-avatar.png',
-          goodRateText: b.good_rate ? Math.round(b.good_rate * 100) + '%' : '0%',
-          specialtyList: this.parseSpecialties(b.specialties)
-        }))
+        const newItems = res.data.map(b => {
+          let avatarUrl = '/static/default-avatar.png'
+          if (b.avatar_url) {
+            if (b.avatar_url.startsWith('http')) {
+              avatarUrl = b.avatar_url
+            } else {
+              avatarUrl = app.globalData.baseUrl + (b.avatar_url.startsWith('/') ? '' : '/') + b.avatar_url
+            }
+          }
+          return {
+            ...b,
+            avatarUrl,
+            goodRateText: b.good_rate ? Math.round(b.good_rate * 100) + '%' : '0%',
+            specialtyList: this.parseSpecialties(b.specialties)
+          }
+        })
         const all = reset ? newItems : this.data.brokers.concat(newItems)
         const leftCol = [], rightCol = []
         all.forEach((item, i) => { if (i % 2 === 0) leftCol.push(item); else rightCol.push(item) })

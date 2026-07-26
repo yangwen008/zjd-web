@@ -40,3 +40,9 @@
 .empty { display: flex; flex-direction: column; align-items: center; padding: 120rpx 0; }
 .empty-icon { font-size: 80rpx; margin-bottom: 20rpx; }
 .empty-text { font-size: 28rpx; color: #999; }
+
+/* 未登录提示 */
+.login-prompt { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 200rpx 60rpx; }
+.prompt-icon { font-size: 100rpx; margin-bottom: 24rpx; }
+.prompt-text { font-size: 30rpx; color: #666; margin-bottom: 40rpx; }
+.btn-login { background: #1a4731; color: #ffffff; font-size: 30rpx; padding: 20rpx 80rpx; border-radius: 40rpx; border: none; }
