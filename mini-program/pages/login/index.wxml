@@ -7,26 +7,37 @@
   </view>
 
   <view class="login-body">
-    <!-- 手机号快捷登录 -->
-    <button class="btn-wechat" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">
+    <!-- 优先：微信一键登录 -->
+    <button class="btn-wechat-primary" bind:tap="wxLogin">
+      <text class="wx-icon">💬</text>
+      <text>微信一键登录</text>
+    </button>
+
+    <!-- 次选：手机号快捷登录 -->
+    <button class="btn-phone" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">
       📱 手机号快捷登录
     </button>
 
     <!-- 分隔线 -->
     <view class="divider">
       <view class="divider-line"></view>
-      <text class="divider-text">或</text>
+      <text class="divider-text">其他方式</text>
       <view class="divider-line"></view>
     </view>
 
-    <!-- 手机号密码登录 -->
-    <view class="form-group">
-      <input class="input" placeholder="手机号" type="number" maxlength="11" bindinput="onPhoneInput" value="{{phone}}" />
+    <!-- 账号密码登录（折叠） -->
+    <view wx:if="{{showPasswordLogin}}">
+      <view class="form-group">
+        <input class="input" placeholder="手机号/用户名" bindinput="onPhoneInput" value="{{phone}}" />
+      </view>
+      <view class="form-group">
+        <input class="input" placeholder="密码" password bindinput="onPasswordInput" value="{{password}}" />
+      </view>
+      <button class="btn-login" bind:tap="login">账号密码登录</button>
     </view>
-    <view class="form-group">
-      <input class="input" placeholder="密码" password bindinput="onPasswordInput" value="{{password}}" />
+    <view wx:else class="expand-link" bind:tap="expandPassword">
+      <text>账号密码登录 →</text>
     </view>
-    <button class="btn-login" bind:tap="login">登录</button>
 
     <view class="register-link" bind:tap="goRegister">
       还没有账号？<text class="link">立即注册</text>
