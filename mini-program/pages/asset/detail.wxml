@@ -1,23 +1,17 @@
-<!-- pages/asset/detail.wxml — 资产详情页 -->
+<!-- pages/asset/detail.wxml — 资产详情页（完整版，对齐H5） -->
 <view class="page">
   <!-- 图片轮播 -->
-  <swiper class="media-swiper" indicator-dots="{{images.length > 1}}" indicator-active-color="#1a4731" indicator-color="rgba(255,255,255,0.5)" circular autoplay>
+  <swiper class="media-swiper" indicator-dots="{{images.length > 1}}" indicator-active-color="#1a4731" indicator-color="rgba(255,255,255,0.5)" circular>
     <swiper-item wx:for="{{images}}" wx:key="*this">
       <image class="media-img" src="{{item}}" mode="aspectFill" bind:tap="previewImage" data-src="{{item}}" />
     </swiper-item>
   </swiper>
 
-  <!-- 返回按钮 -->
-  <view class="back-btn" bind:tap="goBack">
-    <text>←</text>
-  </view>
+  <!-- 返回+收藏按钮 -->
+  <view class="back-btn" bind:tap="goBack"><text>←</text></view>
+  <view class="fav-btn {{isFav ? 'fav-active' : ''}}" bind:tap="toggleFav"><text>{{isFav ? '❤️' : '🤍'}}</text></view>
 
-  <!-- 收藏按钮（浮在图片右上角） -->
-  <view class="fav-btn {{isFav ? 'fav-active' : ''}}" bind:tap="toggleFav">
-    <text>{{isFav ? '❤️' : '🤍'}}</text>
-  </view>
-
-  <!-- 标签 + 编号 -->
+  <!-- 标签+编号 -->
   <view class="info-bar">
     <view class="info-tags">
       <text class="tag {{badgeClass}}" wx:if="{{badge}}">{{badge}}</text>
@@ -28,35 +22,29 @@
 
   <!-- 核心指标 -->
   <view class="metrics">
-    <view class="metric-item">
-      <text class="metric-value">{{priceText}}</text>
-      <text class="metric-label">年租金</text>
-    </view>
+    <view class="metric-item"><text class="metric-value">{{priceText}}</text><text class="metric-label">年租金</text></view>
     <view class="metric-divider"></view>
-    <view class="metric-item">
-      <text class="metric-value">{{areaText}}</text>
-      <text class="metric-label">面积</text>
-    </view>
+    <view class="metric-item"><text class="metric-value">{{areaText}}</text><text class="metric-label">面积</text></view>
     <view class="metric-divider"></view>
-    <view class="metric-item">
-      <text class="metric-value">{{leaseText}}</text>
-      <text class="metric-label">流转期</text>
-    </view>
+    <view class="metric-item"><text class="metric-value">{{leaseText}}</text><text class="metric-label">流转期</text></view>
     <view class="metric-divider"></view>
-    <view class="metric-item">
-      <text class="metric-value">{{distanceText}}</text>
-      <text class="metric-label">距离</text>
-    </view>
+    <view class="metric-item"><text class="metric-value">{{distanceText}}</text><text class="metric-label">距离</text></view>
   </view>
 
-  <!-- 标题 -->
+  <!-- 标题+发布者 -->
   <view class="title-section">
     <text class="main-title">{{asset.title}}</text>
     <text class="sub-title">📍 {{locationText}}</text>
+    <view class="publisher-mini" wx:if="{{asset.user_id}}" bind:tap="goPublisher">
+      <view class="pub-avatar-sm"><text>{{pubInitial}}</text></view>
+      <text class="pub-name-sm">{{asset.publisher_name || '平台'}}</text>
+      <text class="pub-role-sm">{{pubRoleText}}</text>
+      <text class="pub-arrow-sm">→</text>
+    </view>
   </view>
 
   <!-- 资产描述 -->
-  <view class="section" wx:if="{{asset.description}}">
+  <view class="section" wx:if="{{descText}}">
     <text class="section-title">📝 资产描述</text>
     <text class="section-body">{{descText}}</text>
   </view>
@@ -64,29 +52,69 @@
   <!-- 权证信息 -->
   <view class="section" wx:if="{{certInfo}}">
     <text class="section-title">📋 权证信息</text>
-    <view class="section-list">
-      <view class="list-item" wx:for="{{certInfo}}" wx:key="label">
-        <text class="list-label">{{item.label}}</text>
-        <text class="list-value">{{item.value}}</text>
+    <view class="kv-list">
+      <view class="kv-item" wx:for="{{certInfo}}" wx:key="label">
+        <text class="kv-label">{{item.label}}</text>
+        <text class="kv-value">{{item.value}}</text>
       </view>
     </view>
   </view>
 
   <!-- 基建配套 -->
-  <view class="section" wx:if="{{infraDetails}}">
+  <view class="section">
     <text class="section-title">🏗️ 基建配套</text>
-    <text class="section-body">{{infraDetails}}</text>
+    <view class="infra-grid">
+      <view class="infra-card {{item.enabled ? 'infra-on' : 'infra-off'}}" wx:for="{{infraItems}}" wx:key="label">
+        <text class="infra-icon">{{item.icon}}</text>
+        <text class="infra-label">{{item.label}}</text>
+        <text class="infra-status">{{item.enabled ? (item.status || '已通') : (item.status || '未通')}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 环境指标 -->
+  <view class="section">
+    <text class="section-title">🌿 环境指标</text>
+    <view class="infra-grid">
+      <view class="infra-card infra-on" wx:for="{{envItems}}" wx:key="label">
+        <text class="infra-icon">{{item.icon}}</text>
+        <text class="infra-label">{{item.label}}</text>
+        <text class="infra-status">{{item.value}}</text>
+      </view>
+    </view>
   </view>
 
   <!-- 交通信息 -->
   <view class="section" wx:if="{{transportInfo}}">
     <text class="section-title">🚗 交通信息</text>
-    <view class="section-list">
-      <view class="list-item" wx:for="{{transportInfo}}" wx:key="label">
-        <text class="list-label">{{item.label}}</text>
-        <text class="list-value">{{item.value}}</text>
+    <view class="kv-list">
+      <view class="kv-item" wx:for="{{transportInfo}}" wx:key="label">
+        <text class="kv-label">{{item.icon}} {{item.label}}</text>
+        <text class="kv-value">{{item.value}}</text>
       </view>
     </view>
+  </view>
+
+  <!-- 参投认购 -->
+  <view class="section invest-section" wx:if="{{investEnabled && investInfo}}">
+    <text class="section-title">💰 参投认购</text>
+    <view class="invest-bar">
+      <view class="invest-progress" style="width:{{investInfo.progress}}%"></view>
+    </view>
+    <view class="invest-stats">
+      <view class="invest-stat"><text class="invest-num">{{investInfo.soldShares}}</text><text class="invest-label">已认购</text></view>
+      <view class="invest-stat"><text class="invest-num">{{investInfo.totalShares}}</text><text class="invest-label">总份数</text></view>
+      <view class="invest-stat"><text class="invest-num">¥{{investInfo.sharePrice}}万</text><text class="invest-label">每份</text></view>
+      <view class="invest-stat"><text class="invest-num">{{investInfo.minShares}}份</text><text class="invest-label">起投</text></view>
+    </view>
+    <button class="invest-btn" bind:tap="investAsset">立即参投</button>
+  </view>
+
+  <!-- 腾讯地图 -->
+  <view class="section map-section" wx:if="{{asset.gps_lat && asset.gps_lng}}">
+    <text class="section-title">🗺️ 位置地图</text>
+    <map class="mini-map" latitude="{{asset.gps_lat}}" longitude="{{asset.gps_lng}}" markers="{{[{latitude: asset.gps_lat, longitude: asset.gps_lng, title: asset.title}]}}" show-location scale="14" bindtap="openMap" />
+    <view class="map-navigate" bind:tap="openMap">📍 点击导航到这里</view>
   </view>
 
   <!-- 交易保障服务 -->
@@ -104,16 +132,16 @@
     </view>
   </view>
 
-  <!-- 发布者信息 -->
-  <view class="section publisher" wx:if="{{asset.user_id}}" bind:tap="goPublisher">
-    <view class="pub-avatar">
-      <text>{{pubInitial}}</text>
-    </view>
-    <view class="pub-info">
-      <text class="pub-name">{{asset.publisher_name || '平台'}}</text>
-      <text class="pub-role">{{pubRoleText}}</text>
-    </view>
-    <text class="pub-arrow">→</text>
+  <!-- 相似推荐 -->
+  <view class="section" wx:if="{{similarAssets.length > 0}}">
+    <text class="section-title">🏘️ 相似推荐</text>
+    <scroll-view scroll-x class="similar-scroll">
+      <view class="similar-card" wx:for="{{similarAssets}}" wx:key="id" bind:tap="goSimilar" data-id="{{item.id}}">
+        <image class="similar-img" src="{{item.firstImage}}" mode="aspectFill" />
+        <text class="similar-title">{{item.title}}</text>
+        <text class="similar-price">{{item.priceText}}</text>
+      </view>
+    </scroll-view>
   </view>
 
   <!-- 底部安全区 -->
