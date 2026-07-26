@@ -1,0 +1,109 @@
+<!-- pages/asset/publish.wxml — 发布资产页 -->
+<view class="page">
+  <form bindsubmit="submitForm">
+    <!-- 基本信息 -->
+    <view class="form-section">
+      <text class="section-title">基本信息</text>
+      <view class="form-item">
+        <text class="form-label">资产标题 *</text>
+        <input class="form-input" placeholder="如：崇州市街子镇15亩林地流转" bindinput="onInput" data-field="title" value="{{form.title}}" maxlength="50" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">资产描述</text>
+        <textarea class="form-textarea" placeholder="详细描述资产情况..." bindinput="onInput" data-field="description" value="{{form.description}}" maxlength="500" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">资产类型 *</text>
+        <picker bindchange="onTypeChange" value="{{typeIndex}}" range="{{typeOptions}}">
+          <view class="form-picker">{{typeOptions[typeIndex] || '请选择资产类型'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 位置信息 -->
+    <view class="form-section">
+      <text class="section-title">位置信息</text>
+      <view class="form-item">
+        <text class="form-label">省份 *</text>
+        <input class="form-input" placeholder="如：四川省" bindinput="onInput" data-field="province" value="{{form.province}}" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">城市</text>
+        <input class="form-input" placeholder="如：成都市" bindinput="onInput" data-field="city" value="{{form.city}}" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">区县</text>
+        <input class="form-input" placeholder="如：崇州市" bindinput="onInput" data-field="district" value="{{form.district}}" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">详细地址</text>
+        <input class="form-input" placeholder="如：街子镇xx村" bindinput="onInput" data-field="address" value="{{form.address}}" />
+      </view>
+      <view class="form-item">
+        <button class="gps-btn" bind:tap="getGPS" type="button">📍 自动定位</button>
+      </view>
+    </view>
+
+    <!-- 价格信息 -->
+    <view class="form-section">
+      <text class="section-title">价格信息</text>
+      <view class="form-row">
+        <view class="form-item half">
+          <text class="form-label">面积（亩）</text>
+          <input class="form-input" type="digit" placeholder="15.6" bindinput="onInput" data-field="area_mu" value="{{form.area_mu}}" />
+        </view>
+        <view class="form-item half">
+          <text class="form-label">流转年限</text>
+          <input class="form-input" type="number" placeholder="20" bindinput="onInput" data-field="lease_years" value="{{form.lease_years}}" />
+        </view>
+      </view>
+      <view class="form-row">
+        <view class="form-item half">
+          <text class="form-label">年租金（万）</text>
+          <input class="form-input" type="digit" placeholder="2.8" bindinput="onInput" data-field="price_year" value="{{form.price_year}}" />
+        </view>
+        <view class="form-item half">
+          <text class="form-label">总价（万）</text>
+          <input class="form-input" type="digit" placeholder="面议" bindinput="onInput" data-field="price_total" value="{{form.price_total}}" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 图片上传 -->
+    <view class="form-section">
+      <text class="section-title">资产图片</text>
+      <view class="image-grid">
+        <view class="image-item" wx:for="{{images}}" wx:key="*this">
+          <image class="preview-img" src="{{item}}" mode="aspectFill" />
+          <view class="remove-img" bind:tap="removeImage" data-index="{{index}}">✕</view>
+        </view>
+        <view class="image-add" bind:tap="chooseImage" wx:if="{{images.length < 9}}">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加图片</text>
+        </view>
+      </view>
+      <text class="form-hint">最多9张，支持拍照或从相册选择</text>
+    </view>
+
+    <!-- 联系方式 -->
+    <view class="form-section">
+      <text class="section-title">联系方式</text>
+      <view class="form-item">
+        <text class="form-label">联系人</text>
+        <input class="form-input" placeholder="姓名" bindinput="onInput" data-field="contact_name" value="{{form.contact_name}}" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">联系电话</text>
+        <input class="form-input" type="number" placeholder="手机号" bindinput="onInput" data-field="contact_phone" value="{{form.contact_phone}}" maxlength="11" />
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-area">
+      <button class="submit-btn" formType="submit" loading="{{submitting}}" disabled="{{submitting}}">
+        {{submitting ? '提交中...' : '提交审核'}}
+      </button>
+      <text class="submit-hint">提交后将在24小时内审核</text>
+    </view>
+  </form>
+</view>
