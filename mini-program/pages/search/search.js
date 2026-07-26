@@ -1,8 +1,14 @@
-// pages/search/search.js — 看过/收藏 + 资产筛选（双模式）
+// pages/search/search.js — 搜索 + 看过/收藏 + 资产筛选
 const app = getApp()
 
 Page({
   data: {
+    // 搜索模式
+    searchMode: false,
+    searchKeyword: '',
+    searchAssets: [],
+    autoFocus: false,
+
     // 筛选模式
     filterMode: false,
     filterTitle: '',
@@ -34,6 +40,65 @@ Page({
       })
       this.loadFilterAssets(true)
     }
+    // 从首页跳过来带搜索关键词
+    if (options.q) {
+      this.setData({ searchKeyword: options.q, searchMode: true, autoFocus: false })
+      this.loadSearchAssets(true)
+    }
+  },
+
+  // ===== 搜索模式 =====
+  onSearchInput(e) {
+    this.setData({ searchKeyword: e.detail.value })
+  },
+
+  doSearch() {
+    const keyword = this.data.searchKeyword.trim()
+    if (!keyword) {
+      this.setData({ searchMode: false, searchAssets: [], leftCol: [], rightCol: [] })
+      return
+    }
+    this.setData({ searchMode: true, filterMode: false })
+    this.loadSearchAssets(true)
+  },
+
+  clearSearch() {
+    this.setData({ searchKeyword: '', searchMode: false, searchAssets: [], leftCol: [], rightCol: [] })
+  },
+
+  async loadSearchAssets(reset) {
+    if (this.data.loading) return
+    if (reset) this.setData({ page: 1, noMore: false, searchAssets: [] })
+    this.setData({ loading: true })
+    try {
+      const loc = app.globalData.location
+      let url = '/api/assets?page=' + this.data.page + '&limit=10&sort=' + this.data.sort
+      url += '&search=' + encodeURIComponent(this.data.searchKeyword)
+      if (loc.province) url += '&province=' + encodeURIComponent(loc.province)
+      const res = await app.request({ url })
+      if (res.success && res.data) {
+        const newAssets = res.data.map(item => {
+          let distanceText = ''
+          if (item.gps_lat && item.gps_lng && loc.latitude) {
+            const km = this.calcDistance(loc.latitude, loc.longitude, item.gps_lat, item.gps_lng)
+            distanceText = km < 1 ? Math.round(km * 1000) + 'm' : km.toFixed(1) + 'km'
+          }
+          return {
+            ...item,
+            title: item.title || '未命名资产',
+            firstImage: app.getFirstImage(item.images),
+            priceText: item.price_year ? '¥' + item.price_year + '万/年起' : '价格面议',
+            badge: this.getBadge(item),
+            distanceText
+          }
+        })
+        const all = reset ? newAssets : this.data.searchAssets.concat(newAssets)
+        const leftCol = [], rightCol = []
+        all.forEach((item, i) => { if (i % 2 === 0) leftCol.push(item); else rightCol.push(item) })
+        this.setData({ searchAssets: all, leftCol, rightCol, page: this.data.page + 1, noMore: newAssets.length < 10 })
+      }
+    } catch (e) {}
+    finally { this.setData({ loading: false }); wx.stopPullDownRefresh() }
   },
 
   getTitle(type, source) {
@@ -110,7 +175,11 @@ Page({
 
   changeSort(e) {
     this.setData({ sort: e.currentTarget.dataset.sort })
-    this.loadFilterAssets(true)
+    if (this.data.searchMode) {
+      this.loadSearchAssets(true)
+    } else if (this.data.filterMode) {
+      this.loadFilterAssets(true)
+    }
   },
 
   // ===== 看过/收藏模式 =====
@@ -162,6 +231,7 @@ Page({
   },
 
   // ===== 通用 =====
+
   getBadge(item) {
     if (item.source_site) return '第三方'
     if (item.publisher_role === 'project_publisher') return '交易所'
@@ -181,6 +251,13 @@ Page({
     // 金刚区进入的列表页，返回首页
     wx.switchTab({ url: '/pages/index/index' })
   },
-  onPullDownRefresh() { if (this.data.filterMode) this.loadFilterAssets(true); else wx.stopPullDownRefresh() },
-  onReachBottom() { if (this.data.filterMode && !this.data.noMore) this.loadFilterAssets(false) }
+  onPullDownRefresh() {
+    if (this.data.searchMode) this.loadSearchAssets(true)
+    else if (this.data.filterMode) this.loadFilterAssets(true)
+    else wx.stopPullDownRefresh()
+  },
+  onReachBottom() {
+    if (this.data.searchMode && !this.data.noMore) this.loadSearchAssets(false)
+    else if (this.data.filterMode && !this.data.noMore) this.loadFilterAssets(false)
+  }
 })

@@ -190,7 +190,7 @@ Page({
     return map[type] || ''
   },
 
-  goSearch() { wx.switchTab({ url: '/pages/search/index' }) },
+  goSearch() { wx.switchTab({ url: '/pages/search/search' }) },
   goFilter(e) {
     // tabBar页面不能用navigateTo，用全局变量+switchTab
     app.globalData._filterType = e.currentTarget.dataset.type

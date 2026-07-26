@@ -1,7 +1,78 @@
-<!-- pages/search/search.wxml — 看过/收藏 + 资产筛选（根据参数切换模式） -->
+<!-- pages/search/search.wxml — 搜索 + 看过/收藏 + 资产筛选 -->
 <view class="page">
+  <!-- 搜索栏（始终显示） -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索资产、地点、类型..." placeholder-style="color:#bbb;" value="{{searchKeyword}}" bindinput="onSearchInput" bindconfirm="doSearch" confirm-type="search" focus="{{autoFocus}}" />
+      <text class="search-clear" wx:if="{{searchKeyword}}" bind:tap="clearSearch">✕</text>
+    </view>
+    <text class="search-btn" bind:tap="doSearch">搜索</text>
+  </view>
+
+  <!-- 搜索结果模式 -->
+  <view wx:if="{{searchMode}}">
+    <view class="filter-bar">
+      <view class="filter-btn {{sort === 'views' ? 'active' : ''}}" bind:tap="changeSort" data-sort="views">最热</view>
+      <view class="filter-btn {{sort === 'newest' ? 'active' : ''}}" bind:tap="changeSort" data-sort="newest">最新</view>
+      <view class="filter-btn {{sort === 'price' ? 'active' : ''}}" bind:tap="changeSort" data-sort="price">价格↑</view>
+    </view>
+
+    <view class="waterfall">
+      <view class="waterfall-col">
+        <view class="asset-card" wx:for="{{leftCol}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+          <view class="card-image">
+            <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
+            <view class="card-overlay">
+              <text class="overlay-type">{{item.asset_type || '资产'}}</text>
+              <text class="overlay-dist" wx:if="{{item.distanceText}}">· {{item.distanceText}}</text>
+            </view>
+          </view>
+          <view class="card-body">
+            <text class="card-title">{{item.title}}</text>
+            <view class="card-tags">
+              <text class="tag" wx:if="{{item.badge}}">{{item.badge}}</text>
+            </view>
+            <view class="card-bottom">
+              <text class="card-price">{{item.priceText}}</text>
+              <text class="card-views">👁 {{item.views || 0}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="waterfall-col">
+        <view class="asset-card" wx:for="{{rightCol}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+          <view class="card-image">
+            <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
+            <view class="card-overlay">
+              <text class="overlay-type">{{item.asset_type || '资产'}}</text>
+              <text class="overlay-dist" wx:if="{{item.distanceText}}">· {{item.distanceText}}</text>
+            </view>
+          </view>
+          <view class="card-body">
+            <text class="card-title">{{item.title}}</text>
+            <view class="card-tags">
+              <text class="tag" wx:if="{{item.badge}}">{{item.badge}}</text>
+            </view>
+            <view class="card-bottom">
+              <text class="card-price">{{item.priceText}}</text>
+              <text class="card-views">👁 {{item.views || 0}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="loading" wx:if="{{loading}}">搜索中...</view>
+    <view class="empty" wx:if="{{!loading && searchAssets.length === 0 && searchKeyword}}">
+      <text class="empty-icon">🔍</text>
+      <text class="empty-text">未找到匹配的资产</text>
+    </view>
+    <view class="no-more" wx:if="{{!loading && noMore && searchAssets.length > 0}}">没有更多了</view>
+  </view>
+
   <!-- 筛选模式：金刚区跳转过来 -->
-  <view wx:if="{{filterMode}}">
+  <view wx:elif="{{filterMode}}">
     <view class="topbar">
       <view class="topbar-back" bind:tap="goBack"><text>←</text></view>
       <text class="topbar-title">{{filterTitle || '资产列表'}}</text>
@@ -66,7 +137,7 @@
   </view>
 
   <!-- 默认模式：看过/收藏 -->
-  <view wx:else>
+  <view wx:elif="{{!searchMode}}">
     <view class="tabs">
       <view class="tab {{activeTab === 'history' ? 'active' : ''}}" bind:tap="switchTab" data-tab="history"><text>👀 看过</text></view>
       <view class="tab {{activeTab === 'fav' ? 'active' : ''}}" bind:tap="switchTab" data-tab="fav"><text>❤️ 收藏</text></view>
