@@ -1,4 +1,4 @@
-<!-- pages/index/index.wxml — 首页 -->
+<!-- pages/index/index.wxml — 首页（美团风格双列瀑布流） -->
 <import src="../../components/asset-card.wxml" />
 
 <view class="page">
@@ -51,14 +51,19 @@
     </scroll-view>
   </view>
 
-  <!-- 为您推荐 -->
+  <!-- 为您推荐（双列瀑布流） -->
   <view class="section">
     <view class="section-header">
       <text class="section-title">📍 为您推荐</text>
       <text class="section-more" bind:tap="goSearch">查看全部 →</text>
     </view>
-    <view class="asset-list">
-      <template is="assetCard" wx:for="{{assets}}" wx:key="id" data="{{...item}}" />
+    <view class="waterfall">
+      <view class="waterfall-col">
+        <template is="assetCard" wx:for="{{leftCol}}" wx:key="id" data="{{...item}}" />
+      </view>
+      <view class="waterfall-col">
+        <template is="assetCard" wx:for="{{rightCol}}" wx:key="id" data="{{...item}}" />
+      </view>
     </view>
     <view class="loading" wx:if="{{loading}}">加载中...</view>
     <view class="empty" wx:if="{{!loading && assets.length === 0}}">

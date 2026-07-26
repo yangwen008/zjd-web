@@ -1,45 +1,33 @@
-<!-- components/asset-card.wxml — 资产卡片（左图右信息，黄金分割） -->
+<!-- components/asset-card.wxml — 资产卡片（美团风格：纵向卡片+双列瀑布流） -->
 <template name="assetCard">
   <view class="asset-card" bind:tap="goAsset" data-id="{{id}}">
-    <!-- 上半部分：左图右信息 -->
-    <view class="card-body">
-      <!-- 左侧图片 60% -->
-      <view class="card-image">
-        <image class="card-img" src="{{firstImage || '/static/logo.png'}}" mode="aspectFill" />
-        <!-- 标签叠加在图片上 -->
-        <view class="card-badges" wx:if="{{badge}}">
-          <text class="badge {{badgeClass}}">{{badge}}</text>
-          <text class="badge badge-cert" wx:if="{{certification === 'certified'}}">已确权</text>
-        </view>
-      </view>
-
-      <!-- 右侧信息 40% -->
-      <view class="card-info">
-        <view class="info-row price-row">
-          <text class="card-price">{{priceText}}</text>
-          <text class="card-lease">最长{{lease_years || 20}}年</text>
-        </view>
-        <view class="info-row">
-          <text class="card-field">📐 {{areaText}}</text>
-        </view>
-        <view class="info-row">
-          <text class="card-field">🏛️ 权属</text>
-        </view>
-        <view class="info-row">
-          <text class="card-location">📍 {{locationText}}</text>
-        </view>
-        <view class="info-row" wx:if="{{distanceText}}">
-          <text class="card-distance">🚗 {{distanceText}}</text>
-        </view>
+    <!-- 图片区 -->
+    <view class="card-image">
+      <image class="card-img" src="{{firstImage || '/static/logo.png'}}" mode="aspectFill" />
+      <!-- 左下角叠加：资产类型 + 距离 -->
+      <view class="card-overlay">
+        <text class="overlay-type">{{asset_type || '资产'}}</text>
+        <text class="overlay-dot">·</text>
+        <text class="overlay-dist" wx:if="{{distanceText}}">距您{{distanceText}}</text>
       </view>
     </view>
 
-    <!-- 下半部分：标题 + 底部标签 -->
-    <view class="card-footer">
+    <!-- 信息区 -->
+    <view class="card-body">
+      <!-- 标题 -->
       <text class="card-title">{{title}}</text>
+      <!-- 简介（可选） -->
+      <text class="card-desc" wx:if="{{descText}}">{{descText}}</text>
+      <!-- 标签行 -->
       <view class="card-tags">
-        <text class="tag tag-type" wx:if="{{asset_type}}">{{asset_type}}</text>
-        <text class="tag tag-source {{badgeClass}}" wx:if="{{badge}}">{{badge}}</text>
+        <text class="tag" wx:if="{{badge}}">{{badge}}</text>
+        <text class="tag tag-lease" wx:if="{{lease_years}}">{{lease_years}}年</text>
+        <text class="tag tag-cert" wx:if="{{certification === 'certified'}}">已确权</text>
+      </view>
+      <!-- 价格 + 浏览量 -->
+      <view class="card-bottom">
+        <text class="card-price">{{priceText}}</text>
+        <text class="card-views" wx:if="{{viewsText}}">{{viewsText}}</text>
       </view>
     </view>
   </view>

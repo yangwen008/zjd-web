@@ -1,4 +1,4 @@
-// pages/index/index.js
+// pages/index/index.js — 首页（美团风格双列瀑布流）
 const app = getApp()
 
 Page({
@@ -20,17 +20,17 @@ Page({
     ],
     featuredAssets: [],
     assets: [],
+    leftCol: [],
+    rightCol: [],
     loading: false,
     noMore: false,
     page: 1
   },
 
   onShow() {
-    // 设置 TabBar 选中状态
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ current: 0 })
     }
-    // 定位变化时刷新数据
     const loc = app.globalData.location
     if (loc.province && loc.province !== this._lastProvince) {
       this._lastProvince = loc.province
@@ -41,11 +41,9 @@ Page({
   },
 
   onLoad() {
-    // 等定位完成后再加载数据
     this.loadDataWithLocation()
   },
 
-  // 等定位完成后加载数据
   loadDataWithLocation() {
     const check = () => {
       const loc = app.globalData.location
@@ -54,7 +52,6 @@ Page({
         this.loadFeatured()
         this.loadAssets(true)
       } else {
-        // 最多等3秒，超时用默认数据
         if (!this._locWait) this._locWait = 0
         this._locWait += 100
         if (this._locWait < 3000) {
@@ -71,9 +68,7 @@ Page({
   updateLocation() {
     const loc = app.globalData.location
     if (loc.city) {
-      const province = loc.province.replace(/省|市/g, '')
-      const city = loc.city.replace(/市/g, '')
-      this.setData({ locationText: province + '·' + city })
+      this.setData({ locationText: loc.province.replace(/省|市/g, '') + '·' + loc.city.replace(/市/g, '') })
     } else if (loc.province) {
       this.setData({ locationText: loc.province.replace(/省|市/g, '') })
     }
@@ -90,7 +85,7 @@ Page({
           ...item,
           title: item.title || '未命名资产',
           firstImage: this.getFirstImage(item.images),
-          priceText: item.price_year ? '¥' + item.price_year + '万/年' : '价格面议'
+          priceText: item.price_year ? '¥' + item.price_year + '万/年起' : '价格面议'
         }))
         this.setData({ featuredAssets: featured })
       }
@@ -116,21 +111,33 @@ Page({
             const km = this.calcDistance(loc.latitude, loc.longitude, item.gps_lat, item.gps_lng)
             distanceText = km < 1 ? Math.round(km * 1000) + 'm' : km.toFixed(1) + 'km'
           }
+          const views = item.views || 0
+          const viewsText = views >= 10000 ? (views / 10000).toFixed(1) + 'w' : views >= 1000 ? (views / 1000).toFixed(1) + 'k' : views > 0 ? views + '' : ''
           return {
             ...item,
             title: item.title || '未命名资产',
+            descText: item.description ? item.description.replace(/<[^>]*>/g, '').substring(0, 30) : '',
             firstImage: this.getFirstImage(item.images),
-            priceText: item.price_year ? '¥' + item.price_year + '万/年' : '价格面议',
+            priceText: item.price_year ? '¥' + item.price_year + '万/年起' : '价格面议',
             areaText: item.area_mu ? item.area_mu + '亩' : '-',
             locationText: [item.city, item.district].filter(Boolean).join('·') || item.province || '全国',
             badge: this.getBadge(item),
-            badgeClass: this.getBadgeClass(item),
-            distanceText
+            distanceText,
+            viewsText
           }
         })
-        const assets = reset ? newAssets : this.data.assets.concat(newAssets)
+        const allAssets = reset ? newAssets : this.data.assets.concat(newAssets)
+        // 分左右两列
+        const leftCol = []
+        const rightCol = []
+        allAssets.forEach((item, i) => {
+          if (i % 2 === 0) leftCol.push(item)
+          else rightCol.push(item)
+        })
         this.setData({
-          assets,
+          assets: allAssets,
+          leftCol,
+          rightCol,
           page: this.data.page + 1,
           noMore: newAssets.length < 10
         })
@@ -172,40 +179,11 @@ Page({
     return '个人'
   },
 
-  getBadgeClass(item) {
-    const badge = this.getBadge(item)
-    const map = { '官方': 'badge-official', '村委': 'badge-village', '交易所': 'badge-exchange', '第三方': 'badge-third' }
-    return map[badge] || 'badge-personal'
-  },
-
-  goSearch() {
-    wx.switchTab({ url: '/pages/search/index' })
-  },
-
-  goFilter(e) {
-    const type = e.currentTarget.dataset.type
-    wx.navigateTo({ url: '/pages/search/index?type=' + encodeURIComponent(type) })
-  },
-
-  goPage(e) {
-    const url = e.currentTarget.dataset.url
-    wx.navigateTo({ url })
-  },
-
-  goAsset(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: '/pages/asset/detail?id=' + id })
-  },
-
-  chooseCity() {
-    wx.showToast({ title: '城市切换开发中', icon: 'none' })
-  },
-
-  onPullDownRefresh() {
-    this.loadAssets(true)
-  },
-
-  onReachBottom() {
-    if (!this.data.noMore) this.loadAssets(false)
-  }
+  goSearch() { wx.switchTab({ url: '/pages/search/index' }) },
+  goFilter(e) { wx.navigateTo({ url: '/pages/search/index?type=' + encodeURIComponent(e.currentTarget.dataset.type) }) },
+  goPage(e) { wx.navigateTo({ url: e.currentTarget.dataset.url }) },
+  goAsset(e) { wx.navigateTo({ url: '/pages/asset/detail?id=' + e.currentTarget.dataset.id }) },
+  chooseCity() { wx.showToast({ title: '城市切换开发中', icon: 'none' }) },
+  onPullDownRefresh() { this.loadAssets(true) },
+  onReachBottom() { if (!this.data.noMore) this.loadAssets(false) }
 })
