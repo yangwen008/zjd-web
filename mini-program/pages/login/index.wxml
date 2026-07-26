@@ -2,8 +2,8 @@
 <view class="page">
   <view class="login-header">
     <image class="logo" src="/static/logo.png" mode="aspectFit" />
-    <text class="title">宅基地交易所</text>
-    <text class="subtitle">乡村闲置资产数字流转平台</text>
+    <text class="title">宅基点</text>
+    <text class="subtitle">乡村闲置资产平台</text>
   </view>
 
   <view class="login-body">
