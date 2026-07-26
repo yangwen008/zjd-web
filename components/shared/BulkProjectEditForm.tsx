@@ -195,6 +195,7 @@ export default function BulkProjectEditForm({
       yield_rate: initialData.yield_rate?.toString() || '',
       lease_years: initialData.lease_years?.toString() || '30',
       certification: initialData.certification || 'uncertified',
+      transfer_type: initialData.transfer_type || 'lease',
       contact_name: initialData.contact_name || '',
       contact_phone: initialData.contact_phone || '',
       gps_lat: initialData.gps_lat?.toString() || '',
