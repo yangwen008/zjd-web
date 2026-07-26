@@ -88,6 +88,7 @@ Page({
       if (res.success && res.data) {
         const featured = res.data.map(item => ({
           ...item,
+          title: item.title || '未命名资产',
           firstImage: this.getFirstImage(item.images),
           priceText: item.price_year ? '¥' + item.price_year + '万/年' : '价格面议'
         }))
@@ -117,6 +118,7 @@ Page({
           }
           return {
             ...item,
+            title: item.title || '未命名资产',
             firstImage: this.getFirstImage(item.images),
             priceText: item.price_year ? '¥' + item.price_year + '万/年' : '价格面议',
             areaText: item.area_mu ? item.area_mu + '亩' : '-',
