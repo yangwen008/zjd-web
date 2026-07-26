@@ -1,6 +1,80 @@
+<!-- pages/broker/detail/detail.wxml — 合伙人详情 -->
 <view class="page">
-  <view style="display:flex;flex-direction:column;align-items:center;padding-top:200rpx">
-    <text style="font-size:80rpx">🚧</text>
-    <text style="font-size:28rpx;color:#999;margin-top:20rpx">页面开发中...</text>
+  <!-- 头部 -->
+  <view class="header">
+    <view class="header-bg"></view>
+    <view class="header-card">
+      <view class="avatar">
+        <image wx:if="{{broker.avatar_url}}" class="avatar-img" src="{{broker.avatar_url}}" mode="aspectFill" />
+        <text wx:else class="avatar-text">{{broker.name ? broker.name[0] : '?'}}</text>
+      </view>
+      <view class="header-info">
+        <view class="name-row">
+          <text class="broker-name">{{broker.name}}</text>
+          <view class="rating-badge {{broker.rating}}">{{ratingLabel}}</view>
+        </view>
+        <text class="broker-region">📍 {{broker.region || '全国'}}</text>
+        <text class="broker-bio" wx:if="{{broker.bio}}">{{broker.bio}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 数据统计 -->
+  <view class="stats-bar">
+    <view class="stat-item">
+      <text class="stat-num">{{broker.show_count || 0}}</text>
+      <text class="stat-label">带看次数</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-num">{{goodRateText}}</text>
+      <text class="stat-label">好评率</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-num">{{brokerAssets.length}}</text>
+      <text class="stat-label">管辖资产</text>
+    </view>
+  </view>
+
+  <!-- 擅长领域 -->
+  <view class="section" wx:if="{{specialtyList.length > 0}}">
+    <text class="section-title">🏷️ 擅长领域</text>
+    <view class="tags">
+      <text class="tag" wx:for="{{specialtyList}}" wx:key="*this">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 管辖资产 -->
+  <view class="section">
+    <text class="section-title">🏘️ {{broker.name}}管辖资产 ({{brokerAssets.length}})</text>
+    <view class="asset-list" wx:if="{{brokerAssets.length > 0}}">
+      <view class="asset-item" wx:for="{{brokerAssets}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+        <image class="asset-img" src="{{item.firstImage}}" mode="aspectFill" />
+        <view class="asset-info">
+          <text class="asset-title">{{item.title}}</text>
+          <text class="asset-price">{{item.priceText}}</text>
+          <text class="asset-loc">📍 {{item.locationText}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-hint" wx:else>暂无管辖资产</view>
+  </view>
+
+  <!-- 同城合伙人 -->
+  <view class="section" wx:if="{{peers.length > 0}}">
+    <text class="section-title">🤝 同城合伙人</text>
+    <scroll-view scroll-x class="peers-scroll">
+      <view class="peer-card" wx:for="{{peers}}" wx:key="id" bind:tap="goPeer" data-id="{{item.id}}">
+        <view class="peer-avatar">
+          <text>{{item.name[0]}}</text>
+        </view>
+        <text class="peer-name">{{item.name}}</text>
+        <text class="peer-rating">{{item.ratingLabel}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="action-bar">
+    <button class="action-btn" bind:tap="callBroker">📞 联系合伙人</button>
   </view>
 </view>

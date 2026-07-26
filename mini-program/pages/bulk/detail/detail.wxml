@@ -1,6 +1,97 @@
+<!-- pages/bulk/detail/detail.wxml — 大宗路演详情 -->
 <view class="page">
-  <view style="display:flex;flex-direction:column;align-items:center;padding-top:200rpx">
-    <text style="font-size:80rpx">🚧</text>
-    <text style="font-size:28rpx;color:#999;margin-top:20rpx">页面开发中...</text>
+  <!-- 图片轮播 -->
+  <swiper class="media-swiper" indicator-dots="{{images.length > 1}}" indicator-active-color="#1a4731" circular>
+    <swiper-item wx:for="{{images}}" wx:key="*this">
+      <image class="media-img" src="{{item}}" mode="aspectFill" bind:tap="previewImage" data-src="{{item}}" />
+    </swiper-item>
+  </swiper>
+
+  <!-- 标签+编号 -->
+  <view class="info-bar">
+    <text class="code">{{project.code || 'ZJD-' + project.id}}</text>
+    <text class="cert-tag {{certClass}}">{{certLabel}}</text>
+  </view>
+
+  <!-- 核心指标 -->
+  <view class="metrics">
+    <view class="metric-item"><text class="metric-value">{{areaText}}</text><text class="metric-label">占地面积</text></view>
+    <view class="metric-divider"></view>
+    <view class="metric-item"><text class="metric-value">{{sqmText}}</text><text class="metric-label">建筑面积</text></view>
+    <view class="metric-divider"></view>
+    <view class="metric-item"><text class="metric-value {{yieldClass}}">{{yieldText}}</text><text class="metric-label">年收益率</text></view>
+  </view>
+
+  <!-- 标题 -->
+  <view class="title-section">
+    <text class="main-title">{{project.title}}</text>
+    <text class="sub-title">📍 {{locationText}}</text>
+  </view>
+
+  <!-- 价格 -->
+  <view class="section price-section">
+    <text class="price-main">¥{{project.price_start || '?'}}万/年起</text>
+    <text class="price-sub" wx:if="{{project.area_mu}}">约{{project.area_mu}}亩</text>
+  </view>
+
+  <!-- 项目描述 -->
+  <view class="section" wx:if="{{descText}}">
+    <text class="section-title">📝 项目描述</text>
+    <text class="section-body">{{descText}}</text>
+  </view>
+
+  <!-- 商业计划书 -->
+  <view class="section" wx:if="{{project.commercial_plan}}">
+    <text class="section-title">📊 商业计划书</text>
+    <text class="section-body">{{project.commercial_plan}}</text>
+  </view>
+
+  <!-- 基建配套 -->
+  <view class="section" wx:if="{{infraItems.length > 0}}">
+    <text class="section-title">🏗️ 基建配套</text>
+    <view class="infra-grid">
+      <view class="infra-card infra-on" wx:for="{{infraItems}}" wx:key="label">
+        <text class="infra-icon">{{item.icon}}</text>
+        <text class="infra-label">{{item.label}}</text>
+        <text class="infra-status">{{item.status}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 交通信息 -->
+  <view class="section" wx:if="{{transportInfo}}">
+    <text class="section-title">🚗 交通信息</text>
+    <view class="kv-list">
+      <view class="kv-item" wx:for="{{transportInfo}}" wx:key="label">
+        <text class="kv-label">{{item.icon}} {{item.label}}</text>
+        <text class="kv-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 参投认购 -->
+  <view class="section invest-section" wx:if="{{investEnabled && investInfo}}">
+    <text class="section-title">💰 参投认购</text>
+    <view class="invest-bar"><view class="invest-progress" style="width:{{investInfo.progress}}%"></view></view>
+    <view class="invest-stats">
+      <view class="invest-stat"><text class="invest-num">{{investInfo.soldShares}}</text><text class="invest-label">已认购</text></view>
+      <view class="invest-stat"><text class="invest-num">{{investInfo.totalShares}}</text><text class="invest-label">总份数</text></view>
+      <view class="invest-stat"><text class="invest-num">¥{{investInfo.sharePrice}}万</text><text class="invest-label">每份</text></view>
+    </view>
+    <button class="invest-btn" bind:tap="investProject">立即参投</button>
+  </view>
+
+  <!-- 地图 -->
+  <view class="section" wx:if="{{project.gps_lat && project.gps_lng}}">
+    <text class="section-title">🗺️ 位置地图</text>
+    <map class="mini-map" latitude="{{project.gps_lat}}" longitude="{{project.gps_lng}}" markers="{{[{latitude: project.gps_lat, longitude: project.gps_lng, title: project.title}]}}" scale="14" bindtap="openMap" />
+  </view>
+
+  <view style="height:140rpx"></view>
+
+  <!-- 底部操作栏 -->
+  <view class="action-bar">
+    <view class="action-item" bind:tap="shareProject"><text class="action-icon">📤</text><text class="action-text">分享</text></view>
+    <button class="action-main-btn" bind:tap="openMap">🗺️ 导航到项目</button>
   </view>
 </view>
