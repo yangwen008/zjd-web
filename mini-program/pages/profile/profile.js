@@ -71,6 +71,14 @@ Page({
     wx.navigateTo({ url })
   },
 
+  goMessages() {
+    wx.switchTab({ url: '/pages/messages/messages' })
+  },
+
+  goFavorites() {
+    wx.switchTab({ url: '/pages/search/search' })
+  },
+
   logout() {
     wx.showModal({
       title: '确认退出',

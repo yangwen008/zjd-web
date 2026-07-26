@@ -25,15 +25,15 @@
       <text class="stat-num">{{stats.assets || 0}}</text>
       <text class="stat-label">发布</text>
     </view>
-    <view class="stat-item" bind:tap="goPage" data-url="/pages/search/search">
+    <view class="stat-item" bind:tap="goFavorites">
       <text class="stat-num">{{stats.favorites || 0}}</text>
       <text class="stat-label">收藏</text>
     </view>
-    <view class="stat-item" bind:tap="goPage" data-url="/pages/messages/messages">
+    <view class="stat-item" bind:tap="goMessages">
       <text class="stat-num">{{stats.appointments || 0}}</text>
       <text class="stat-label">预约</text>
     </view>
-    <view class="stat-item" bind:tap="goPage" data-url="/pages/messages/messages">
+    <view class="stat-item" bind:tap="goMessages">
       <text class="stat-num">{{stats.leads || 0}}</text>
       <text class="stat-label">线索</text>
     </view>
@@ -53,12 +53,12 @@
         <text class="menu-text">我的资产</text>
         <text class="menu-arrow">→</text>
       </view>
-      <view class="menu-item" bind:tap="goPage" data-url="/pages/search/search">
+      <view class="menu-item" bind:tap="goFavorites">
         <text class="menu-icon">❤️</text>
         <text class="menu-text">我的收藏</text>
         <text class="menu-arrow">→</text>
       </view>
-      <view class="menu-item" bind:tap="goPage" data-url="/pages/messages/messages">
+      <view class="menu-item" bind:tap="goMessages">
         <text class="menu-icon">📞</text>
         <text class="menu-text">预约记录</text>
         <text class="menu-arrow">→</text>

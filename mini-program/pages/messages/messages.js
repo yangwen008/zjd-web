@@ -77,9 +77,11 @@ Page({
   goDetail(e) {
     const item = e.currentTarget.dataset.item
     if (item.type === 'appointment') {
-      wx.navigateTo({ url: '/pages/messages/messages' })
+      // 跳转到我的资产页查看预约
+      wx.navigateTo({ url: '/pages/asset/asset' })
     } else if (item.type === 'lead') {
-      wx.navigateTo({ url: '/pages/messages/messages' })
+      // 跳转到我的资产页查看线索
+      wx.navigateTo({ url: '/pages/asset/asset' })
     }
   }
 })
