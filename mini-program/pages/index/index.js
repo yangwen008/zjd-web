@@ -30,13 +30,42 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ current: 0 })
     }
-    // 更新定位
-    this.updateLocation()
+    // 定位变化时刷新数据
+    const loc = app.globalData.location
+    if (loc.province && loc.province !== this._lastProvince) {
+      this._lastProvince = loc.province
+      this.updateLocation()
+      this.loadFeatured()
+      this.loadAssets(true)
+    }
   },
 
   onLoad() {
-    this.loadFeatured()
-    this.loadAssets(true)
+    // 等定位完成后再加载数据
+    this.loadDataWithLocation()
+  },
+
+  // 等定位完成后加载数据
+  loadDataWithLocation() {
+    const check = () => {
+      const loc = app.globalData.location
+      if (loc.province) {
+        this.updateLocation()
+        this.loadFeatured()
+        this.loadAssets(true)
+      } else {
+        // 最多等3秒，超时用默认数据
+        if (!this._locWait) this._locWait = 0
+        this._locWait += 100
+        if (this._locWait < 3000) {
+          setTimeout(check, 100)
+        } else {
+          this.loadFeatured()
+          this.loadAssets(true)
+        }
+      }
+    }
+    check()
   },
 
   updateLocation() {
@@ -52,7 +81,10 @@ Page({
 
   async loadFeatured() {
     try {
-      const res = await app.request({ url: '/api/assets?featured=true&limit=5&sort=views' })
+      const loc = app.globalData.location
+      let url = '/api/assets?featured=true&limit=5&sort=views'
+      if (loc.province) url += '&province=' + encodeURIComponent(loc.province)
+      const res = await app.request({ url })
       if (res.success && res.data) {
         const featured = res.data.map(item => ({
           ...item,
