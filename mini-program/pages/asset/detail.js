@@ -133,7 +133,7 @@ Page({
       const res = await app.request({
         url: '/api/dashboard/favorites',
         method: 'POST',
-        data: { asset_id: parseInt(this.assetId) }
+        data: { assetId: parseInt(this.assetId) }
       })
       if (res.success) {
         this.setData({ isFav: !this.data.isFav })

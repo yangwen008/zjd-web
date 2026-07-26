@@ -10,6 +10,7 @@ import ContactCard from '@/components/shared/ContactCard';
 import BookingButton from '@/components/shared/BookingButton';
 import ShareButton from '@/components/shared/ShareButton';
 import InvestCard from '@/components/shared/InvestCard';
+import FavoriteButton from '@/components/shared/FavoriteButton';
 
 // 动态 OG 元数据 - 微信分享抓取用
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -360,6 +361,10 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
 
             {/* Sidebar */}
             <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+              {/* 预约带看 */}
+              {/* 收藏按钮 */}
+              <FavoriteButton assetId={asset.id} />
+
               {/* 预约带看 */}
               <BookingButton assetId={asset.id} assetTitle={asset.title} />
 
