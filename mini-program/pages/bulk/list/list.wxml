@@ -1,6 +1,57 @@
+<!-- pages/bulk/list/list.wxml — 大宗路演列表（双列瀑布流） -->
 <view class="page">
-  <view style="display:flex;flex-direction:column;align-items:center;padding-top:200rpx">
-    <text style="font-size:80rpx">🚧</text>
-    <text style="font-size:28rpx;color:#999;margin-top:20rpx">页面开发中...</text>
+  <view class="topbar">
+    <text class="topbar-title">🏢 大宗路演</text>
+  </view>
+
+  <view class="waterfall">
+    <view class="waterfall-col">
+      <view class="bulk-card" wx:for="{{leftCol}}" wx:key="id" bind:tap="goDetail" data-id="{{item.id}}">
+        <view class="card-image">
+          <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
+          <view class="card-overlay">
+            <text class="overlay-code">{{item.code}}</text>
+          </view>
+        </view>
+        <view class="card-body">
+          <text class="card-title">{{item.title}}</text>
+          <view class="card-tags">
+            <text class="tag" wx:if="{{item.areaText}}">{{item.areaText}}</text>
+            <text class="tag" wx:if="{{item.yieldText}}">{{item.yieldText}}</text>
+          </view>
+          <view class="card-bottom">
+            <text class="card-price">{{item.priceText}}</text>
+            <text class="card-views">👁 {{item.views || 0}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="waterfall-col">
+      <view class="bulk-card" wx:for="{{rightCol}}" wx:key="id" bind:tap="goDetail" data-id="{{item.id}}">
+        <view class="card-image">
+          <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
+          <view class="card-overlay">
+            <text class="overlay-code">{{item.code}}</text>
+          </view>
+        </view>
+        <view class="card-body">
+          <text class="card-title">{{item.title}}</text>
+          <view class="card-tags">
+            <text class="tag" wx:if="{{item.areaText}}">{{item.areaText}}</text>
+            <text class="tag" wx:if="{{item.yieldText}}">{{item.yieldText}}</text>
+          </view>
+          <view class="card-bottom">
+            <text class="card-price">{{item.priceText}}</text>
+            <text class="card-views">👁 {{item.views || 0}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="empty" wx:if="{{!loading && items.length === 0}}">
+    <text class="empty-icon">🏢</text>
+    <text class="empty-text">暂无大宗项目</text>
   </view>
 </view>

@@ -1,1 +1,33 @@
+/* pages/services/index/index.wxss */
 .page { min-height: 100vh; background: #f5f5f5; }
+
+.topbar { background: linear-gradient(135deg, #1a4731, #2d6a4f); padding: 20rpx 30rpx; padding-top: calc(var(--status-bar-height, 44px) + 20rpx); }
+.topbar-title { font-size: 34rpx; color: #ffffff; font-weight: bold; }
+
+.tabs { display: flex; background: #ffffff; padding: 0 16rpx; border-bottom: 1rpx solid #f0f0f0; overflow-x: auto; white-space: nowrap; }
+.tab { display: inline-block; padding: 20rpx 24rpx; font-size: 24rpx; color: #666; position: relative; flex-shrink: 0; }
+.tab.active { color: #1a4731; font-weight: bold; }
+.tab.active::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 4rpx; background: #1a4731; border-radius: 2rpx; }
+
+.waterfall { display: flex; gap: 16rpx; padding: 20rpx; }
+.waterfall-col { flex: 1; display: flex; flex-direction: column; }
+
+.svc-card {
+  background: #ffffff; border-radius: 16rpx; overflow: hidden;
+  margin-bottom: 16rpx; padding: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.05);
+}
+.svc-icon-wrap { width: 72rpx; height: 72rpx; border-radius: 50%; background: #e8f5e9; display: flex; align-items: center; justify-content: center; margin-bottom: 12rpx; }
+.svc-icon { font-size: 36rpx; }
+.svc-name { font-size: 28rpx; font-weight: bold; color: #1a1a1a; display: block; margin-bottom: 4rpx; }
+.svc-org { font-size: 22rpx; color: #666; display: block; margin-bottom: 6rpx; }
+.svc-bio { font-size: 22rpx; color: #999; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10rpx; }
+
+.svc-tags { display: flex; flex-wrap: wrap; gap: 6rpx; margin-bottom: 10rpx; }
+.stag { font-size: 18rpx; padding: 2rpx 10rpx; border-radius: 6rpx; background: #e8f5e9; color: #1a4731; }
+
+.svc-bottom { display: flex; justify-content: space-between; align-items: baseline; }
+.svc-rating { font-size: 22rpx; color: #e65100; }
+.svc-price { font-size: 24rpx; font-weight: bold; color: #1a4731; }
+
+.loading, .empty { text-align: center; padding: 40rpx; color: #999; font-size: 26rpx; }
+.empty-icon { font-size: 60rpx; display: block; margin-bottom: 12rpx; }

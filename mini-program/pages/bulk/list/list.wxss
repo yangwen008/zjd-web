@@ -1,1 +1,28 @@
+/* pages/bulk/list/list.wxss */
 .page { min-height: 100vh; background: #f5f5f5; }
+
+.topbar { background: linear-gradient(135deg, #1a4731, #2d6a4f); padding: 20rpx 30rpx; padding-top: calc(var(--status-bar-height, 44px) + 20rpx); }
+.topbar-title { font-size: 34rpx; color: #ffffff; font-weight: bold; }
+
+.waterfall { display: flex; gap: 16rpx; padding: 20rpx; }
+.waterfall-col { flex: 1; display: flex; flex-direction: column; }
+
+.bulk-card {
+  background: #ffffff; border-radius: 16rpx; overflow: hidden;
+  margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.05);
+}
+.card-image { position: relative; width: 100%; height: 0; padding-bottom: 56%; }
+.card-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.card-overlay { position: absolute; top: 12rpx; left: 12rpx; }
+.overlay-code { font-size: 20rpx; color: #ffffff; background: rgba(0,0,0,0.5); padding: 4rpx 12rpx; border-radius: 6rpx; font-family: monospace; }
+
+.card-body { padding: 14rpx 16rpx 16rpx; }
+.card-title { font-size: 26rpx; font-weight: bold; color: #1a1a1a; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; margin-bottom: 8rpx; }
+.card-tags { display: flex; flex-wrap: wrap; gap: 8rpx; margin-bottom: 10rpx; }
+.tag { font-size: 18rpx; padding: 2rpx 10rpx; border-radius: 6rpx; background: #fff8e1; color: #e65100; }
+.card-bottom { display: flex; justify-content: space-between; align-items: baseline; }
+.card-price { font-size: 28rpx; font-weight: bold; color: #ff4d4f; }
+.card-views { font-size: 20rpx; color: #bbb; }
+
+.loading, .empty { text-align: center; padding: 40rpx; color: #999; font-size: 26rpx; }
+.empty-icon { font-size: 60rpx; display: block; margin-bottom: 12rpx; }

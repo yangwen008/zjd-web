@@ -1,1 +1,5 @@
-{"usingComponents": {}}
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "大宗路演",
+  "enablePullDownRefresh": true
+}

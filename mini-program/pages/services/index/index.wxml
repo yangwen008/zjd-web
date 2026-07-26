@@ -1,6 +1,57 @@
+<!-- pages/services/index/index.wxml — 服务中心（双列瀑布流） -->
 <view class="page">
-  <view style="display:flex;flex-direction:column;align-items:center;padding-top:200rpx">
-    <text style="font-size:80rpx">🚧</text>
-    <text style="font-size:28rpx;color:#999;margin-top:20rpx">页面开发中...</text>
+  <view class="topbar">
+    <text class="topbar-title">🛡️ 交易服务中心</text>
+  </view>
+
+  <!-- 类型Tab -->
+  <view class="tabs">
+    <view class="tab {{activeType === '' ? 'active' : ''}}" bind:tap="switchType" data-type="">全部</view>
+    <view class="tab {{activeType === 'notary' ? 'active' : ''}}" bind:tap="switchType" data-type="notary">📋 公证处</view>
+    <view class="tab {{activeType === 'lawyer' ? 'active' : ''}}" bind:tap="switchType" data-type="lawyer">⚖️ 律师</view>
+    <view class="tab {{activeType === 'fengshui' ? 'active' : ''}}" bind:tap="switchType" data-type="fengshui">🏔️ 风水师</view>
+  </view>
+
+  <view class="waterfall">
+    <view class="waterfall-col">
+      <view class="svc-card" wx:for="{{leftCol}}" wx:key="id" bind:tap="goDetail" data-id="{{item.id}}">
+        <view class="svc-icon-wrap">
+          <text class="svc-icon">{{item.typeIcon}}</text>
+        </view>
+        <text class="svc-name">{{item.name}}</text>
+        <text class="svc-org" wx:if="{{item.org_name}}">{{item.org_name}}</text>
+        <text class="svc-bio">{{item.bioText}}</text>
+        <view class="svc-tags" wx:if="{{item.serviceNames.length > 0}}">
+          <text class="stag" wx:for="{{item.serviceNames}}" wx:key="*this" wx:for-item="svc">{{svc}}</text>
+        </view>
+        <view class="svc-bottom">
+          <text class="svc-rating">⭐ {{item.rating}}</text>
+          <text class="svc-price">{{item.priceText}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="waterfall-col">
+      <view class="svc-card" wx:for="{{rightCol}}" wx:key="id" bind:tap="goDetail" data-id="{{item.id}}">
+        <view class="svc-icon-wrap">
+          <text class="svc-icon">{{item.typeIcon}}</text>
+        </view>
+        <text class="svc-name">{{item.name}}</text>
+        <text class="svc-org" wx:if="{{item.org_name}}">{{item.org_name}}</text>
+        <text class="svc-bio">{{item.bioText}}</text>
+        <view class="svc-tags" wx:if="{{item.serviceNames.length > 0}}">
+          <text class="stag" wx:for="{{item.serviceNames}}" wx:key="*this" wx:for-item="svc">{{svc}}</text>
+        </view>
+        <view class="svc-bottom">
+          <text class="svc-rating">⭐ {{item.rating}}</text>
+          <text class="svc-price">{{item.priceText}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="empty" wx:if="{{!loading && items.length === 0}}">
+    <text class="empty-icon">🛡️</text>
+    <text class="empty-text">暂无服务商</text>
   </view>
 </view>

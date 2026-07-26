@@ -1,6 +1,59 @@
+<!-- pages/broker/list/list.wxml — 合伙人列表（双列瀑布流） -->
 <view class="page">
-  <view style="display:flex;flex-direction:column;align-items:center;padding-top:200rpx">
-    <text style="font-size:80rpx">🚧</text>
-    <text style="font-size:28rpx;color:#999;margin-top:20rpx">页面开发中...</text>
+  <view class="topbar">
+    <text class="topbar-title">🤝 合伙人</text>
+  </view>
+
+  <view class="filter-bar">
+    <picker bindchange="onRatingChange" value="{{ratingIndex}}" range="{{ratingOptions}}" range-key="label">
+      <view class="filter-btn">{{ratingOptions[ratingIndex].label || '全部等级'}} ▼</view>
+    </picker>
+    <view class="filter-btn {{sort === 'show_count' ? 'active' : ''}}" bind:tap="changeSort" data-sort="show_count">最多带看</view>
+    <view class="filter-btn {{sort === 'good_rate' ? 'active' : ''}}" bind:tap="changeSort" data-sort="good_rate">最高好评</view>
+  </view>
+
+  <view class="waterfall">
+    <view class="waterfall-col">
+      <view class="broker-card" wx:for="{{leftCol}}" wx:key="id" bind:tap="goDetail" data-id="{{item.id}}">
+        <view class="broker-avatar">
+          <image wx:if="{{item.avatar_url}}" class="avatar-img" src="{{item.avatar_url}}" mode="aspectFill" />
+          <text wx:else class="avatar-text">{{item.name[0]}}</text>
+          <view class="rating-badge {{item.rating}}">{{item.rating === 'gold' ? '🥇' : item.rating === 'silver' ? '🥈' : '🥉'}}</view>
+        </view>
+        <text class="broker-name">{{item.name}}</text>
+        <text class="broker-region">📍 {{item.region || '全国'}}</text>
+        <view class="broker-stats">
+          <text class="stat">{{item.show_count || 0}} 宗带看</text>
+          <text class="stat">{{item.goodRateText}} 好评</text>
+        </view>
+        <view class="broker-tags" wx:if="{{item.specialtyList.length > 0}}">
+          <text class="btag" wx:for="{{item.specialtyList}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="waterfall-col">
+      <view class="broker-card" wx:for="{{rightCol}}" wx:key="id" bind:tap="goDetail" data-id="{{item.id}}">
+        <view class="broker-avatar">
+          <image wx:if="{{item.avatar_url}}" class="avatar-img" src="{{item.avatar_url}}" mode="aspectFill" />
+          <text wx:else class="avatar-text">{{item.name[0]}}</text>
+          <view class="rating-badge {{item.rating}}">{{item.rating === 'gold' ? '🥇' : item.rating === 'silver' ? '🥈' : '🥉'}}</view>
+        </view>
+        <text class="broker-name">{{item.name}}</text>
+        <text class="broker-region">📍 {{item.region || '全国'}}</text>
+        <view class="broker-stats">
+          <text class="stat">{{item.show_count || 0}} 宗带看</text>
+          <text class="stat">{{item.goodRateText}} 好评</text>
+        </view>
+        <view class="broker-tags" wx:if="{{item.specialtyList.length > 0}}">
+          <text class="btag" wx:for="{{item.specialtyList}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="empty" wx:if="{{!loading && brokers.length === 0}}">
+    <text class="empty-icon">🤝</text>
+    <text class="empty-text">暂无合伙人</text>
   </view>
 </view>
