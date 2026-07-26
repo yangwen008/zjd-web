@@ -1,48 +1,105 @@
-<!-- pages/search/search.wxml — 看过/收藏页 -->
+<!-- pages/search/search.wxml — 看过/收藏 + 资产筛选（根据参数切换模式） -->
 <view class="page">
-  <!-- Tab切换 -->
-  <view class="tabs">
-    <view class="tab {{activeTab === 'history' ? 'active' : ''}}" bind:tap="switchTab" data-tab="history">
-      <text>👀 看过</text>
+  <!-- 筛选模式：金刚区跳转过来 -->
+  <view wx:if="{{filterMode}}">
+    <view class="topbar">
+      <view class="topbar-back" bind:tap="goBack"><text>←</text></view>
+      <text class="topbar-title">{{filterTitle || '资产列表'}}</text>
     </view>
-    <view class="tab {{activeTab === 'fav' ? 'active' : ''}}" bind:tap="switchTab" data-tab="fav">
-      <text>❤️ 收藏</text>
+
+    <view class="filter-bar">
+      <view class="filter-btn {{sort === 'views' ? 'active' : ''}}" bind:tap="changeSort" data-sort="views">最热</view>
+      <view class="filter-btn {{sort === 'newest' ? 'active' : ''}}" bind:tap="changeSort" data-sort="newest">最新</view>
+      <view class="filter-btn {{sort === 'price' ? 'active' : ''}}" bind:tap="changeSort" data-sort="price">价格↑</view>
+    </view>
+
+    <view class="waterfall">
+      <view class="waterfall-col">
+        <view class="asset-card" wx:for="{{leftCol}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+          <view class="card-image">
+            <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
+            <view class="card-overlay">
+              <text class="overlay-type">{{item.asset_type || '资产'}}</text>
+              <text class="overlay-dist" wx:if="{{item.distanceText}}">· {{item.distanceText}}</text>
+            </view>
+          </view>
+          <view class="card-body">
+            <text class="card-title">{{item.title}}</text>
+            <view class="card-tags">
+              <text class="tag" wx:if="{{item.badge}}">{{item.badge}}</text>
+            </view>
+            <view class="card-bottom">
+              <text class="card-price">{{item.priceText}}</text>
+              <text class="card-views">👁 {{item.views || 0}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="waterfall-col">
+        <view class="asset-card" wx:for="{{rightCol}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+          <view class="card-image">
+            <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
+            <view class="card-overlay">
+              <text class="overlay-type">{{item.asset_type || '资产'}}</text>
+              <text class="overlay-dist" wx:if="{{item.distanceText}}">· {{item.distanceText}}</text>
+            </view>
+          </view>
+          <view class="card-body">
+            <text class="card-title">{{item.title}}</text>
+            <view class="card-tags">
+              <text class="tag" wx:if="{{item.badge}}">{{item.badge}}</text>
+            </view>
+            <view class="card-bottom">
+              <text class="card-price">{{item.priceText}}</text>
+              <text class="card-views">👁 {{item.views || 0}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="loading" wx:if="{{loading}}">加载中...</view>
+    <view class="empty" wx:if="{{!loading && filterAssets.length === 0}}">
+      <text class="empty-icon">🔍</text>
+      <text class="empty-text">暂无匹配的资产</text>
     </view>
   </view>
 
-  <!-- 看过列表 -->
-  <view class="list" wx:if="{{activeTab === 'history'}}">
-    <view class="empty" wx:if="{{!loading && historyList.length === 0}}">
-      <text class="empty-icon">👀</text>
-      <text class="empty-text">还没有浏览记录</text>
-      <text class="empty-hint">去首页看看吧</text>
+  <!-- 默认模式：看过/收藏 -->
+  <view wx:else>
+    <view class="tabs">
+      <view class="tab {{activeTab === 'history' ? 'active' : ''}}" bind:tap="switchTab" data-tab="history"><text>👀 看过</text></view>
+      <view class="tab {{activeTab === 'fav' ? 'active' : ''}}" bind:tap="switchTab" data-tab="fav"><text>❤️ 收藏</text></view>
     </view>
-    <view class="history-item" wx:for="{{historyList}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
-      <image class="item-img" src="{{item.firstImage}}" mode="aspectFill" />
-      <view class="item-info">
-        <text class="item-title">{{item.title}}</text>
-        <text class="item-price">{{item.priceText}}</text>
-        <text class="item-loc">📍 {{item.locationText}}</text>
-      </view>
-    </view>
-  </view>
 
-  <!-- 收藏列表 -->
-  <view class="list" wx:if="{{activeTab === 'fav'}}">
-    <view class="empty" wx:if="{{!loading && favList.length === 0}}">
-      <text class="empty-icon">❤️</text>
-      <text class="empty-text">还没有收藏</text>
-      <text class="empty-hint">点击资产详情页的爱心收藏</text>
-    </view>
-    <view class="history-item" wx:for="{{favList}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id || item.asset_id}}">
-      <image class="item-img" src="{{item.firstImage}}" mode="aspectFill" />
-      <view class="item-info">
-        <text class="item-title">{{item.title || item.asset_title}}</text>
-        <text class="item-price">{{item.priceText}}</text>
-        <text class="item-loc">📍 {{item.locationText || item.asset_province}}</text>
+    <view class="list" wx:if="{{activeTab === 'history'}}">
+      <view class="empty" wx:if="{{!loading && historyList.length === 0}}">
+        <text class="empty-icon">👀</text>
+        <text class="empty-text">还没有浏览记录</text>
       </view>
-      <view class="item-remove" catch:tap="removeFav" data-id="{{item.asset_id}}">
-        <text>✕</text>
+      <view class="history-item" wx:for="{{historyList}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+        <image class="item-img" src="{{item.firstImage}}" mode="aspectFill" />
+        <view class="item-info">
+          <text class="item-title">{{item.title}}</text>
+          <text class="item-price">{{item.priceText}}</text>
+          <text class="item-loc">📍 {{item.locationText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="list" wx:if="{{activeTab === 'fav'}}">
+      <view class="empty" wx:if="{{!loading && favList.length === 0}}">
+        <text class="empty-icon">❤️</text>
+        <text class="empty-text">还没有收藏</text>
+      </view>
+      <view class="history-item" wx:for="{{favList}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id || item.asset_id}}">
+        <image class="item-img" src="{{item.firstImage}}" mode="aspectFill" />
+        <view class="item-info">
+          <text class="item-title">{{item.title || item.asset_title}}</text>
+          <text class="item-price">{{item.priceText}}</text>
+          <text class="item-loc">📍 {{item.locationText || item.asset_province}}</text>
+        </view>
+        <view class="item-remove" catch:tap="removeFav" data-id="{{item.asset_id}}"><text>✕</text></view>
       </view>
     </view>
   </view>

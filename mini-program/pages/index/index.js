@@ -13,7 +13,7 @@ Page({
       { type: '种植', icon: '🌱', label: '种植', bg: '#e0f7fa' }
     ],
     serviceEntries: [
-      { path: '/pages/services/index', icon: '🛡️', label: '服务', bg: '#ede7f6' },
+      { path: '/pages/services/index/index', icon: '🛡️', label: '服务', bg: '#ede7f6' },
       { path: '/pages/broker/list', icon: '🤝', label: '合伙人', bg: '#e8eaf6' },
       { path: '/pages/bulk/list', icon: '🏢', label: '大宗', bg: '#fff8e1' },
       { path: '/pages/region/index', icon: '🔥', label: '热门', bg: '#fbe9e7' }
@@ -189,7 +189,7 @@ Page({
   },
 
   goSearch() { wx.switchTab({ url: '/pages/search/index' }) },
-  goFilter(e) { wx.navigateTo({ url: '/pages/search/index?type=' + encodeURIComponent(e.currentTarget.dataset.type) }) },
+  goFilter(e) { wx.navigateTo({ url: '/pages/search/search?type=' + encodeURIComponent(e.currentTarget.dataset.type) }) },
   goPage(e) { wx.navigateTo({ url: e.currentTarget.dataset.url }) },
   goAsset(e) { wx.navigateTo({ url: '/pages/asset/detail?id=' + e.currentTarget.dataset.id }) },
   chooseCity() { wx.showToast({ title: '城市切换开发中', icon: 'none' }) },
