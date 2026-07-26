@@ -25,10 +25,19 @@ Page({
         'project_publisher': '项目发布者', 'notary': '公证处', 'lawyer': '律师',
         'fengshui': '风水师', 'admin': '平台运营', 'superadmin': '超级管理员'
       }
+      const roleTips = {
+        'broker': ' · 您可以发布房源、查看客户线索',
+        'village_org': ' · 您可以发布村委直发资产、查看线索',
+        'project_publisher': ' · 您可以发布大宗路演项目',
+        'notary': ' · 您可以在交易服务中心展示公证服务',
+        'lawyer': ' · 您可以在交易服务中心展示法律服务',
+        'fengshui': ' · 您可以在交易服务中心展示风水勘察服务'
+      }
       this.setData({
         user,
         isLoggedIn: true,
-        roleLabel: roleMap[user.role] || '普通用户'
+        roleLabel: roleMap[user.role] || '普通用户',
+        roleTip: roleTips[user.role] || ''
       })
       this.loadStats()
     } else {

@@ -10,7 +10,7 @@
       </view>
       <view class="user-info">
         <text class="nickname">{{user.nickname || '未登录'}}</text>
-        <text class="user-role" wx:if="{{isLoggedIn}}">{{roleLabel}}</text>
+        <text class="user-role" wx:if="{{isLoggedIn}}">{{roleLabel}}{{roleTip}}</text>
         <text class="login-tip" wx:if="{{!isLoggedIn}}" bind:tap="goLogin">点击登录 →</text>
       </view>
       <view class="settings-btn" bind:tap="goSettings" wx:if="{{isLoggedIn}}">

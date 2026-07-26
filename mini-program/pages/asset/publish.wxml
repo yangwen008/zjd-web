@@ -1,4 +1,4 @@
-<!-- pages/asset/publish.wxml — 发布资产页 -->
+<!-- pages/asset/publish.wxml — 发布资产页（完整版，对齐H5） -->
 <view class="page">
   <form bindsubmit="submitForm">
     <!-- 基本信息 -->
@@ -9,8 +9,8 @@
         <input class="form-input" placeholder="如：崇州市街子镇15亩林地流转" bindinput="onInput" data-field="title" value="{{form.title}}" maxlength="50" />
       </view>
       <view class="form-item">
-        <text class="form-label">资产描述</text>
-        <textarea class="form-textarea" placeholder="详细描述资产情况..." bindinput="onInput" data-field="description" value="{{form.description}}" maxlength="500" />
+        <text class="form-label">详细描述</text>
+        <textarea class="form-textarea" placeholder="描述资产亮点、周边环境、交通情况、适合用途等..." bindinput="onInput" data-field="description" value="{{form.description}}" maxlength="1000" />
       </view>
       <view class="form-item">
         <text class="form-label">资产类型 *</text>
@@ -18,30 +18,36 @@
           <view class="form-picker">{{typeOptions[typeIndex] || '请选择资产类型'}}</view>
         </picker>
       </view>
+      <view class="form-item">
+        <text class="form-label">流转年限</text>
+        <input class="form-input" type="number" placeholder="20" bindinput="onInput" data-field="lease_years" value="{{form.lease_years}}" />
+      </view>
     </view>
 
     <!-- 位置信息 -->
     <view class="form-section">
       <text class="section-title">位置信息</text>
-      <view class="form-item">
-        <text class="form-label">省份 *</text>
-        <input class="form-input" placeholder="如：四川省" bindinput="onInput" data-field="province" value="{{form.province}}" />
+      <view class="form-row">
+        <view class="form-item half">
+          <text class="form-label">省份 *</text>
+          <input class="form-input" placeholder="四川省" bindinput="onInput" data-field="province" value="{{form.province}}" />
+        </view>
+        <view class="form-item half">
+          <text class="form-label">城市</text>
+          <input class="form-input" placeholder="成都市" bindinput="onInput" data-field="city" value="{{form.city}}" />
+        </view>
       </view>
-      <view class="form-item">
-        <text class="form-label">城市</text>
-        <input class="form-input" placeholder="如：成都市" bindinput="onInput" data-field="city" value="{{form.city}}" />
+      <view class="form-row">
+        <view class="form-item half">
+          <text class="form-label">区县</text>
+          <input class="form-input" placeholder="崇州市" bindinput="onInput" data-field="district" value="{{form.district}}" />
+        </view>
+        <view class="form-item half">
+          <text class="form-label">详细地址</text>
+          <input class="form-input" placeholder="街子镇xx村" bindinput="onInput" data-field="address" value="{{form.address}}" />
+        </view>
       </view>
-      <view class="form-item">
-        <text class="form-label">区县</text>
-        <input class="form-input" placeholder="如：崇州市" bindinput="onInput" data-field="district" value="{{form.district}}" />
-      </view>
-      <view class="form-item">
-        <text class="form-label">详细地址</text>
-        <input class="form-input" placeholder="如：街子镇xx村" bindinput="onInput" data-field="address" value="{{form.address}}" />
-      </view>
-      <view class="form-item">
-        <button class="gps-btn" bind:tap="getGPS" type="button">📍 自动定位</button>
-      </view>
+      <button class="gps-btn" bind:tap="getGPS" type="button">📍 自动定位获取地址</button>
     </view>
 
     <!-- 价格信息 -->
@@ -53,25 +59,81 @@
           <input class="form-input" type="digit" placeholder="15.6" bindinput="onInput" data-field="area_mu" value="{{form.area_mu}}" />
         </view>
         <view class="form-item half">
-          <text class="form-label">流转年限</text>
-          <input class="form-input" type="number" placeholder="20" bindinput="onInput" data-field="lease_years" value="{{form.lease_years}}" />
-        </view>
-      </view>
-      <view class="form-row">
-        <view class="form-item half">
           <text class="form-label">年租金（万）</text>
           <input class="form-input" type="digit" placeholder="2.8" bindinput="onInput" data-field="price_year" value="{{form.price_year}}" />
         </view>
-        <view class="form-item half">
-          <text class="form-label">总价（万）</text>
-          <input class="form-input" type="digit" placeholder="面议" bindinput="onInput" data-field="price_total" value="{{form.price_total}}" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">总价（万，留空为面议）</text>
+        <input class="form-input" type="digit" placeholder="面议" bindinput="onInput" data-field="price_total" value="{{form.price_total}}" />
+      </view>
+    </view>
+
+    <!-- 权证信息 -->
+    <view class="form-section">
+      <text class="section-title">📋 权证信息</text>
+      <view class="form-item">
+        <text class="form-label">确权状态</text>
+        <picker bindchange="onCertChange" value="{{certIndex}}" range="{{certOptions}}" range-key="label">
+          <view class="form-picker">{{certOptions[certIndex].label || '请选择'}}</view>
+        </picker>
+      </view>
+      <view class="form-item">
+        <text class="form-label">权属类型</text>
+        <picker bindchange="onOwnerChange" value="{{ownerIndex}}" range="{{ownerOptions}}">
+          <view class="form-picker">{{ownerOptions[ownerIndex] || '请选择'}}</view>
+        </picker>
+      </view>
+      <view class="form-item">
+        <text class="form-label">权证类型</text>
+        <picker bindchange="onCertTypeChange" value="{{certTypeIndex}}" range="{{certTypeOptions}}">
+          <view class="form-picker">{{certTypeOptions[certTypeIndex] || '请选择'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 交通信息 -->
+    <view class="form-section">
+      <text class="section-title">🚗 交通信息</text>
+      <view class="form-item" wx:for="{{transportFields}}" wx:key="key">
+        <text class="form-label">{{item.icon}} {{item.label}}</text>
+        <picker bindchange="onTransportChange" data-key="{{item.key}}" value="{{item.valueIndex}}" range="{{item.options}}">
+          <view class="form-picker">{{item.options[item.valueIndex] || '请选择'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 基建配套 -->
+    <view class="form-section">
+      <text class="section-title">🏗️ 基建配套</text>
+      <view class="infra-grid">
+        <view class="infra-item" wx:for="{{infraItems}}" wx:key="key" bind:tap="toggleInfra" data-index="{{index}}">
+          <text class="infra-icon">{{item.icon}}</text>
+          <text class="infra-label">{{item.label}}</text>
+          <view class="infra-check {{item.enabled ? 'checked' : ''}}">
+            <text wx:if="{{item.enabled}}">✓</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 环境指标 -->
+    <view class="form-section">
+      <text class="section-title">🌿 环境指标</text>
+      <view class="infra-grid">
+        <view class="infra-item" wx:for="{{envItems}}" wx:key="key" bind:tap="toggleEnv" data-index="{{index}}">
+          <text class="infra-icon">{{item.icon}}</text>
+          <text class="infra-label">{{item.label}}</text>
+          <view class="infra-check {{item.enabled ? 'checked' : ''}}">
+            <text wx:if="{{item.enabled}}">✓</text>
+          </view>
         </view>
       </view>
     </view>
 
     <!-- 图片上传 -->
     <view class="form-section">
-      <text class="section-title">资产图片</text>
+      <text class="section-title">📸 资产图片</text>
       <view class="image-grid">
         <view class="image-item" wx:for="{{images}}" wx:key="*this">
           <image class="preview-img" src="{{item}}" mode="aspectFill" />
@@ -88,17 +150,19 @@
     <!-- 联系方式 -->
     <view class="form-section">
       <text class="section-title">联系方式</text>
-      <view class="form-item">
-        <text class="form-label">联系人</text>
-        <input class="form-input" placeholder="姓名" bindinput="onInput" data-field="contact_name" value="{{form.contact_name}}" />
-      </view>
-      <view class="form-item">
-        <text class="form-label">联系电话</text>
-        <input class="form-input" type="number" placeholder="手机号" bindinput="onInput" data-field="contact_phone" value="{{form.contact_phone}}" maxlength="11" />
+      <view class="form-row">
+        <view class="form-item half">
+          <text class="form-label">联系人</text>
+          <input class="form-input" placeholder="姓名" bindinput="onInput" data-field="contact_name" value="{{form.contact_name}}" />
+        </view>
+        <view class="form-item half">
+          <text class="form-label">联系电话</text>
+          <input class="form-input" type="number" placeholder="手机号" bindinput="onInput" data-field="contact_phone" value="{{form.contact_phone}}" maxlength="11" />
+        </view>
       </view>
     </view>
 
-    <!-- 提交按钮 -->
+    <!-- 提交 -->
     <view class="submit-area">
       <button class="submit-btn" formType="submit" loading="{{submitting}}" disabled="{{submitting}}">
         {{submitting ? '提交中...' : '提交审核'}}
