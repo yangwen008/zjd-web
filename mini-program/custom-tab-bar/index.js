@@ -129,7 +129,7 @@ Component({
 
     goSearch() {
       this.setData({ showResult: false })
-      wx.switchTab({ url: '/pages/search/index' })
+      wx.switchTab({ url: '/pages/search/search' })
     },
 
     closeResult() {

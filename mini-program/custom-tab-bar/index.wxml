@@ -5,7 +5,7 @@
     <text class="tabbar-icon">🏠</text>
     <text class="tabbar-text">首页</text>
   </view>
-  <view class="tabbar-item {{current === 1 ? 'active' : ''}}" bind:tap="switchTab" data-index="1" data-url="/pages/search/index">
+  <view class="tabbar-item {{current === 1 ? 'active' : ''}}" bind:tap="switchTab" data-index="1" data-url="/pages/search/search">
     <text class="tabbar-icon">👀</text>
     <text class="tabbar-text">看过</text>
   </view>
@@ -19,11 +19,11 @@
   </view>
 
   <!-- 右侧Tab -->
-  <view class="tabbar-item {{current === 2 ? 'active' : ''}}" bind:tap="switchTab" data-index="2" data-url="/pages/messages/index">
+  <view class="tabbar-item {{current === 2 ? 'active' : ''}}" bind:tap="switchTab" data-index="2" data-url="/pages/messages/messages">
     <text class="tabbar-icon">💬</text>
     <text class="tabbar-text">消息</text>
   </view>
-  <view class="tabbar-item {{current === 3 ? 'active' : ''}}" bind:tap="switchTab" data-index="3" data-url="/pages/profile/index">
+  <view class="tabbar-item {{current === 3 ? 'active' : ''}}" bind:tap="switchTab" data-index="3" data-url="/pages/profile/profile">
     <text class="tabbar-icon">👤</text>
     <text class="tabbar-text">我的</text>
   </view>

@@ -74,7 +74,7 @@ Page({
       const loc = app.globalData.location
       let url = '/api/assets?page=' + this.data.page + '&limit=10&sort=' + this.data.sort
       url += '&search=' + encodeURIComponent(this.data.searchKeyword)
-      if (loc.province) url += '&province=' + encodeURIComponent(loc.province)
+      // 搜索时不按省份过滤，全局搜索
       const res = await app.request({ url })
       if (res.success && res.data) {
         const newAssets = res.data.map(item => {
