@@ -58,17 +58,18 @@
 .kv-value { font-size: 24rpx; color: #333; font-weight: 500; }
 
 /* 基建/环境网格 */
-.infra-grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.infra-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16rpx; }
 .infra-card {
-  width: calc(33.33% - 8rpx); padding: 16rpx 12rpx; border-radius: 12rpx;
-  display: flex; flex-direction: column; align-items: center; gap: 4rpx;
+  padding: 20rpx 12rpx; border-radius: 16rpx;
+  display: flex; flex-direction: column; align-items: center; gap: 6rpx;
+  text-align: center;
 }
 .infra-on { background: #e8f5e9; }
 .infra-off { background: #f5f5f5; }
-.infra-icon { font-size: 32rpx; }
-.infra-label { font-size: 20rpx; color: #333; }
-.infra-status { font-size: 18rpx; color: #1a4731; font-weight: 500; }
-.infra-off .infra-status { color: #999; }
+.infra-icon { font-size: 36rpx; }
+.infra-label { font-size: 22rpx; color: #333; font-weight: 500; }
+.infra-status { font-size: 20rpx; color: #1a4731; font-weight: bold; }
+.infra-off .infra-status { color: #999; font-weight: normal; }
 
 /* 地图 */
 .mini-map { width: 100%; height: 300rpx; border-radius: 12rpx; margin-bottom: 12rpx; }

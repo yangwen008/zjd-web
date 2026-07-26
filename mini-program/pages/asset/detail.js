@@ -160,14 +160,21 @@ Page({
 
   async loadProfessionals(province, city) {
     try {
-      const res = await app.request({ url: '/api/professionals?province=' + encodeURIComponent(province) + '&limit=1' })
-      if (res.success && res.data) {
-        const iconMap = { notary: '📋', lawyer: '⚖️', fengshui: '🏔️' }
-        const labelMap = { notary: '公证服务', lawyer: '法律服务', fengshui: '风水勘察' }
-        this.setData({
-          professionals: res.data.map(p => ({ ...p, icon: iconMap[p.prof_type] || '👤', label: labelMap[p.prof_type] || p.prof_type }))
-        })
-      }
+      // 按类型各取1条
+      const types = ['notary', 'lawyer', 'fengshui']
+      const iconMap = { notary: '📋', lawyer: '⚖️', fengshui: '🏔️' }
+      const labelMap = { notary: '公证服务', lawyer: '法律服务', fengshui: '风水勘察' }
+      const results = await Promise.all(
+        types.map(t => app.request({ url: '/api/professionals?province=' + encodeURIComponent(province) + '&type=' + t + '&limit=1' }))
+      )
+      const all = []
+      results.forEach((res, i) => {
+        if (res.success && res.data && res.data.length > 0) {
+          const p = res.data[0]
+          all.push({ ...p, icon: iconMap[types[i]], label: labelMap[types[i]] })
+        }
+      })
+      this.setData({ professionals: all })
     } catch (e) {}
   },
 
