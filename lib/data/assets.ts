@@ -85,14 +85,19 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
   let args: unknown[] = [];
 
   if (search) {
+    // 搜索模式：LIKE 全字段模糊搜索（FTS5 对中文分词支持差，直接用 LIKE）
+    const likePattern = `%${search}%`;
     const selectClause = countOnly
       ? 'SELECT COUNT(*) as count'
       : `SELECT assets.*, u.nickname as publisher_name, u.role as publisher_role`;
     const joinClause = countOnly ? '' : ' LEFT JOIN users u ON assets.user_id = u.id';
-    sql = `${selectClause} FROM assets${joinClause}
-           JOIN assets_fts ON assets.id = assets_fts.rowid
-           WHERE assets.status = ? AND assets_fts MATCH ?`;
-    args = ['approved', search];
+    sql = `${selectClause} FROM assets${joinClause} WHERE assets.status = ? AND (
+      assets.asset_code LIKE ? OR assets.title LIKE ? OR assets.description LIKE ?
+      OR assets.location LIKE ? OR assets.province LIKE ? OR assets.city LIKE ?
+      OR assets.district LIKE ? OR assets.address LIKE ? OR assets.asset_type LIKE ?
+      OR assets.contact_name LIKE ?
+    )`;
+    args = ['approved', likePattern, likePattern, likePattern, likePattern, likePattern, likePattern, likePattern, likePattern, likePattern, likePattern];
     if (source) { sql += ' AND assets.source_type = ?'; args.push(source); }
     if (asset_type) { sql += ' AND assets.asset_type = ?'; args.push(asset_type); }
     if (province) { sql += ' AND assets.province = ?'; args.push(province); }
