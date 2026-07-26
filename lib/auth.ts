@@ -215,6 +215,16 @@ export async function hasAnyPermission(userId: number, permissions: string[]): P
 // ============ 请求认证 ============
 
 export async function getUserFromRequest(request: Request): Promise<User | null> {
+  // 优先从 Authorization 头获取（小程序/API 调用）
+  const authHeader = request.headers.get('authorization') || '';
+  if (authHeader.startsWith('Bearer ')) {
+    const token = authHeader.slice(7).trim();
+    if (token) {
+      const user = await getSessionUser(token);
+      if (user) return user;
+    }
+  }
+  // 降级从 cookie 获取（H5 浏览器）
   const cookie = request.headers.get('cookie') || '';
   const match = cookie.match(/user_session=([^;]+)/);
   if (!match) return null;
