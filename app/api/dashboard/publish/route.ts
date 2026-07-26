@@ -53,6 +53,9 @@ export async function POST(request: Request) {
       // 5.6 确权状态
       const certification = body.certification || 'uncertified';
 
+      // 5.7 流转方式
+      const transfer_type = body.transfer_type || 'lease';
+
       // 6. source_type 按角色动态设置
       let sourceType = 'ugc';
       if (user.role === 'admin' || user.role === 'superadmin') {
@@ -75,7 +78,7 @@ export async function POST(request: Request) {
       await execute(
         `INSERT INTO assets
         (title, description, location, province, city, district, address, area_mu, price_year, price_total, lease_years,
-         asset_type, source_type, images, video_url, infra_details, transport_info, cert_info, certification, gps_lat, gps_lng, contact_name, contact_phone,
+         asset_type, source_type, images, video_url, infra_details, transport_info, cert_info, certification, transfer_type, gps_lat, gps_lng, contact_name, contact_phone,
          invest_enabled, invest_total_shares, invest_share_price, invest_min_shares,
          user_id, asset_code, status, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'), datetime('now'))`,
@@ -98,6 +101,7 @@ export async function POST(request: Request) {
         body.transport_info ? JSON.stringify(body.transport_info) : null,
         body.cert_info ? JSON.stringify(body.cert_info) : null,
         certification,
+        transfer_type,
         gps_lat,
         gps_lng,
         body.contact_name || '',

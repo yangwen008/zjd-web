@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS assets (
   cert_info TEXT,                  -- 权证信息JSON
   certification TEXT DEFAULT 'uncertified', -- 确权状态: certified/uncertified/pending
   asset_code    TEXT,                       -- 资产编号: 省-市-区-序号
+  transfer_type TEXT DEFAULT 'lease',       -- 流转方式: lease/transfer/grant/cooperation/equity
   invest_enabled      INTEGER DEFAULT 0,    -- 是否开放参投
   invest_total_shares INTEGER,              -- 总份数
   invest_share_price  REAL,                 -- 每份单价(万)

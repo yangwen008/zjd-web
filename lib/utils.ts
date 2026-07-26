@@ -201,3 +201,16 @@ export async function checkGPSDuplicate(
   
   return false;
 }
+
+// 流转方式标签
+export const TRANSFER_TYPES: Record<string, { label: string; color: string }> = {
+  lease: { label: '租赁', color: '#2e7d32' },
+  transfer: { label: '转让', color: '#1565c0' },
+  grant: { label: '出让', color: '#e65100' },
+  cooperation: { label: '合作', color: '#7b1fa2' },
+  equity: { label: '入股', color: '#c62828' },
+}
+
+export function getTransferLabel(type: string | null): string {
+  return TRANSFER_TYPES[type || '']?.label || '租赁'
+}

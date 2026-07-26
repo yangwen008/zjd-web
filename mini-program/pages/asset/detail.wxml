@@ -15,6 +15,7 @@
   <view class="info-bar">
     <view class="info-tags">
       <text class="tag {{badgeClass}}" wx:if="{{badge}}">{{badge}}</text>
+      <text class="tag tag-transfer" style="color:{{transferColor}}" wx:if="{{transferLabel}}">{{transferLabel}}</text>
       <text class="tag tag-cert" wx:if="{{asset.certification === 'certified'}}">已确权</text>
     </view>
     <text class="info-code" wx:if="{{asset.asset_code}}">{{asset.asset_code}}</text>

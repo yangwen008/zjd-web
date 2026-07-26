@@ -8,6 +8,8 @@ Page({
     isFav: false,
     badge: '',
     badgeClass: '',
+    transferLabel: '',
+    transferColor: '',
     priceText: '',
     areaText: '',
     leaseText: '',
@@ -122,10 +124,15 @@ Page({
         'village_org': '村集体', 'admin': '平台运营'
       }
 
+      const transferMap = { lease: { label: '租赁', color: '#2e7d32' }, transfer: { label: '转让', color: '#1565c0' }, grant: { label: '出让', color: '#e65100' }, cooperation: { label: '合作', color: '#7b1fa2' }, equity: { label: '入股', color: '#c62828' } }
+      const tt = transferMap[asset.transfer_type] || transferMap.lease
+
       this.setData({
         asset, images,
         badge: this.getBadge(asset),
         badgeClass: this.getBadgeClass(asset),
+        transferLabel: tt.label,
+        transferColor: tt.color,
         priceText: asset.price_year ? '¥' + asset.price_year + '万' : '面议',
         areaText: asset.area_mu ? asset.area_mu + '亩' : '--',
         leaseText: asset.lease_years ? asset.lease_years + '年' : '--',

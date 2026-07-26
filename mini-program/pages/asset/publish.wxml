@@ -19,6 +19,12 @@
         </picker>
       </view>
       <view class="form-item">
+        <text class="form-label">流转方式 *</text>
+        <picker bindchange="onTransferChange" value="{{transferIndex}}" range="{{transferOptions}}" range-key="label">
+          <view class="form-picker">{{transferOptions[transferIndex].label || '请选择流转方式'}}</view>
+        </picker>
+      </view>
+      <view class="form-item">
         <text class="form-label">流转年限</text>
         <input class="form-input" type="number" placeholder="20" bindinput="onInput" data-field="lease_years" value="{{form.lease_years}}" />
       </view>

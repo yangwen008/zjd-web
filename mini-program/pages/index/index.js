@@ -27,7 +27,11 @@ Page({
     rightCol: [],
     loading: false,
     noMore: false,
-    page: 1
+    page: 1,
+    showCityPicker: false,
+    provinces: [],
+    selectedCity: '',
+    cities: []
   },
 
   onShow() {
@@ -106,6 +110,8 @@ Page({
             areaText: item.area_mu ? item.area_mu + '亩' : '-',
             locationText: [item.city, item.district].filter(Boolean).join('·') || item.province || '全国',
             badge: this.getBadge(item),
+            transferLabel: this.getTransferLabel(item.transfer_type),
+            transferColor: this.getTransferColor(item.transfer_type),
             distanceText,
             viewsText
           }
@@ -172,6 +178,16 @@ Page({
     return '个人'
   },
 
+  getTransferLabel(type) {
+    const map = { lease: '租赁', transfer: '转让', grant: '出让', cooperation: '合作', equity: '入股' }
+    return map[type] || ''
+  },
+
+  getTransferColor(type) {
+    const map = { lease: '#2e7d32', transfer: '#1565c0', grant: '#e65100', cooperation: '#7b1fa2', equity: '#c62828' }
+    return map[type] || ''
+  },
+
   goSearch() { wx.switchTab({ url: '/pages/search/index' }) },
   goFilter(e) {
     // tabBar页面不能用navigateTo，用全局变量+switchTab
@@ -181,7 +197,52 @@ Page({
   },
   goPage(e) { wx.navigateTo({ url: e.currentTarget.dataset.url }) },
   goAsset(e) { wx.navigateTo({ url: '/pages/asset/detail?id=' + e.currentTarget.dataset.id }) },
-  chooseCity() { wx.showToast({ title: '城市切换开发中', icon: 'none' }) },
+  // 城市切换
+  chooseCity() {
+    this.setData({ showCityPicker: true })
+    if (this.data.provinces.length === 0) this.loadProvinces()
+  },
+
+  closeCityPicker() {
+    this.setData({ showCityPicker: false })
+  },
+
+  async loadProvinces() {
+    try {
+      const res = await app.request({ url: '/api/regions?level=province' })
+      if (res.success && res.data) {
+        this.setData({ provinces: res.data })
+      }
+    } catch (e) {}
+  },
+
+  async selectProvince(e) {
+    const province = e.currentTarget.dataset.name
+    // 更新全局定位
+    app.globalData.location.province = province
+    app.globalData.location.city = ''
+    this.updateLocation()
+    this.setData({ showCityPicker: false })
+    this.loadAssets(true)
+  },
+
+  selectCity(e) {
+    const city = e.currentTarget.dataset.name
+    app.globalData.location.city = city
+    this.updateLocation()
+    this.setData({ showCityPicker: false, selectedCity: '' })
+    this.loadAssets(true)
+  },
+
+  async showCities(e) {
+    const province = e.currentTarget.dataset.name
+    try {
+      const res = await app.request({ url: '/api/regions?level=city&province=' + encodeURIComponent(province) })
+      if (res.success && res.data) {
+        this.setData({ selectedCity: province, cities: res.data })
+      }
+    } catch (e) {}
+  },
   onPullDownRefresh() { this.loadAssets(true) },
   onReachBottom() { if (!this.data.noMore) this.loadAssets(false) }
 })

@@ -39,6 +39,7 @@ export interface Asset {
   transport_info: string | null;
   cert_info: string | null;
   certification: string;
+  transfer_type: string | null;
   invest_enabled: number;
   invest_total_shares: number | null;
   invest_share_price: number | null;

@@ -9,6 +9,15 @@ interface AssetCardProps {
   href?: string;
   badge?: string;
   certification?: string;
+  transfer_type?: string;
+}
+
+const TRANSFER_LABELS: Record<string, { label: string; color: string }> = {
+  lease: { label: '租赁', color: 'bg-green-500/90' },
+  transfer: { label: '转让', color: 'bg-blue-500/90' },
+  grant: { label: '出让', color: 'bg-orange-500/90' },
+  cooperation: { label: '合作', color: 'bg-purple-500/90' },
+  equity: { label: '入股', color: 'bg-red-500/90' },
 }
 
 const CERT_LABELS: Record<string, { label: string; className: string }> = {
@@ -17,10 +26,11 @@ const CERT_LABELS: Record<string, { label: string; className: string }> = {
   uncertified: { label: '未确权', className: 'bg-gray-500/70 text-white' },
 };
 
-export default function AssetCard({ rank, title, subtitle, views, price, gradient, imageUrl, href, badge, certification }: AssetCardProps) {
+export default function AssetCard({ rank, title, subtitle, views, price, gradient, imageUrl, href, badge, certification, transfer_type }: AssetCardProps) {
   const Wrapper = href ? 'a' : 'div';
   const wrapperProps = href ? { href } : {};
   const cert = CERT_LABELS[certification || 'uncertified'] || CERT_LABELS.uncertified;
+  const transfer = TRANSFER_LABELS[transfer_type || ''];
 
   return (
     <Wrapper
@@ -40,6 +50,11 @@ export default function AssetCard({ rank, title, subtitle, views, price, gradien
         {badge && (
           <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-brand-green text-white shadow-lg">
             {badge}
+          </span>
+        )}
+        {transfer && (
+          <span className={`inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-medium ${transfer.color} text-white shadow`}>
+            {transfer.label}
           </span>
         )}
         <span className={`inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-medium ${cert.className} shadow`}>

@@ -15,6 +15,36 @@
     </view>
   </view>
 
+  <!-- 城市选择弹窗 -->
+  <view class="city-overlay" wx:if="{{showCityPicker}}" bind:tap="closeCityPicker">
+    <view class="city-picker" catch:tap="noop">
+      <view class="city-header">
+        <text class="city-title">选择城市</text>
+        <text class="city-close" bind:tap="closeCityPicker">✕</text>
+      </view>
+      <!-- 省份列表 -->
+      <view wx:if="{{!selectedCity}}">
+        <scroll-view scroll-y class="city-list">
+          <view class="city-item" wx:for="{{provinces}}" wx:key="name" bind:tap="showCities" data-name="{{item.name}}">
+            <text>{{item.emoji || '📍'}} {{item.name}}</text>
+            <text class="city-arrow">→</text>
+          </view>
+        </scroll-view>
+      </view>
+      <!-- 城市列表 -->
+      <view wx:else>
+        <view class="city-back" bind:tap="selectCity" data-name="">
+          <text>← 返回省份</text>
+        </view>
+        <scroll-view scroll-y class="city-list">
+          <view class="city-item" wx:for="{{cities}}" wx:key="name" bind:tap="selectCity" data-name="{{item.name}}">
+            <text>{{item.name}}</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+
   <!-- 金刚区（横向滚动） -->
   <view class="kingkong">
     <scroll-view scroll-x class="kingkong-scroll">

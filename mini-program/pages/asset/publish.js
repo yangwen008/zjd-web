@@ -9,8 +9,18 @@ Page({
       contact_name: '', contact_phone: '', asset_type: '',
       certification: 'uncertified'
     },
-    typeOptions: ['宅基地', '林地', '厂房', '茶园', '古宅', '种植'],
+    typeOptions: ['宅基地', '林地', '厂房', '茶园', '古宅', '种植', '建设用地', '养殖用地', '荒山', '水域'],
     typeIndex: -1,
+
+    // 流转方式
+    transferOptions: [
+      { key: 'lease', label: '租赁' },
+      { key: 'transfer', label: '转让' },
+      { key: 'grant', label: '出让' },
+      { key: 'cooperation', label: '合作' },
+      { key: 'equity', label: '入股' }
+    ],
+    transferIndex: 0,
 
     // 权证信息
     certOptions: [
@@ -79,6 +89,10 @@ Page({
 
   onTypeChange(e) {
     this.setData({ typeIndex: e.detail.value, 'form.asset_type': this.data.typeOptions[e.detail.value] })
+  },
+
+  onTransferChange(e) {
+    this.setData({ transferIndex: e.detail.value })
   },
 
   onCertChange(e) {
@@ -194,6 +208,7 @@ Page({
       const data = {
         ...form,
         target: 'asset',
+        transfer_type: this.data.transferOptions[this.data.transferIndex]?.key || 'lease',
         area_mu: form.area_mu ? parseFloat(form.area_mu) : null,
         lease_years: form.lease_years ? parseInt(form.lease_years) : null,
         price_year: form.price_year ? parseFloat(form.price_year) : null,

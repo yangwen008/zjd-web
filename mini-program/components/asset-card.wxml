@@ -21,6 +21,7 @@
       <!-- 标签行 -->
       <view class="card-tags">
         <text class="tag" wx:if="{{badge}}">{{badge}}</text>
+        <text class="tag" style="color:{{transferColor}}" wx:if="{{transferLabel}}">{{transferLabel}}</text>
         <text class="tag tag-lease" wx:if="{{lease_years}}">{{lease_years}}年</text>
         <text class="tag tag-cert" wx:if="{{certification === 'certified'}}">已确权</text>
       </view>
