@@ -45,8 +45,9 @@
     </view>
   </view>
 
-  <!-- 金刚区（横向滚动） -->
+  <!-- 金刚区 -->
   <view class="kingkong">
+    <!-- 第一行：资产类型（横向滚动） -->
     <scroll-view scroll-x class="kingkong-scroll">
       <view class="kingkong-row">
         <view class="kingkong-item" wx:for="{{assetTypes}}" wx:key="type" bind:tap="goFilter" data-type="{{item.type}}">
@@ -55,15 +56,17 @@
           </view>
           <text class="kingkong-label">{{item.label}}</text>
         </view>
-        <view class="kingkong-divider"></view>
-        <view class="kingkong-item" wx:for="{{serviceEntries}}" wx:key="path" bind:tap="goPage" data-url="{{item.path}}">
-          <view class="kingkong-icon" style="background:{{item.bg}}">
-            <text>{{item.icon}}</text>
-          </view>
-          <text class="kingkong-label">{{item.label}}</text>
-        </view>
       </view>
     </scroll-view>
+    <!-- 第二行：服务入口 -->
+    <view class="kingkong-row-fixed">
+      <view class="kingkong-item" wx:for="{{serviceEntries}}" wx:key="path" bind:tap="goPage" data-url="{{item.path}}">
+        <view class="kingkong-icon" style="background:{{item.bg}}">
+          <text>{{item.icon}}</text>
+        </view>
+        <text class="kingkong-label">{{item.label}}</text>
+      </view>
+    </view>
   </view>
 
   <!-- 附近资产（双列瀑布流） -->
