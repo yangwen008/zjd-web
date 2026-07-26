@@ -16,8 +16,8 @@
     <view class="waterfall-col">
       <view class="broker-card" wx:for="{{leftCol}}" wx:key="id" bind:tap="goDetail" data-id="{{item.id}}">
         <view class="broker-avatar">
-          <image wx:if="{{item.avatar_url}}" class="avatar-img" src="{{item.avatar_url}}" mode="aspectFill" />
-          <text wx:else class="avatar-text">{{item.name[0]}}</text>
+          <image class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+          
           <view class="rating-badge {{item.rating}}">{{item.rating === 'gold' ? '🥇' : item.rating === 'silver' ? '🥈' : '🥉'}}</view>
         </view>
         <text class="broker-name">{{item.name}}</text>
@@ -34,8 +34,8 @@
     <view class="waterfall-col">
       <view class="broker-card" wx:for="{{rightCol}}" wx:key="id" bind:tap="goDetail" data-id="{{item.id}}">
         <view class="broker-avatar">
-          <image wx:if="{{item.avatar_url}}" class="avatar-img" src="{{item.avatar_url}}" mode="aspectFill" />
-          <text wx:else class="avatar-text">{{item.name[0]}}</text>
+          <image class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+          
           <view class="rating-badge {{item.rating}}">{{item.rating === 'gold' ? '🥇' : item.rating === 'silver' ? '🥈' : '🥉'}}</view>
         </view>
         <text class="broker-name">{{item.name}}</text>

@@ -1,67 +1,96 @@
-// pages/region/region.js — 热点寻源
+// pages/region/region.js — 热点寻源（默认按浏览量排序）
 const app = getApp()
 
 Page({
   data: {
     provinces: [],
+    showProvinceFilter: false,
     selectedProvince: '',
     assets: [],
     leftCol: [],
     rightCol: [],
-    loadingAssets: false
+    loading: false,
+    noMore: false,
+    page: 1,
+    sort: 'views'
   },
 
-  onLoad() { this.loadProvinces() },
+  onLoad() {
+    this.loadAssets(true)
+    this.loadProvinces()
+  },
+
+  onShow() {},
+  noop() {}, // 阻止省份选择器点击穿透
 
   async loadProvinces() {
     try {
       const res = await app.request({ url: '/api/regions?level=province' })
       if (res.success && res.data) {
-        const provinces = res.data.map(p => ({
-          name: p.name,
-          emoji: p.emoji || '📍',
-          count: 0,
-          active: false
-        }))
-        this.setData({ provinces })
-        // 加载各省资产数量
-        this.loadProvinceCounts()
+        this.setData({ provinces: res.data.map(p => ({ name: p.name, emoji: p.emoji || '📍' })) })
       }
     } catch (e) {}
   },
 
-  async loadProvinceCounts() {
-    try {
-      const res = await app.request({ url: '/api/assets?limit=1' })
-      // 简化：用已有数据估算
-    } catch (e) {}
+  toggleProvinceFilter() {
+    this.setData({ showProvinceFilter: !this.data.showProvinceFilter })
   },
 
-  async selectProvince(e) {
+  selectProvince(e) {
     const name = e.currentTarget.dataset.name
-    const provinces = this.data.provinces.map(p => ({ ...p, active: p.name === name }))
-    this.setData({ provinces, selectedProvince: name, assets: [], leftCol: [], rightCol: [] })
-    this.loadAssets(name)
+    // 点击已选中的省份 = 取消筛选
+    const newProvince = this.data.selectedProvince === name ? '' : name
+    this.setData({
+      selectedProvince: newProvince,
+      showProvinceFilter: false
+    })
+    this.loadAssets(true)
   },
 
-  async loadAssets(province) {
-    this.setData({ loadingAssets: true })
+  clearProvince() {
+    this.setData({ selectedProvince: '' })
+    this.loadAssets(true)
+  },
+
+  changeSort(e) {
+    this.setData({ sort: e.currentTarget.dataset.sort })
+    this.loadAssets(true)
+  },
+
+  async loadAssets(reset) {
+    if (this.data.loading) return
+    if (reset) this.setData({ page: 1, noMore: false, assets: [] })
+    this.setData({ loading: true })
     try {
-      const res = await app.request({ url: '/api/assets?province=' + encodeURIComponent(province) + '&limit=10&sort=views' })
+      let url = '/api/assets?page=' + this.data.page + '&limit=10&sort=' + this.data.sort
+      if (this.data.selectedProvince) url += '&province=' + encodeURIComponent(this.data.selectedProvince)
+      const res = await app.request({ url })
       if (res.success && res.data) {
-        const assets = res.data.map(item => ({
+        const newAssets = res.data.map(item => ({
           ...item,
           firstImage: app.getFirstImage(item.images),
-          priceText: item.price_year ? '¥' + item.price_year + '万/年起' : '价格面议'
+          priceText: item.price_year ? '¥' + item.price_year + '万/年起' : '价格面议',
+          badge: this.getBadge(item)
         }))
+        const all = reset ? newAssets : this.data.assets.concat(newAssets)
         const leftCol = [], rightCol = []
-        assets.forEach((item, i) => { if (i % 2 === 0) leftCol.push(item); else rightCol.push(item) })
-        this.setData({ assets, leftCol, rightCol })
+        all.forEach((item, i) => { if (i % 2 === 0) leftCol.push(item); else rightCol.push(item) })
+        this.setData({ assets: all, leftCol, rightCol, page: this.data.page + 1, noMore: newAssets.length < 10 })
       }
     } catch (e) {}
-    finally { this.setData({ loadingAssets: false }) }
+    finally { this.setData({ loading: false }); wx.stopPullDownRefresh() }
+  },
+
+  getBadge(item) {
+    if (item.source_site) return '第三方'
+    if (item.publisher_role === 'project_publisher') return '交易所'
+    if (item.source_type === 'official') return '官方'
+    if (item.source_type === 'village') return '村委'
+    return '个人'
   },
 
   goAsset(e) { wx.navigateTo({ url: '/pages/asset/detail?id=' + e.currentTarget.dataset.id }) },
-  goSearch() { wx.switchTab({ url: '/pages/search/search' }) }
+  goSearch() { wx.switchTab({ url: '/pages/search/search' }) },
+  onPullDownRefresh() { this.loadAssets(true) },
+  onReachBottom() { if (!this.data.noMore) this.loadAssets(false) }
 })

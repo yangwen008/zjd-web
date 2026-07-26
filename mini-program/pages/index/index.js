@@ -212,19 +212,24 @@ Page({
   async loadProvinces() {
     try {
       const res = await app.request({ url: '/api/regions?level=province' })
-      if (res.success && res.data) {
+      if (res.success && res.data && res.data.length > 0) {
         this.setData({ provinces: res.data })
+      } else {
+        console.warn('loadProvinces: empty data', res)
+        wx.showToast({ title: '加载省份失败', icon: 'none' })
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('loadProvinces error:', e)
+      wx.showToast({ title: '网络异常', icon: 'none' })
+    }
   },
 
-  async selectProvince(e) {
+  selectProvince(e) {
     const province = e.currentTarget.dataset.name
-    // 更新全局定位
     app.globalData.location.province = province
     app.globalData.location.city = ''
     this.updateLocation()
-    this.setData({ showCityPicker: false })
+    this.setData({ showCityPicker: false, selectedCity: '' })
     this.loadAssets(true)
   },
 
@@ -235,7 +240,11 @@ Page({
       this.setData({ selectedCity: '' })
       return
     }
+    // 更新全局定位（同时设置省份）
     app.globalData.location.city = city
+    if (this.data.selectedCity) {
+      app.globalData.location.province = this.data.selectedCity
+    }
     this.updateLocation()
     this.setData({ showCityPicker: false, selectedCity: '' })
     this.loadAssets(true)
@@ -243,12 +252,19 @@ Page({
 
   async showCities(e) {
     const province = e.currentTarget.dataset.name
+    this.setData({ selectedCity: province })
     try {
       const res = await app.request({ url: '/api/regions?level=city&province=' + encodeURIComponent(province) })
-      if (res.success && res.data) {
-        this.setData({ selectedCity: province, cities: res.data })
+      if (res.success && res.data && res.data.length > 0) {
+        this.setData({ cities: res.data })
+      } else {
+        // 该省份没有城市数据，直接选中该省份
+        this.selectProvince(e)
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('showCities error:', e)
+      wx.showToast({ title: '加载城市失败', icon: 'none' })
+    }
   },
   onPullDownRefresh() { this.loadAssets(true) },
   onReachBottom() { if (!this.data.noMore) this.loadAssets(false) },

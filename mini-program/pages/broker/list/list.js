@@ -33,6 +33,7 @@ Page({
       if (res.success && res.data) {
         const newItems = res.data.map(b => ({
           ...b,
+          avatarUrl: b.avatar_url || '/static/default-avatar.png',
           goodRateText: b.good_rate ? Math.round(b.good_rate * 100) + '%' : '0%',
           specialtyList: this.parseSpecialties(b.specialties)
         }))

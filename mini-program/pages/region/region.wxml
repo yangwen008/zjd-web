@@ -1,63 +1,84 @@
-<!-- pages/region/region.wxml — 热点寻源 -->
+<!-- pages/region/region.wxml — 热点寻源（默认热门资产 + 省份筛选） -->
 <view class="page">
   <view class="topbar">
-    <text class="topbar-title">📍 热点寻源</text>
+    <text class="topbar-title">🔥 热点寻源</text>
   </view>
 
-  <!-- 省份网格 -->
-  <view class="province-grid">
-    <view class="province-item {{item.active ? 'active' : ''}}" wx:for="{{provinces}}" wx:key="name" bind:tap="selectProvince" data-name="{{item.name}}">
-      <text class="province-emoji">{{item.emoji}}</text>
-      <text class="province-name">{{item.name}}</text>
-      <text class="province-count">{{item.count}}宗</text>
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <view class="filter-btn {{sort === 'views' ? 'active' : ''}}" bind:tap="changeSort" data-sort="views">🔥 最热</view>
+    <view class="filter-btn {{sort === 'newest' ? 'active' : ''}}" bind:tap="changeSort" data-sort="newest">🆕 最新</view>
+    <view class="filter-btn {{sort === 'price' ? 'active' : ''}}" bind:tap="changeSort" data-sort="price">💰 价格↑</view>
+    <view class="filter-btn province-btn {{selectedProvince ? 'active' : ''}}" bind:tap="toggleProvinceFilter">
+      {{selectedProvince || '📍 全国'}} ▼
     </view>
   </view>
 
-  <!-- 选中省份的资产列表 -->
-  <view class="section" wx:if="{{selectedProvince}}">
-    <view class="section-header">
-      <text class="section-title">{{selectedProvince}} 的资产</text>
-      <text class="section-more" bind:tap="goSearch">查看全部 →</text>
-    </view>
-    <view class="waterfall">
-      <view class="waterfall-col">
-        <view class="asset-card" wx:for="{{leftCol}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
-          <view class="card-image">
-            <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
-            <view class="card-overlay">
-              <text class="overlay-type">{{item.asset_type || '资产'}}</text>
-            </view>
-          </view>
-          <view class="card-body">
-            <text class="card-title">{{item.title}}</text>
-            <view class="card-bottom">
-              <text class="card-price">{{item.priceText}}</text>
-              <text class="card-views">👁 {{item.views || 0}}</text>
-            </view>
-          </view>
-        </view>
+  <!-- 省份筛选弹窗 -->
+  <view class="province-overlay" wx:if="{{showProvinceFilter}}" bind:tap="toggleProvinceFilter">
+    <view class="province-panel" catch:tap="noop">
+      <view class="province-header">
+        <text class="province-title">选择省份</text>
+        <text class="province-clear" wx:if="{{selectedProvince}}" bind:tap="clearProvince">清除筛选</text>
       </view>
-      <view class="waterfall-col">
-        <view class="asset-card" wx:for="{{rightCol}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
-          <view class="card-image">
-            <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
-            <view class="card-overlay">
-              <text class="overlay-type">{{item.asset_type || '资产'}}</text>
-            </view>
-          </view>
-          <view class="card-body">
-            <text class="card-title">{{item.title}}</text>
-            <view class="card-bottom">
-              <text class="card-price">{{item.priceText}}</text>
-              <text class="card-views">👁 {{item.views || 0}}</text>
-            </view>
-          </view>
+      <view class="province-grid">
+        <view class="province-item {{item.name === selectedProvince ? 'active' : ''}}"
+              wx:for="{{provinces}}" wx:key="name"
+              bind:tap="selectProvince" data-name="{{item.name}}">
+          <text>{{item.emoji}} {{item.name}}</text>
         </view>
       </view>
     </view>
-    <view class="loading" wx:if="{{loadingAssets}}">加载中...</view>
-    <view class="empty" wx:if="{{!loadingAssets && assets.length === 0}}">
-      <text class="empty-text">该省份暂无资产</text>
+  </view>
+
+  <!-- 资产列表（双列瀑布流） -->
+  <view class="waterfall">
+    <view class="waterfall-col">
+      <view class="asset-card" wx:for="{{leftCol}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+        <view class="card-image">
+          <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
+          <view class="card-overlay">
+            <text class="overlay-type">{{item.asset_type || '资产'}}</text>
+          </view>
+        </view>
+        <view class="card-body">
+          <text class="card-title">{{item.title}}</text>
+          <view class="card-tags">
+            <text class="tag" wx:if="{{item.badge}}">{{item.badge}}</text>
+          </view>
+          <view class="card-bottom">
+            <text class="card-price">{{item.priceText}}</text>
+            <text class="card-views">👁 {{item.views || 0}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="waterfall-col">
+      <view class="asset-card" wx:for="{{rightCol}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
+        <view class="card-image">
+          <image class="card-img" src="{{item.firstImage}}" mode="aspectFill" />
+          <view class="card-overlay">
+            <text class="overlay-type">{{item.asset_type || '资产'}}</text>
+          </view>
+        </view>
+        <view class="card-body">
+          <text class="card-title">{{item.title}}</text>
+          <view class="card-tags">
+            <text class="tag" wx:if="{{item.badge}}">{{item.badge}}</text>
+          </view>
+          <view class="card-bottom">
+            <text class="card-price">{{item.priceText}}</text>
+            <text class="card-views">👁 {{item.views || 0}}</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
+
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="empty" wx:if="{{!loading && assets.length === 0}}">
+    <text class="empty-icon">🔥</text>
+    <text class="empty-text">暂无热门资产</text>
+  </view>
+  <view class="no-more" wx:if="{{!loading && noMore && assets.length > 0}}">没有更多了</view>
 </view>
