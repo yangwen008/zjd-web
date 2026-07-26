@@ -178,9 +178,8 @@ Page({
 
   goAsset(e) { wx.navigateTo({ url: '/pages/asset/detail?id=' + e.currentTarget.dataset.id }) },
   goBack() {
-    // 从筛选模式返回看过/收藏模式
-    this.setData({ filterMode: false, activeTab: 'history' })
-    this.loadData()
+    // 金刚区进入的列表页，返回首页
+    wx.switchTab({ url: '/pages/index/index' })
   },
   onPullDownRefresh() { if (this.data.filterMode) this.loadFilterAssets(true); else wx.stopPullDownRefresh() },
   onReachBottom() { if (this.data.filterMode && !this.data.noMore) this.loadFilterAssets(false) }
