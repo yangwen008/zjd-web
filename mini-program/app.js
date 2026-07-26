@@ -40,6 +40,25 @@ App({
     })
   },
 
+  // 获取图片URL（R2代理处理）
+  getFirstImage(imagesJson) {
+    if (!imagesJson) return '/static/logo.png'
+    try {
+      const arr = JSON.parse(imagesJson)
+      if (Array.isArray(arr) && arr.length > 0) {
+        const first = arr[0]
+        let url = (typeof first === 'object' ? (first.thumb || first.url) : first) || ''
+        if (!url) return '/static/logo.png'
+        if (url.startsWith('/api/images/') || url.startsWith('api/images/')) {
+          return this.globalData.baseUrl + (url.startsWith('/') ? '' : '/') + url
+        }
+        if (url.startsWith('http')) return url
+        return this.globalData.baseUrl + (url.startsWith('/') ? '' : '/') + url
+      }
+    } catch (e) {}
+    return '/static/logo.png'
+  },
+
   // 统一请求
   request(options) {
     return new Promise((resolve, reject) => {

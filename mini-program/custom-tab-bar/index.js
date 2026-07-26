@@ -118,15 +118,7 @@ Component({
     },
 
     getFirstImage(imagesJson) {
-      if (!imagesJson) return '/static/logo.png'
-      try {
-        const arr = JSON.parse(imagesJson)
-        if (Array.isArray(arr) && arr.length > 0) {
-          const first = arr[0]
-          return (typeof first === 'object' ? (first.thumb || first.url) : first) || '/static/logo.png'
-        }
-      } catch (e) {}
-      return '/static/logo.png'
+      return app.getFirstImage(imagesJson)
     },
 
     goAsset(e) {

@@ -1,6 +1,142 @@
+<!-- pages/asset/detail.wxml — 资产详情页 -->
 <view class="page">
-  <view style="display:flex;flex-direction:column;align-items:center;padding-top:200rpx">
-    <text style="font-size:80rpx">🚧</text>
-    <text style="font-size:28rpx;color:#999;margin-top:20rpx">资产详情页开发中...</text>
+  <!-- 图片轮播 -->
+  <swiper class="media-swiper" indicator-dots="{{images.length > 1}}" indicator-active-color="#1a4731" indicator-color="rgba(255,255,255,0.5)" circular autoplay>
+    <swiper-item wx:for="{{images}}" wx:key="*this">
+      <image class="media-img" src="{{item}}" mode="aspectFill" bind:tap="previewImage" data-src="{{item}}" />
+    </swiper-item>
+  </swiper>
+
+  <!-- 返回按钮 -->
+  <view class="back-btn" bind:tap="goBack">
+    <text>←</text>
+  </view>
+
+  <!-- 收藏按钮（浮在图片右上角） -->
+  <view class="fav-btn {{isFav ? 'fav-active' : ''}}" bind:tap="toggleFav">
+    <text>{{isFav ? '❤️' : '🤍'}}</text>
+  </view>
+
+  <!-- 标签 + 编号 -->
+  <view class="info-bar">
+    <view class="info-tags">
+      <text class="tag {{badgeClass}}" wx:if="{{badge}}">{{badge}}</text>
+      <text class="tag tag-cert" wx:if="{{asset.certification === 'certified'}}">已确权</text>
+    </view>
+    <text class="info-code" wx:if="{{asset.asset_code}}">{{asset.asset_code}}</text>
+  </view>
+
+  <!-- 核心指标 -->
+  <view class="metrics">
+    <view class="metric-item">
+      <text class="metric-value">{{priceText}}</text>
+      <text class="metric-label">年租金</text>
+    </view>
+    <view class="metric-divider"></view>
+    <view class="metric-item">
+      <text class="metric-value">{{areaText}}</text>
+      <text class="metric-label">面积</text>
+    </view>
+    <view class="metric-divider"></view>
+    <view class="metric-item">
+      <text class="metric-value">{{leaseText}}</text>
+      <text class="metric-label">流转期</text>
+    </view>
+    <view class="metric-divider"></view>
+    <view class="metric-item">
+      <text class="metric-value">{{distanceText}}</text>
+      <text class="metric-label">距离</text>
+    </view>
+  </view>
+
+  <!-- 标题 -->
+  <view class="title-section">
+    <text class="main-title">{{asset.title}}</text>
+    <text class="sub-title">📍 {{locationText}}</text>
+  </view>
+
+  <!-- 资产描述 -->
+  <view class="section" wx:if="{{asset.description}}">
+    <text class="section-title">📝 资产描述</text>
+    <text class="section-body">{{descText}}</text>
+  </view>
+
+  <!-- 权证信息 -->
+  <view class="section" wx:if="{{certInfo}}">
+    <text class="section-title">📋 权证信息</text>
+    <view class="section-list">
+      <view class="list-item" wx:for="{{certInfo}}" wx:key="label">
+        <text class="list-label">{{item.label}}</text>
+        <text class="list-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 基建配套 -->
+  <view class="section" wx:if="{{infraDetails}}">
+    <text class="section-title">🏗️ 基建配套</text>
+    <text class="section-body">{{infraDetails}}</text>
+  </view>
+
+  <!-- 交通信息 -->
+  <view class="section" wx:if="{{transportInfo}}">
+    <text class="section-title">🚗 交通信息</text>
+    <view class="section-list">
+      <view class="list-item" wx:for="{{transportInfo}}" wx:key="label">
+        <text class="list-label">{{item.label}}</text>
+        <text class="list-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 交易保障服务 -->
+  <view class="section" wx:if="{{professionals.length > 0}}">
+    <text class="section-title">🛡️ 交易保障服务</text>
+    <view class="prof-list">
+      <view class="prof-item" wx:for="{{professionals}}" wx:key="id" bind:tap="goProf" data-id="{{item.id}}">
+        <text class="prof-icon">{{item.icon}}</text>
+        <view class="prof-info">
+          <text class="prof-name">{{item.name}}</text>
+          <text class="prof-org">{{item.org_name || item.label}} ⭐{{item.rating}}</text>
+        </view>
+        <text class="prof-arrow">→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 发布者信息 -->
+  <view class="section publisher" wx:if="{{asset.user_id}}" bind:tap="goPublisher">
+    <view class="pub-avatar">
+      <text>{{pubInitial}}</text>
+    </view>
+    <view class="pub-info">
+      <text class="pub-name">{{asset.publisher_name || '平台'}}</text>
+      <text class="pub-role">{{pubRoleText}}</text>
+    </view>
+    <text class="pub-arrow">→</text>
+  </view>
+
+  <!-- 底部安全区 -->
+  <view style="height:180rpx"></view>
+
+  <!-- 底部操作栏 -->
+  <view class="action-bar">
+    <view class="action-item" bind:tap="toggleFav">
+      <text class="action-icon">{{isFav ? '❤️' : '🤍'}}</text>
+      <text class="action-text">{{isFav ? '已收藏' : '收藏'}}</text>
+    </view>
+    <view class="action-item" bind:tap="bookAppointment">
+      <text class="action-icon">📞</text>
+      <text class="action-text">预约</text>
+    </view>
+    <view class="action-item" bind:tap="shareAsset">
+      <text class="action-icon">📤</text>
+      <text class="action-text">分享</text>
+    </view>
+    <view class="action-item" bind:tap="openMap">
+      <text class="action-icon">🗺️</text>
+      <text class="action-text">导航</text>
+    </view>
+    <button class="action-main-btn" bind:tap="unlockContact">查看联系方式</button>
   </view>
 </view>

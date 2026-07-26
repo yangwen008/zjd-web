@@ -165,7 +165,16 @@ Page({
       const arr = JSON.parse(imagesJson)
       if (Array.isArray(arr) && arr.length > 0) {
         const first = arr[0]
-        return (typeof first === 'object' ? (first.thumb || first.url) : first) || '/static/logo.png'
+        let url = (typeof first === 'object' ? (first.thumb || first.url) : first) || ''
+        if (!url) return '/static/logo.png'
+        // R2 路径需要加代理前缀
+        if (url.startsWith('/api/images/') || url.startsWith('api/images/')) {
+          return 'https://z.zjd.cn' + (url.startsWith('/') ? '' : '/') + url
+        }
+        // 已经是完整URL
+        if (url.startsWith('http')) return url
+        // 其他相对路径
+        return 'https://z.zjd.cn' + (url.startsWith('/') ? '' : '/') + url
       }
     } catch (e) {}
     return '/static/logo.png'
