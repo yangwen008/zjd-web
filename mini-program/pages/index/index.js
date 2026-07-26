@@ -14,11 +14,10 @@ Page({
     ],
     serviceEntries: [
       { path: '/pages/services/index/index', icon: '🛡️', label: '服务', bg: '#ede7f6' },
-      { path: '/pages/broker/list', icon: '🤝', label: '合伙人', bg: '#e8eaf6' },
-      { path: '/pages/bulk/list', icon: '🏢', label: '大宗', bg: '#fff8e1' },
-      { path: '/pages/region/index', icon: '🔥', label: '热门', bg: '#fbe9e7' }
+      { path: '/pages/broker/list/list', icon: '🤝', label: '合伙人', bg: '#e8eaf6' },
+      { path: '/pages/bulk/list/list', icon: '🏢', label: '大宗', bg: '#fff8e1' },
+      { path: '/pages/region/region', icon: '🔥', label: '热门', bg: '#fbe9e7' }
     ],
-    featuredAssets: [],
     assets: [],
     leftCol: [],
     rightCol: [],
@@ -35,7 +34,6 @@ Page({
     if (loc.province && loc.province !== this._lastProvince) {
       this._lastProvince = loc.province
       this.updateLocation()
-      this.loadFeatured()
       this.loadAssets(true)
     }
   },
@@ -49,7 +47,6 @@ Page({
       const loc = app.globalData.location
       if (loc.province) {
         this.updateLocation()
-        this.loadFeatured()
         this.loadAssets(true)
       } else {
         if (!this._locWait) this._locWait = 0
@@ -57,7 +54,6 @@ Page({
         if (this._locWait < 3000) {
           setTimeout(check, 100)
         } else {
-          this.loadFeatured()
           this.loadAssets(true)
         }
       }
@@ -74,23 +70,7 @@ Page({
     }
   },
 
-  async loadFeatured() {
-    try {
-      const loc = app.globalData.location
-      let url = '/api/assets?featured=true&limit=5&sort=views'
-      if (loc.province) url += '&province=' + encodeURIComponent(loc.province)
-      const res = await app.request({ url })
-      if (res.success && res.data) {
-        const featured = res.data.map(item => ({
-          ...item,
-          title: item.title || '未命名资产',
-          firstImage: this.getFirstImage(item.images),
-          priceText: item.price_year ? '¥' + item.price_year + '万/年起' : '价格面议'
-        }))
-        this.setData({ featuredAssets: featured })
-      }
-    } catch (e) {}
-  },
+
 
   async loadAssets(reset) {
     if (this.data.loading) return

@@ -35,26 +35,10 @@
     </view>
   </view>
 
-  <!-- 推荐轮播 -->
-  <view class="section" wx:if="{{featuredAssets.length > 0}}">
-    <view class="section-header">
-      <text class="section-title">🔥 精选推荐</text>
-    </view>
-    <scroll-view scroll-x class="featured-scroll">
-      <view class="featured-card" wx:for="{{featuredAssets}}" wx:key="id" bind:tap="goAsset" data-id="{{item.id}}">
-        <image class="featured-img" src="{{item.firstImage}}" mode="aspectFill" />
-        <view class="featured-overlay">
-          <text class="featured-title">{{item.title}}</text>
-          <text class="featured-price">{{item.priceText}}</text>
-        </view>
-      </view>
-    </scroll-view>
-  </view>
-
-  <!-- 为您推荐（双列瀑布流） -->
+  <!-- 附近资产（双列瀑布流） -->
   <view class="section">
     <view class="section-header">
-      <text class="section-title">📍 为您推荐</text>
+      <text class="section-title">📍 附近资产</text>
       <text class="section-more" bind:tap="goSearch">查看全部 →</text>
     </view>
     <view class="waterfall">
