@@ -215,13 +215,23 @@ export async function searchAssets(keyword: string, limit: number = 20): Promise
 
   if (ftsResults.length > 0) return ftsResults;
 
-  // FTS5 无结果时，用 LIKE 搜索编号和标题
+  // FTS5 无结果时，用 LIKE 全字段模糊搜索
   const likePattern = `%${keyword}%`;
   return query<Asset>(
-    `SELECT * FROM assets
-     WHERE status = ? AND (asset_code LIKE ? OR title LIKE ? OR location LIKE ?)
-     ORDER BY featured DESC, views DESC LIMIT ?`,
-    'approved', likePattern, likePattern, likePattern, limit
+    `SELECT a.*, u.nickname as publisher_name, u.role as publisher_role
+     FROM assets a LEFT JOIN users u ON a.user_id = u.id
+     WHERE a.status = ? AND (
+       a.asset_code LIKE ? OR a.title LIKE ? OR a.description LIKE ?
+       OR a.location LIKE ? OR a.province LIKE ? OR a.city LIKE ?
+       OR a.district LIKE ? OR a.address LIKE ? OR a.asset_type LIKE ?
+       OR a.contact_name LIKE ?
+     )
+     ORDER BY a.featured DESC, a.views DESC LIMIT ?`,
+    'approved',
+    likePattern, likePattern, likePattern,
+    likePattern, likePattern, likePattern,
+    likePattern, likePattern, likePattern,
+    likePattern, limit
   );
 }
 
