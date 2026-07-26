@@ -230,6 +230,11 @@ Page({
 
   selectCity(e) {
     const city = e.currentTarget.dataset.name
+    if (!city) {
+      // 点击「← 返回省份」，回到省份列表
+      this.setData({ selectedCity: '' })
+      return
+    }
     app.globalData.location.city = city
     this.updateLocation()
     this.setData({ showCityPicker: false, selectedCity: '' })
@@ -246,5 +251,6 @@ Page({
     } catch (e) {}
   },
   onPullDownRefresh() { this.loadAssets(true) },
-  onReachBottom() { if (!this.data.noMore) this.loadAssets(false) }
+  onReachBottom() { if (!this.data.noMore) this.loadAssets(false) },
+  noop() {} // 阻止城市选择器点击穿透
 })
