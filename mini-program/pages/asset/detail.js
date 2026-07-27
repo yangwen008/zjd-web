@@ -5,7 +5,8 @@ Page({
   data: {
     asset: {},
     images: [],
-    videoUrl: '',
+    mediaList: [],
+    currentMedia: 0,
     isFav: false,
     badge: '',
     badgeClass: '',
@@ -128,18 +129,19 @@ Page({
       const transferMap = { lease: { label: '租赁', color: '#2e7d32' }, transfer: { label: '转让', color: '#1565c0' }, grant: { label: '出让', color: '#e65100' }, cooperation: { label: '合作', color: '#7b1fa2' }, equity: { label: '入股', color: '#c62828' } }
       const tt = transferMap[asset.transfer_type] || transferMap.lease
 
-      // 视频URL处理
-      let videoUrl = ''
+      // 合并视频+图片到一个轮播（视频排第一）
+      const mediaList = []
       if (asset.video_url) {
-        if (asset.video_url.startsWith('http')) {
-          videoUrl = asset.video_url
-        } else {
-          videoUrl = app.globalData.baseUrl + (asset.video_url.startsWith('/') ? '' : '/') + asset.video_url
+        let vUrl = asset.video_url
+        if (!vUrl.startsWith('http')) {
+          vUrl = app.globalData.baseUrl + (vUrl.startsWith('/') ? '' : '/') + vUrl
         }
+        mediaList.push({ src: vUrl, isVideo: true })
       }
+      images.forEach(img => mediaList.push({ src: img, isVideo: false }))
 
       this.setData({
-        asset, images, videoUrl,
+        asset, images, mediaList,
         badge: this.getBadge(asset),
         badgeClass: this.getBadgeClass(asset),
         transferLabel: tt.label,
@@ -269,6 +271,7 @@ Page({
     wx.setStorageSync('viewHistory', history)
   },
 
+  onMediaChange(e) { this.setData({ currentMedia: e.detail.current }) },
   previewImage(e) { wx.previewImage({ urls: this.data.images, current: e.currentTarget.dataset.src }) },
   goBack() { wx.navigateBack() },
   goPublisher() { if (this.data.asset.user_id) wx.navigateTo({ url: '/pages/broker/detail/detail?id=' + this.data.asset.user_id }) },

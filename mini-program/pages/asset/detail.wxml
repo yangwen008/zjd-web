@@ -1,14 +1,10 @@
 <!-- pages/asset/detail.wxml — 资产详情页（完整版，对齐H5） -->
 <view class="page">
-  <!-- 视频播放器 -->
-  <view wx:if="{{videoUrl}}" class="video-wrap">
-    <video class="media-video" src="{{videoUrl}}" controls show-fullscreen-btn show-play-btn enable-progress-gesture object-fit="contain" />
-  </view>
-
-  <!-- 图片轮播 -->
-  <swiper class="media-swiper" indicator-dots="{{images.length > 1}}" indicator-active-color="#1a4731" indicator-color="rgba(255,255,255,0.5)" circular>
-    <swiper-item wx:for="{{images}}" wx:key="*this">
-      <image class="media-img" src="{{item}}" mode="aspectFill" bind:tap="previewImage" data-src="{{item}}" />
+  <!-- 图片+视频 轮播 -->
+  <swiper class="media-swiper" indicator-dots="{{mediaList.length > 1}}" indicator-active-color="#1a4731" indicator-color="rgba(255,255,255,0.5)" circular current="{{currentMedia}}" bind:change="onMediaChange">
+    <swiper-item wx:for="{{mediaList}}" wx:key="src">
+      <video wx:if="{{item.isVideo}}" class="media-img" src="{{item.src}}" controls show-fullscreen-btn show-play-btn enable-progress-gesture object-fit="contain" />
+      <image wx:else class="media-img" src="{{item.src}}" mode="aspectFill" bind:tap="previewImage" data-src="{{item.src}}" />
     </swiper-item>
   </swiper>
 
