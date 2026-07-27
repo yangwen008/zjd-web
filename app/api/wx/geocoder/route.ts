@@ -26,10 +26,20 @@ export async function GET(request: Request) {
   const lat = searchParams.get('lat');
   const lng = searchParams.get('lng');
 
+  // 调试：检查环境变量
+  const debugKey = (process.env as Record<string, string>).TENCENT_MAP_KEY || '';
+  if (searchParams.has('debug')) {
+    return NextResponse.json({
+      keySet: !!debugKey,
+      keyPrefix: debugKey ? debugKey.substring(0, 6) + '...' : '(empty)',
+      keyLength: debugKey.length,
+    });
+  }
+
   // 方案1：GPS 坐标反向地理编码
   if (lat && lng) {
     try {
-      const key = (process.env as Record<string, string>).TENCENT_MAP_KEY || '';
+      const key = debugKey;
       if (!key) {
         // 没有配置 Key，降级到 IP 定位
         return fallbackByCF(request);
