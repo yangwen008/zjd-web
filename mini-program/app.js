@@ -107,9 +107,11 @@ App({
         header,
         success: (res) => {
           if (res.statusCode === 401) {
+            // 只清除 token，不强制跳转（避免登录后立即被踢回）
             this.globalData.token = ''
+            this.globalData.user = null
             wx.removeStorageSync('token')
-            wx.navigateTo({ url: '/pages/login/index' })
+            wx.removeStorageSync('user')
             reject(new Error('请先登录'))
             return
           }

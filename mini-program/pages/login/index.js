@@ -36,13 +36,8 @@ Page({
         method: 'POST',
         data: { code }
       })
-      if (res.success) {
-        app.globalData.token = res.token || ''
-        app.globalData.user = res.user || null
-        wx.setStorageSync('token', app.globalData.token)
-        wx.setStorageSync('user', app.globalData.user)
-        wx.showToast({ title: '登录成功', icon: 'success' })
-        setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 500)
+      if (res.success && res.token) {
+        this.saveLogin(res.token, res.user)
       } else {
         wx.showToast({ title: res.error || '登录失败', icon: 'none' })
       }
@@ -65,13 +60,8 @@ Page({
         method: 'POST',
         data: { code: e.detail.code, phone_code: e.detail.code }
       })
-      if (res.success) {
-        app.globalData.token = res.token || ''
-        app.globalData.user = res.user || null
-        wx.setStorageSync('token', app.globalData.token)
-        wx.setStorageSync('user', app.globalData.user)
-        wx.showToast({ title: '登录成功', icon: 'success' })
-        setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 500)
+      if (res.success && res.token) {
+        this.saveLogin(res.token, res.user)
       } else {
         wx.showToast({ title: res.error || '登录失败', icon: 'none' })
       }
@@ -93,19 +83,27 @@ Page({
         method: 'POST',
         data: { phone, password }
       })
-      if (res.success) {
-        app.globalData.token = res.token || ''
-        app.globalData.user = res.user || null
-        wx.setStorageSync('token', app.globalData.token)
-        wx.setStorageSync('user', app.globalData.user)
-        wx.showToast({ title: '登录成功', icon: 'success' })
-        setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 500)
+      if (res.success && res.token) {
+        this.saveLogin(res.token, res.user)
       } else {
         wx.showToast({ title: res.error || '登录失败', icon: 'none' })
       }
     } catch (err) {
       wx.showToast({ title: '登录失败', icon: 'none' })
     }
+  },
+
+  // 统一保存登录态并跳转
+  saveLogin(token, user) {
+    app.globalData.token = token
+    app.globalData.user = user || null
+    wx.setStorageSync('token', token)
+    wx.setStorageSync('user', user || null)
+    wx.showToast({ title: '登录成功', icon: 'success' })
+    // 延迟跳转，确保 storage 写入完成
+    setTimeout(() => {
+      wx.switchTab({ url: '/pages/index/index' })
+    }, 800)
   },
 
   goRegister() {
