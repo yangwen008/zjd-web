@@ -27,6 +27,13 @@ export async function GET(request: Request) {
   const lat = searchParams.get('lat');
   const lng = searchParams.get('lng');
 
+  // 调试：列出环境变量名（不暴露值）
+  if (searchParams.has('debug')) {
+    const env = getEnv();
+    const keys = Object.keys(env).filter(k => !k.startsWith('__'));
+    return NextResponse.json({ envKeys: keys, hasTencentKey: !!(env as any).TENCENT_MAP_KEY });
+  }
+
   // 方案1：GPS 坐标反向地理编码
   if (lat && lng) {
     try {
