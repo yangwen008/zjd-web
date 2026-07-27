@@ -1,6 +1,7 @@
 export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
+import { getEnv } from '@/lib/db';
 
 // 中文省份映射（Cloudflare cf.region 返回英文）
 const REGION_MAP: Record<string, string> = {
@@ -29,7 +30,8 @@ export async function GET(request: Request) {
   // 方案1：GPS 坐标反向地理编码
   if (lat && lng) {
     try {
-      const key = (process.env as Record<string, string>).TENCENT_MAP_KEY || '';
+      const env = getEnv();
+      const key = (env as any).TENCENT_MAP_KEY || '';
       if (!key) {
         // 没有配置 Key，降级到 IP 定位
         return fallbackByCF(request);
