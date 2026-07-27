@@ -77,15 +77,19 @@ function fallbackByCF(request: Request) {
   const city = cf?.city || '';
   const country = cf?.country || '';
 
-  if (country !== 'CN') {
-    return NextResponse.json({ success: false, error: '非中国大陆地区' });
+  // 有省份信息就返回（Cloudflare Workers 环境）
+  if (region) {
+    const province = REGION_MAP[region] || region;
+    return NextResponse.json({
+      success: true,
+      address: { province, city: city ? city + '市' : '', district: '' },
+      source: 'cf',
+    });
   }
 
-  const province = REGION_MAP[region] || region;
-
+  // 无 cf 对象（非 Cloudflare 环境，如开发者工具）
   return NextResponse.json({
-    success: true,
-    address: { province, city: city ? city + '市' : '', district: '' },
-    source: 'cf',
+    success: false,
+    error: '无法获取位置信息，请确保已开启定位权限',
   });
 }
