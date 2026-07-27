@@ -21,20 +21,25 @@ export async function GET(request: Request) {
 
   if (lat && lng) {
     try {
-      const key = (process.env as any).TENCENT_MAP_KEY || '';
-      if (!key) {
-        return fallbackByCF(request);
+      // 尝试多种方式读取 Key
+      const env = (globalThis as any).__env__ || {};
+      const key = env.TENCENT_MAP_KEY
+        || (process.env as any).TENCENT_MAP_KEY
+        || '';
+
+      if (key) {
+        const url = 'https://apis.map.qq.com/ws/geocoder/v1/?location=' + lat + ',' + lng + '&key=' + key;
+        const res = await fetch(url);
+        const data = await res.json() as any;
+        if (data.status === 0 && data.result?.address_component) {
+          const addr = data.result.address_component;
+          return NextResponse.json({
+            success: true,
+            address: { province: addr.province || '', city: addr.city || '', district: addr.district || '' },
+          });
+        }
       }
-      const url = 'https://apis.map.qq.com/ws/geocoder/v1/?location=' + lat + ',' + lng + '&key=' + key;
-      const res = await fetch(url);
-      const data = await res.json() as any;
-      if (data.status === 0 && data.result?.address_component) {
-        const addr = data.result.address_component;
-        return NextResponse.json({
-          success: true,
-          address: { province: addr.province || '', city: addr.city || '', district: addr.district || '' },
-        });
-      }
+      // Key 无效或 API 失败，降级
       return fallbackByCF(request);
     } catch {
       return fallbackByCF(request);
