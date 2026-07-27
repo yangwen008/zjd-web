@@ -35,10 +35,9 @@ export async function GET(request: Request) {
         return fallbackByCF(request);
       }
 
-      const url = `https://apis.map.qq.com/ws/geocoder/v1/?location=${lat},${lng}&key=${key}`;
-      const res = await fetch(url);
+      const url = `https://apis.map.qq.com/ws/geocoder/v1/?location=${lat},${lng}&key=***      const res = await fetch(url);
       const data = await res.json() as {
-        status: number;
+        status?: number;
         result?: {
           address_component?: {
             province?: string;
@@ -46,6 +45,7 @@ export async function GET(request: Request) {
             district?: string;
           };
         };
+        message?: string;
       };
 
       if (data.status === 0 && data.result?.address_component) {
@@ -60,9 +60,11 @@ export async function GET(request: Request) {
         });
       }
 
-      // 腾讯地图失败，降级
+      // 腾讯地图返回错误，降级
+      console.error('Tencent geocoder error:', data.status, data.message);
       return fallbackByCF(request);
-    } catch {
+    } catch (e) {
+      console.error('Tencent geocoder exception:', e);
       return fallbackByCF(request);
     }
   }
