@@ -95,12 +95,15 @@ Page({
 
   // 统一保存登录态并跳转
   saveLogin(token, user) {
+    console.log('saveLogin called, token length:', token ? token.length : 0)
     app.globalData.token = token
     app.globalData.user = user || null
     wx.setStorageSync('token', token)
     wx.setStorageSync('user', user || null)
+    // 验证存储
+    const savedToken = wx.getStorageSync('token')
+    console.log('token saved to storage:', savedToken ? 'yes (' + savedToken.length + ')' : 'NO')
     wx.showToast({ title: '登录成功', icon: 'success' })
-    // 延迟跳转，确保 storage 写入完成
     setTimeout(() => {
       wx.switchTab({ url: '/pages/index/index' })
     }, 800)

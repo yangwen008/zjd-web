@@ -17,8 +17,17 @@ Page({
   },
 
   refreshUser() {
-    const user = app.globalData.user
-    const token = app.globalData.token
+    // 优先从 globalData 读，降级从 storage 恢复
+    let user = app.globalData.user
+    let token = app.globalData.token
+    if (!token) {
+      token = wx.getStorageSync('token') || ''
+      if (token) app.globalData.token = token
+    }
+    if (!user) {
+      user = wx.getStorageSync('user') || null
+      if (user) app.globalData.user = user
+    }
     if (user && token) {
       const roleMap = {
         'user': '普通用户', 'broker': '合伙人', 'village_org': '村集体',
