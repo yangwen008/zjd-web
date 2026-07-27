@@ -5,6 +5,7 @@ Page({
   data: {
     asset: {},
     images: [],
+    videoUrl: '',
     isFav: false,
     badge: '',
     badgeClass: '',
@@ -127,8 +128,18 @@ Page({
       const transferMap = { lease: { label: '租赁', color: '#2e7d32' }, transfer: { label: '转让', color: '#1565c0' }, grant: { label: '出让', color: '#e65100' }, cooperation: { label: '合作', color: '#7b1fa2' }, equity: { label: '入股', color: '#c62828' } }
       const tt = transferMap[asset.transfer_type] || transferMap.lease
 
+      // 视频URL处理
+      let videoUrl = ''
+      if (asset.video_url) {
+        if (asset.video_url.startsWith('http')) {
+          videoUrl = asset.video_url
+        } else {
+          videoUrl = app.globalData.baseUrl + (asset.video_url.startsWith('/') ? '' : '/') + asset.video_url
+        }
+      }
+
       this.setData({
-        asset, images,
+        asset, images, videoUrl,
         badge: this.getBadge(asset),
         badgeClass: this.getBadgeClass(asset),
         transferLabel: tt.label,
