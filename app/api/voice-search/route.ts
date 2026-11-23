@@ -57,6 +57,13 @@ function parseNum(s: string): number | null {
   return null;
 }
 
+// 省市名称后缀（用于简称匹配："四川"能命中"四川省"）
+const REGION_SUFFIX_RE = /(维吾尔自治区|壮族自治区|回族自治区|特别行政区|自治区|省|市)$/;
+
+function regionShortName(name: string): string {
+  return name.replace(REGION_SUFFIX_RE, '');
+}
+
 async function loadRegions(): Promise<RegionRow[]> {
   try {
     return await query<RegionRow>(
@@ -84,7 +91,9 @@ async function parseText(raw: string): Promise<ParsedQuery> {
   regions.sort((a, b) => b.name.length - a.name.length);
   for (const r of regions) {
     if (r.name.length < 2) continue;
-    if (text.includes(r.name)) {
+    const shortName = regionShortName(r.name);
+    const hitShort = shortName.length >= 2 && shortName !== r.name && text.includes(shortName);
+    if (text.includes(r.name) || hitShort) {
       if (r.level === 'city' && !result.city) {
         result.city = r.name;
         result.province = r.province || result.province;
@@ -92,6 +101,7 @@ async function parseText(raw: string): Promise<ParsedQuery> {
         result.province = r.name;
       }
       text = text.split(r.name).join(' ');
+      if (hitShort) text = text.split(shortName).join(' ');
     }
     if (result.province && result.city) break;
   }
