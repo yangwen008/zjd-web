@@ -53,7 +53,7 @@ function parseNum(s: string): number | null {
     const ones = m[2] ? CN_NUM[m[2]] : 0;
     return tens * 10 + ones;
   }
-  if (CN_NUM[s] !== undefined) return CN_NUM[s];
+  if (s in CN_NUM) return CN_NUM[s];
   return null;
 }
 
@@ -252,7 +252,11 @@ async function doSearch(rawText: string, provinceOverride?: string, cityOverride
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json().catch(() => ({} as any));
+    const body = (await request.json().catch(() => ({}))) as {
+      text?: string;
+      province?: string;
+      city?: string;
+    };
     const text = (body.text || '').trim();
     if (!text) {
       return NextResponse.json({ success: false, error: 'text is required' }, { status: 400 });
