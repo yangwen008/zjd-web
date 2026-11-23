@@ -50,7 +50,8 @@ Component({
 
       // 使用微信同声传译插件进行语音识别
       // 如果插件不可用，使用备用方案：弹出输入框
-      const plugin = requirePlugin('WechatSI')
+      let plugin = null
+      try { plugin = requirePlugin('WechatSI') } catch (e) { plugin = null }
       if (plugin && plugin.manager) {
         plugin.manager.translateVoice({
           filePath: tempFilePath,
