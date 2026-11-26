@@ -131,24 +131,27 @@ Page({
     this.setData({ envItems: items })
   },
 
-  getGPS() {
+    getGPS() {
     wx.getLocation({
       type: 'gcj02',
       success: (res) => {
         this._gpsLat = res.latitude
         this._gpsLng = res.longitude
+        // 通过后端代理反查地址（不在前端暴露地图 API Key）
         wx.request({
-          url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${res.latitude},${res.longitude}&key=***
+          url: getApp().globalData.baseUrl + '/api/wx/geocoder?lat=' + res.latitude + '&lng=' + res.longitude,
           success: (addrRes) => {
-            const addr = addrRes.data?.result?.address_component
-            if (addr) {
+            const data = addrRes.data || {}
+            const addr = data.address || {}
+            if (data.success && addr.province) {
               this.setData({
                 'form.province': addr.province || '',
                 'form.city': addr.city || '',
-                'form.district': addr.district || '',
-                'form.address': addrRes.data.result.formatted_addresses?.recommend || ''
+                'form.district': addr.district || ''
               })
               wx.showToast({ title: '定位成功', icon: 'success' })
+            } else {
+              wx.showToast({ title: '已定位，请手动补全省市区', icon: 'none' })
             }
           }
         })
