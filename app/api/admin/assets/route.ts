@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { query, queryOne, execute } from '@/lib/db';
 import type { Asset } from '@/lib/data';
+import { encryptPhone, decryptRows } from '@/lib/phone-crypto';
 import { baiduPushAsset } from '@/lib/baidu-push';
 
 export async function GET(request: Request) {
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
     const countRow = await queryOne<{ total: number }>(countSql, ...countArgs);
     const total = countRow?.total || 0;
 
-    const results = await query<Asset>(sql, ...args);
+    const results = await decryptRows(await query<Asset>(sql, ...args));
     return NextResponse.json({ success: true, data: results, total });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
@@ -118,7 +119,7 @@ export async function PUT(request: Request) {
     if (images !== undefined) { fields.push('images = ?'); args.push(images || '[]'); }
     if (video_url !== undefined) { fields.push('video_url = ?'); args.push(video_url || null); }
     if (contact_name !== undefined) { fields.push('contact_name = ?'); args.push(contact_name || ''); }
-    if (contact_phone !== undefined) { fields.push('contact_phone = ?'); args.push(contact_phone || ''); }
+    if (contact_phone !== undefined) { fields.push('contact_phone = ?'); args.push(await encryptPhone(contact_phone || '')); }
     if (status !== undefined) { fields.push('status = ?'); args.push(status); }
     if (infra_details !== undefined) { fields.push('infra_details = ?'); args.push(infra_details); }
     if (transport_info !== undefined) { fields.push('transport_info = ?'); args.push(typeof transport_info === 'object' ? JSON.stringify(transport_info) : transport_info); }
