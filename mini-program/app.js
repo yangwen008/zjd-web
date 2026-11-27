@@ -45,7 +45,9 @@ App({
           this.globalData.location.province = addr.province || ''
           this.globalData.location.city = addr.city || ''
           this.globalData.location.district = addr.district || ''
+          this.notifyLocation() 
           console.log('定位成功:', addr.province, addr.city)
+          this.notifyLocation()  
         } else {
           console.warn('反向地理编码失败，尝试 IP 定位')
           this.locateByIP()
@@ -72,6 +74,12 @@ App({
         }
       }
     })
+  },
+    // 定位就绪后通知当前页面刷新
+  notifyLocation() {
+    if (typeof this.locationReadyCallback === 'function') {
+      this.locationReadyCallback(this.globalData.location)
+    }
   },
 
   // 获取图片URL（R2代理处理）
