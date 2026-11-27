@@ -3,11 +3,25 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { execute, queryOne } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
+import { encryptPhone, decryptPhone } from '@/lib/phone-crypto';
 
-// POST /api/unlock - 解锁资产联系方式
+interface UnlockBody {
+  assetId: number;
+  assetType?: 'asset' | 'bulk_project';
+}
+
+interface ContactRow {
+  id: number;
+  contact_phone: string | null;
+  contact_name: string | null;
+  title: string;
+}
+
+// POST /api/unlock - 解锁资产/大宗项目联系方式（需登录）
+// 完整电话仅通过本接口输出：公开页面/API 只出脱敏号（见 lib/phone-crypto.ts）
 export async function POST(request: Request) {
   try {
-    const { assetId } = await request.json() as { assetId: number };
+    const { assetId, assetType = 'asset' } = await request.json() as UnlockBody;
 
     if (!assetId) {
       return NextResponse.json({ success: false, error: 'assetId required' }, { status: 400 });
@@ -19,8 +33,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '请先登录' }, { status: 401 });
     }
 
+    // 大宗项目：返回联系方式即可。
+    // 不写 unlock_tasks/leads（两表 asset_id 外键指向 assets 表，大宗不入线索跟踪）
+    if (assetType === 'bulk_project') {
+      const project = await queryOne<ContactRow>(
+        'SELECT id, contact_phone, contact_name, title FROM bulk_projects WHERE id = ? AND status = ?',
+        assetId, 'approved'
+      );
+      if (!project) {
+        return NextResponse.json({ success: false, error: '项目不存在或未上架' }, { status: 404 });
+      }
+      return NextResponse.json({
+        success: true,
+        data: {
+          contact_name: project.contact_name || '未提供',
+          contact_phone: (await decryptPhone(project.contact_phone)) || '未提供',
+          asset_title: project.title,
+        },
+      });
+    }
+
     // 查询资产
-    const asset = await queryOne<{ id: number; contact_phone: string | null; contact_name: string | null; title: string }>(
+    const asset = await queryOne<ContactRow>(
       'SELECT id, contact_phone, contact_name, title FROM assets WHERE id = ? AND status = ?',
       assetId, 'approved'
     );
@@ -28,16 +62,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '资产不存在或未上架' }, { status: 404 });
     }
 
-    // 检查是否已解锁（防重复）
+    // 检查是否已解锁（防重复，且避免重复生成线索）
     const existing = await queryOne<{ id: number; result_data: string }>(
       'SELECT id, result_data FROM unlock_tasks WHERE asset_id = ? AND user_id = ? AND status = ?',
       assetId, user.id, 'done'
     );
     if (existing) {
+      let data: { contact_name?: string; contact_phone?: string; asset_title?: string } | null = null;
+      if (existing.result_data) {
+        data = JSON.parse(existing.result_data);
+        // result_data 中电话为密文存储，输出前解密
+        if (data && data.contact_phone) {
+          data.contact_phone = (await decryptPhone(data.contact_phone)) || '未提供';
+        }
+      }
       return NextResponse.json({
         success: true,
         taskId: existing.id,
-        data: existing.result_data ? JSON.parse(existing.result_data) : null,
+        data,
         alreadyUnlocked: true,
       });
     }
@@ -49,10 +91,12 @@ export async function POST(request: Request) {
     );
     const taskId = result.meta?.last_row_id;
 
-    // 写入解锁结果（联系方式）
+    const plainPhone = await decryptPhone(asset.contact_phone);
+
+    // 写入解锁结果（电话密文落库，防 DB 泄露）
     const resultData = JSON.stringify({
       contact_name: asset.contact_name || '未提供',
-      contact_phone: asset.contact_phone || '未提供',
+      contact_phone: await encryptPhone(plainPhone),
       asset_title: asset.title,
       unlocked_at: new Date().toISOString(),
     });
@@ -71,7 +115,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       taskId,
-      data: { contact_name: asset.contact_name, contact_phone: asset.contact_phone },
+      data: { contact_name: asset.contact_name, contact_phone: plainPhone || '未提供' },
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
@@ -97,10 +141,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
     }
 
+    let data: Record<string, unknown> | null = null;
+    if (task.status === 'done' && task.result_data) {
+      data = JSON.parse(task.result_data);
+      if (data && data.contact_phone) {
+        data.contact_phone = (await decryptPhone(data.contact_phone as string)) || '未提供';
+      }
+    }
+
     return NextResponse.json({
       success: true,
       status: task.status,
-      data: task.status === 'done' ? JSON.parse(task.result_data || '{}') : null,
+      data,
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
