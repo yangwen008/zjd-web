@@ -2,6 +2,7 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { query, queryOne, execute } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
+import { encryptPhone } from '@/lib/phone-crypto';
 
 export async function POST(request: Request) {
   try {
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
         gps_lat,
         gps_lng,
         body.contact_name || '',
-        body.contact_phone || '',
+        await encryptPhone(body.contact_phone || ''),
         invest_enabled,
         invest_total_shares,
         invest_share_price,
@@ -190,7 +191,7 @@ export async function POST(request: Request) {
         body.gps_lat ? parseFloat(body.gps_lat) : null,
         body.gps_lng ? parseFloat(body.gps_lng) : null,
         body.contact_name || '',
-        body.contact_phone || '',
+        await encryptPhone(body.contact_phone || ''),
         invest_enabled,
         invest_total_shares,
         invest_share_price,
