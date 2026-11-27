@@ -148,7 +148,22 @@
 
   <!-- 底部安全区 -->
   <view style="height:180rpx"></view>
-
+  <!-- 预约弹窗（提示语灰色，点击输入即消失） -->
+  <view class="appt-mask" wx:if="{{showAppt}}" bind:tap="closeAppt">
+    <view class="appt-modal" catch:tap="noop">
+      <view class="appt-title">预约带看</view>
+      <input class="appt-input"
+        placeholder="{{apptFocused ? '' : '请核对联系电话，发布者将与您联系'}}"
+        placeholder-style="color:#b0b0b0"
+        value="{{apptPhone}}"
+        type="number" maxlength="11"
+        bindinput="onApptPhone" bindfocus="onApptFocus" />
+      <view class="appt-btns">
+        <view class="appt-btn appt-cancel" bind:tap="closeAppt">取消</view>
+        <view class="appt-btn appt-confirm" bind:tap="submitAppt">提交预约</view>
+      </view>
+    </view>
+  </view>
   <!-- 底部操作栏 -->
   <view class="action-bar">
     <view class="action-item" bind:tap="toggleFav">
