@@ -2,6 +2,7 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { query, queryOne, execute } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
+import { encryptPhone, decryptPhone, decryptRows } from '@/lib/phone-crypto';
 
 export async function GET(request: Request) {
   try {
@@ -18,11 +19,12 @@ export async function GET(request: Request) {
 
     // 查单条
     if (id) {
-      const asset = await queryOne('SELECT * FROM assets WHERE id = ?', parseInt(id));
+      const asset = await queryOne<any>('SELECT * FROM assets WHERE id = ?', parseInt(id));
       if (!asset) return NextResponse.json({ success: false, error: '资产不存在' }, { status: 404 });
       if ((asset as any).user_id !== user.id && !['admin', 'superadmin'].includes(user.role)) {
         return NextResponse.json({ success: false, error: '无权查看' }, { status: 403 });
       }
+      asset.contact_phone = await decryptPhone(asset.contact_phone); // 编辑表单需要明文
       return NextResponse.json({ success: true, data: asset });
     }
 
@@ -54,7 +56,7 @@ export async function GET(request: Request) {
 
     // 查询当前页数据
     const dataArgs = [...args, limit, offset];
-    const results = await query(`SELECT * FROM assets${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`, ...dataArgs);
+    const results = await decryptRows(await query<any>(`SELECT * FROM assets${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`, ...dataArgs));
 
     return NextResponse.json({
       success: true,
@@ -93,7 +95,7 @@ export async function PUT(request: Request) {
       title, description || '', location, province, city || '', district || '', address || '',
       area_mu ? parseFloat(area_mu) : null, price_year ? parseFloat(price_year) : null,
       price_total ? parseFloat(price_total) : null, lease_years ? parseInt(lease_years) : null,
-      asset_type || '宅基地', images || '[]', video_url || null, contact_name || '', contact_phone || '', id
+      asset_type || '宅基地', images || '[]', video_url || null, contact_name || '', await encryptPhone(contact_phone || ''), id
     );
 
     return NextResponse.json({ success: true, message: '修改成功，需重新审核' });
