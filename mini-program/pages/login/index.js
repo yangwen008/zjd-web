@@ -49,16 +49,29 @@ Page({
   },
 
   // 手机号快捷登录
+  // ⚠️ e.detail.code 是手机号凭证(phone_code)，不是 wx.login 的 code，
+  //    两者不能混用——直接当 code 发给 jscode2session 会报 invalid code (40029)。
+  //    这里先 wx.login() 拿 code，phone_code 单独传。
   async getPhoneNumber(e) {
-    if (!e.detail.code) {
+    const phoneCode = e.detail && e.detail.code
+    if (!phoneCode) {
       wx.showToast({ title: '获取手机号失败', icon: 'none' })
       return
     }
+    if (this.data.wxLoading) return
+    this.setData({ wxLoading: true })
     try {
+      const loginRes = await new Promise((resolve, reject) => {
+        wx.login({ success: resolve, fail: reject })
+      })
+      if (!loginRes.code) {
+        wx.showToast({ title: '获取登录凭证失败', icon: 'none' })
+        return
+      }
       const res = await app.request({
         url: '/api/auth/wx/mini-login',
         method: 'POST',
-        data: { code: e.detail.code, phone_code: e.detail.code }
+        data: { code: loginRes.code, phone_code: phoneCode }
       })
       if (res.success && res.token) {
         this.saveLogin(res.token, res.user)
@@ -67,6 +80,8 @@ Page({
       }
     } catch (err) {
       wx.showToast({ title: '登录失败', icon: 'none' })
+    } finally {
+      this.setData({ wxLoading: false })
     }
   },
 
