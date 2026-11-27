@@ -1,6 +1,7 @@
 // lib/data/bulk-projects.ts — 大宗路演项目
 
 import { query, queryOne } from '../db';
+import { maskRow } from '../phone-crypto';
 
 export interface BulkProject {
   id: number;
@@ -62,7 +63,7 @@ export async function getBulkProjects(params: BulkProjectFilters = {}): Promise<
   if (search) { sql += ' AND (title LIKE ? OR description LIKE ? OR location LIKE ?)'; const q = `%${search}%`; args.push(q, q, q); }
   sql += ' ORDER BY featured DESC, views DESC LIMIT ? OFFSET ?';
   args.push(limitNum, (page - 1) * limitNum);
-  return query<BulkProject>(sql, ...args);
+  return Promise.all((await query<BulkProject>(sql, ...args)).map((p) => maskRow(p)));
 }
 
 export async function getBulkProjectsCount(params: BulkProjectFilters = {}): Promise<number> {
@@ -77,7 +78,7 @@ export async function getBulkProjectsCount(params: BulkProjectFilters = {}): Pro
 }
 
 export async function getBulkProjectById(id: number | string): Promise<BulkProject | null> {
-  return queryOne<BulkProject>(
+  const row = await queryOne<BulkProject>(
     `SELECT bp.*,
             COALESCE(bp.contact_phone, u.phone) as contact_phone,
             COALESCE(bp.contact_name, u.nickname) as contact_name,
@@ -86,13 +87,14 @@ export async function getBulkProjectById(id: number | string): Promise<BulkProje
      WHERE bp.id = ? AND bp.status = ?`,
     id, 'approved'
   );
+  return row ? maskRow(row) : null;
 }
 
 export async function getFeaturedBulkProjects(limit: number = 2): Promise<BulkProject[]> {
-  return query<BulkProject>(
+  return Promise.all((await query<BulkProject>(
     'SELECT * FROM bulk_projects WHERE status = ? AND featured = 1 ORDER BY views DESC LIMIT ?',
     'approved', limit
-  );
+  )).map((p) => maskRow(p)));
 }
 
 export async function incrementBulkViews(id: number | string): Promise<void> {
