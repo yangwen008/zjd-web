@@ -27,7 +27,7 @@ Page({
     pubInitial: '?',
     pubRoleText: '',
     investEnabled: false,
-    investInfo: null
+    investInfo: null,
     showAppt: false,
     apptPhone: '',
     apptFocused: false
