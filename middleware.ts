@@ -53,8 +53,12 @@ export async function middleware(request: NextRequest) {
 
   // 保护 /api/dashboard 路由
   if (pathname.startsWith('/api/dashboard')) {
+    // 小程序端走 Authorization: Bearer 认证（wx.request 不保证携带 cookie），
+    // 放行后由各路由内的 getUserFromRequest 做真正的会话校验
+    const authHeader = request.headers.get('authorization') || '';
+    const hasBearer = authHeader.startsWith('Bearer ');
     const session = request.cookies.get('user_session')?.value;
-    if (!session) {
+    if (!session && !hasBearer) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
   }
