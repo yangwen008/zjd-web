@@ -28,6 +28,9 @@ Page({
     pubRoleText: '',
     investEnabled: false,
     investInfo: null
+    showAppt: false,
+    apptPhone: '',
+    apptFocused: false
   },
 
   onLoad(options) {
@@ -288,34 +291,38 @@ Page({
 
   bookAppointment() {
     if (!app.globalData.token) { wx.navigateTo({ url: '/pages/login/index' }); return }
+    this.setData({ showAppt: true, apptPhone: '', apptFocused: false })
+  },
+
+  noop() {},
+  closeAppt() { this.setData({ showAppt: false }) },
+  onApptFocus() { this.setData({ apptFocused: true }) },
+  onApptPhone(e) { this.setData({ apptPhone: e.detail.value }) },
+
+  async submitAppt() {
     const user = app.globalData.user || {}
-    wx.showModal({
-      title: '预约带看',
-      content: '请核对联系电话，发布者将与您联系',
-      editable: true,
-      placeholderText: '请输入手机号' + (user.phone ? '（当前：' + user.phone + '）' : ''),
-      success: async (res) => {
-        if (!res.confirm) return
-        const phone = (res.content || '').trim() || user.phone || ''
-        if (!/^1[3-9]\d{9}$/.test(phone)) {
-          wx.showToast({ title: '请输入正确的手机号', icon: 'none' }); return
+    const phone = (this.data.apptPhone || '').trim() || user.phone || ''
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' }); return
+    }
+    try {
+      const r = await app.request({
+        url: '/api/appointments', method: 'POST',
+        data: {
+          assetId: parseInt(this.assetId),
+          contactName: user.nickname || '微信用户',
+          contactPhone: phone
         }
-        try {
-          const r = await app.request({
-            url: '/api/appointments', method: 'POST',
-            data: {
-              assetId: parseInt(this.assetId),
-              contactName: user.nickname || '微信用户',
-              contactPhone: phone
-            }
-          })
-          if (r.success) wx.showToast({ title: '预约成功', icon: 'success' })
-          else wx.showToast({ title: r.error || '预约失败', icon: 'none' })
-        } catch (e) {
-          wx.showToast({ title: '预约失败，请重试', icon: 'none' })
-        }
+      })
+      if (r.success) {
+        this.setData({ showAppt: false })
+        wx.showToast({ title: '预约成功', icon: 'success' })
+      } else {
+        wx.showToast({ title: r.error || '预约失败', icon: 'none' })
       }
-    })
+    } catch (e) {
+      wx.showToast({ title: '预约失败，请重试', icon: 'none' })
+    }
   },
 
   // 参投认购
