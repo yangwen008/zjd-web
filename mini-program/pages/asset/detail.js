@@ -209,8 +209,7 @@ Page({
       }
     } catch (e) {}
   },
-
-  async checkFavorite() {
+    async checkFavorite() {
     if (!app.globalData.token) return
     try {
       const res = await app.request({ url: '/api/dashboard/favorites' })
