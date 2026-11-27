@@ -453,6 +453,8 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
 
               {/* Contact + Attachments */}
               <ContactCard
+               assetId={asset.id}
+                assetType="asset"
                 phone={asset.contact_phone}
                 name={asset.contact_name}
               />
