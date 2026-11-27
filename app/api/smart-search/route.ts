@@ -43,8 +43,8 @@ function getGeoFromRequest(request: Request): GeoInfo {
 const REGION_MAP: Record<string, string> = {
   'Beijing': '北京市', 'Shanghai': '上海市', 'Tianjin': '天津市', 'Chongqing': '重庆市',
   'Zhejiang': '浙江省', 'Jiangsu': '江苏省', 'Guangdong': '广东省', 'Sichuan': '四川省',
-  'Yunnan': '云南省', 'Guizhou': '贵州省', 'Hunan': '湖北省', 'Hubei': '湖北省',
-  'Shandong': '山东省', 'Henan': '河北省', 'Hebei': '河北省', 'Fujian': '福建省',
+  'Yunnan': '云南省', 'Guizhou': '贵州省', 'Hunan': '湖南省', 'Hubei': '湖北省',
+  'Shandong': '山东省', 'Henan': '河南省', 'Hebei': '河北省', 'Fujian': '福建省',
   'Anhui': '安徽省', 'Jiangxi': '江西省', 'Liaoning': '辽宁省', 'Heilongjiang': '黑龙江省',
   'Jilin': '吉林省', 'Shanxi': '山西省', 'Shaanxi': '陕西省', 'Gansu': '甘肃省',
   'Hainan': '海南省', 'Qinghai': '青海省', 'Inner Mongolia': '内蒙古自治区',
