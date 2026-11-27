@@ -159,10 +159,10 @@
       <text class="action-icon">📞</text>
       <text class="action-text">预约</text>
     </view>
-    <view class="action-item" bind:tap="shareAsset">
+    <button class="action-item action-share-btn" open-type="share" hover-class="none">
       <text class="action-icon">📤</text>
       <text class="action-text">分享</text>
-    </view>
+    </button>
     <view class="action-item" bind:tap="openMap">
       <text class="action-icon">🗺️</text>
       <text class="action-text">导航</text>
