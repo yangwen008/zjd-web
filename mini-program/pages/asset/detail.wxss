@@ -113,3 +113,6 @@
 .action-icon { font-size: 36rpx; }
 .action-text { font-size: 18rpx; color: #666; }
 .action-main-btn { flex: 1; background: #1a4731; color: #ffffff; border-radius: 40rpx; font-size: 28rpx; font-weight: bold; padding: 18rpx 0; text-align: center; border: none; margin-left: 12rpx; }
+/* 分享按钮：重置 button 默认样式，保持与其他 action-item 一致 */
+.action-share-btn { background: transparent; border: none; margin: 0; width: auto; line-height: normal; }
+.action-share-btn::after { border: none; }
