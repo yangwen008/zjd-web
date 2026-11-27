@@ -289,14 +289,31 @@ Page({
 
   bookAppointment() {
     if (!app.globalData.token) { wx.navigateTo({ url: '/pages/login/index' }); return }
+    const user = app.globalData.user || {}
     wx.showModal({
-      title: '预约带看', content: '提交后发布者将收到通知，是否继续？',
+      title: '预约带看',
+      content: '请核对联系电话，发布者将与您联系',
+      editable: true,
+      placeholderText: '请输入手机号' + (user.phone ? '（当前：' + user.phone + '）' : ''),
       success: async (res) => {
-        if (res.confirm) {
-          try {
-            await app.request({ url: '/api/appointments', method: 'POST', data: { asset_id: parseInt(this.assetId) } })
-            wx.showToast({ title: '预约成功', icon: 'success' })
-          } catch (e) {}
+        if (!res.confirm) return
+        const phone = (res.content || '').trim() || user.phone || ''
+        if (!/^1[3-9]\d{9}$/.test(phone)) {
+          wx.showToast({ title: '请输入正确的手机号', icon: 'none' }); return
+        }
+        try {
+          const r = await app.request({
+            url: '/api/appointments', method: 'POST',
+            data: {
+              assetId: parseInt(this.assetId),
+              contactName: user.nickname || '微信用户',
+              contactPhone: phone
+            }
+          })
+          if (r.success) wx.showToast({ title: '预约成功', icon: 'success' })
+          else wx.showToast({ title: r.error || '预约失败', icon: 'none' })
+        } catch (e) {
+          wx.showToast({ title: '预约失败，请重试', icon: 'none' })
         }
       }
     })
@@ -321,9 +338,10 @@ Page({
           try {
             const r = await app.request({
               url: '/api/invest', method: 'POST',
-              data: { asset_id: parseInt(this.assetId), asset_type: 'asset', shares }
+              data: { assetId: parseInt(this.assetId), assetType: 'asset', shares }
             })
             if (r.success) wx.showToast({ title: '认购成功', icon: 'success' })
+            else wx.showToast({ title: r.error || '认购失败', icon: 'none' })
           } catch (e) {}
         }
       }
@@ -352,6 +370,12 @@ Page({
   },
 
   onShareAppMessage() {
-    return { title: this.data.asset.title || '宅基点 - 优质资产推荐', path: '/pages/asset/detail?id=' + this.assetId, imageUrl: this.data.images[0] || '' }
+    const a = this.data.asset || {}
+    const parts = [a.title, this.data.locationText, this.data.priceText].filter(Boolean)
+    return {
+      title: parts.join(' ｜ ') || '宅基点 - 优质资产推荐',
+      path: '/pages/asset/detail?id=' + this.assetId,
+      imageUrl: this.data.images[0] || ''
+    }
   }
 })
