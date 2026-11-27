@@ -37,9 +37,6 @@
   "permission": {
     "scope.userLocation": {
       "desc": "获取您的位置信息，用于推荐附近资产和计算距离"
-    },
-    "scope.record": {
-      "desc": "用于语音搜索，按住说话自动识别您想找的资产"
     }
   },
   "plugins": {
