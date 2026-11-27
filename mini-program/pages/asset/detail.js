@@ -380,7 +380,7 @@ Page({
     const a = this.data.asset || {}
     const parts = [a.title, this.data.locationText, this.data.priceText].filter(Boolean)
     return {
-      title: parts.join(' ｜ ') || '宅基点 - 优质资产推荐',
+      title: parts.join(' ｜ ') || '农村优质资源推荐',
       path: '/pages/asset/detail?id=' + this.assetId,
       imageUrl: this.data.images[0] || ''
     }
