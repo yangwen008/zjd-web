@@ -1,8 +1,8 @@
 export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
-import { query, queryOne, execute } from '@/lib/db';
-import { getEnv } from '@/lib/db';
+import { query, queryOne, execute, getEnv } from '@/lib/db';
+import { encryptPhone } from '@/lib/phone-crypto';
 import { findOrCreateSourceAccount } from '@/lib/source-account';
 
 export async function GET(request: Request) {
@@ -174,7 +174,7 @@ export async function POST(request: Request) {
           a.area_mu || null, a.price_year || null, a.lease_years || null,
           a.asset_type || '种植', a.source_type || 'official', a.source_url || null,
           imagesJson,
-          a.contact_name || null, a.contact_phone || null, a.certification || 'uncertified',
+          a.contact_name || null, await encryptPhone((a.contact_phone as string) || null) || null, a.certification || 'uncertified',
           userId, status
         );
         imported++;
@@ -270,7 +270,7 @@ ${lines}`;
 
           // 解析新标题
           const titleMap = new Map<number, string>();
-          const matches = text.matchAll(/\[(\d+)\]\s*(.+)/g);
+          const matches = text.matchAll(/$$(\d+)$$\s*(.+)/g);
           for (const m of matches) {
             const idx = parseInt(m[1]);
             const newTitle = m[2].trim();
