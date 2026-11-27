@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { query, execute } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
+import { encryptPhone, decryptRows } from '@/lib/phone-crypto';
 
 // GET: 获取当前用户的大宗项目列表
 export async function GET(request: Request) {
@@ -16,9 +17,9 @@ export async function GET(request: Request) {
       ? 'SELECT * FROM bulk_projects ORDER BY created_at DESC LIMIT 50'
       : 'SELECT * FROM bulk_projects WHERE user_id = ? ORDER BY created_at DESC LIMIT 50';
 
-    const results = isAdmin
-      ? await query(sql)
-      : await query(sql, user.id);
+    const results = await decryptRows(isAdmin
+      ? await query<any>(sql)
+      : await query<any>(sql, user.id));
 
     return NextResponse.json({ success: true, data: results });
   } catch (error) {
@@ -100,7 +101,7 @@ export async function PUT(request: Request) {
       body.cert_info ? (typeof body.cert_info === 'object' ? JSON.stringify(body.cert_info) : body.cert_info) : null,
       body.gps_lat ? parseFloat(body.gps_lat) : null,
       body.gps_lng ? parseFloat(body.gps_lng) : null,
-      body.contact_name || '', body.contact_phone || '',
+      body.contact_name || '', await encryptPhone(body.contact_phone || ''),
       id
     );
 
