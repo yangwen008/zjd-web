@@ -2,6 +2,7 @@ export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
 import { query, queryOne, execute } from '@/lib/db';
+import { encryptPhone, decryptRows } from '@/lib/phone-crypto';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
   args.push(limit, (page - 1) * limit);
 
   try {
-    const results = await query(sql, ...args);
+    const results = await decryptRows(await query<any>(sql, ...args));
     return NextResponse.json({ success: true, data: results });
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
         transport_info ? (typeof transport_info === 'object' ? JSON.stringify(transport_info) : transport_info) : null,
         cert_info ? (typeof cert_info === 'object' ? JSON.stringify(cert_info) : cert_info) : null,
         gps_lat || null, gps_lng || null,
-        contact_name || null, contact_phone || null,
+        contact_name || null, await encryptPhone((contact_phone as string) || null),
         status || 'pending', featured ? 1 : 0, user_id || null
       );
       return NextResponse.json({ success: true, id: result.meta.last_row_id });
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
         commercial_plan_doc || null, cert_doc_url, infra_details || null,
         transport_info ? (typeof transport_info === 'object' ? JSON.stringify(transport_info) : transport_info) : null,
         cert_info ? (typeof cert_info === 'object' ? JSON.stringify(cert_info) : cert_info) : null,
-        gps_lat, gps_lng, contact_name, contact_phone,
+        gps_lat, gps_lng, contact_name, await encryptPhone((contact_phone as string) || null),
         status, featured ? 1 : 0, id
       );
       return NextResponse.json({ success: true });
