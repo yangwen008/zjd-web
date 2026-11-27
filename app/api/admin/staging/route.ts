@@ -270,7 +270,7 @@ ${lines}`;
 
           // 解析新标题
           const titleMap = new Map<number, string>();
-          const matches = text.matchAll(/$$(\d+)$$\s*(.+)/g);
+          const matches = text.matchAll(/[[](\d+)[]]\s*(.+)/g);
           for (const m of matches) {
             const idx = parseInt(m[1]);
             const newTitle = m[2].trim();
