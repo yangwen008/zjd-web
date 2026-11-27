@@ -193,7 +193,11 @@ Page({
     return map[type] || ''
   },
 
-  goSearch() { wx.switchTab({ url: '/pages/search/search' }) },
+  goSearch() {
+    // 标记"查看全部"入口：到 search 页显示全部资产（不按省份过滤）
+    app.globalData._showAll = true
+    wx.switchTab({ url: '/pages/search/search' })
+  },
   goFilter(e) {
     // tabBar页面不能用navigateTo，用全局变量+switchTab
     app.globalData._filterType = e.currentTarget.dataset.type
