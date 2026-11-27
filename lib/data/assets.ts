@@ -1,6 +1,7 @@
 // lib/data/assets.ts — 资产查询
 
 import { query, queryOne } from '../db';
+import { maskRow } from '../phone-crypto';
 
 export interface Asset {
   id: number;
@@ -56,6 +57,11 @@ function enrichPublisherName(assets: Asset[]): Asset[] {
     publisher_role: (a as any).publisher_role || 'user',
     publisher_avatar: (a as any).publisher_avatar || null,
   }));
+}
+
+// 公开读取统一电话脱敏（完整号码只能通过 /api/unlock 登录解锁获取）
+async function maskAssets(rows: Asset[]): Promise<Asset[]> {
+  return Promise.all(rows.map((a) => maskRow(a)));
 }
 
 export interface AssetFilters {
@@ -133,7 +139,7 @@ function buildAssetQuery(params: AssetFilters, countOnly = false) {
 export async function getAssets(params: AssetFilters = {}): Promise<Asset[]> {
   const { sql, args } = buildAssetQuery(params);
   const assets = await query<Asset>(sql, ...args);
-  return enrichPublisherName(assets);
+  return enrichPublisherName(await maskAssets(assets));
 }
 
 export async function getAssetsCount(params: AssetFilters = {}): Promise<number> {
@@ -143,7 +149,7 @@ export async function getAssetsCount(params: AssetFilters = {}): Promise<number>
 }
 
 export async function getAssetById(id: number | string): Promise<Asset | null> {
-  return queryOne<Asset>(
+  const row = await queryOne<Asset>(
     `SELECT a.*,
             COALESCE(a.contact_phone, u.phone) as contact_phone,
             COALESCE(a.contact_name, u.nickname) as contact_name,
@@ -152,41 +158,42 @@ export async function getAssetById(id: number | string): Promise<Asset | null> {
      WHERE a.id = ? AND a.status = ?`,
     id, 'approved'
   );
+  return row ? maskRow(row) : null;
 }
 
 export async function getHotAssets(limit: number = 6): Promise<Asset[]> {
-  return query<Asset>(
+  return maskAssets(await query<Asset>(
     'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? ORDER BY a.featured DESC, a.views DESC LIMIT ?',
     'approved', limit
-  );
+  ));
 }
 
 export async function getFeaturedAssets(limit: number = 6): Promise<Asset[]> {
-  return query<Asset>(
+  return maskAssets(await query<Asset>(
     'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? AND a.featured = 1 ORDER BY a.views DESC LIMIT ?',
     'approved', limit
-  );
+  ));
 }
 
 export async function getAssetsBySource(sourceType: string, limit: number = 6): Promise<Asset[]> {
-  return query<Asset>(
+  return maskAssets(await query<Asset>(
     'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? AND a.source_type = ? ORDER BY a.featured DESC, a.created_at DESC LIMIT ?',
     'approved', sourceType, limit
-  );
+  ));
 }
 
 export async function getLatestAssets(limit: number = 6): Promise<Asset[]> {
-  return query<Asset>(
+  return maskAssets(await query<Asset>(
     'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? ORDER BY a.featured DESC, a.created_at DESC LIMIT ?',
     'approved', limit
-  );
+  ));
 }
 
 export async function getAssetsByProvince(province: string, limit: number = 20): Promise<Asset[]> {
-  return query<Asset>(
+  return maskAssets(await query<Asset>(
     'SELECT a.*, u.nickname as publisher_name, u.role as publisher_role FROM assets a LEFT JOIN users u ON a.user_id = u.id WHERE a.status = ? AND a.province = ? ORDER BY a.featured DESC, a.views DESC LIMIT ?',
     'approved', province, limit
-  );
+  ));
 }
 
 export async function getAssetStats(): Promise<{
@@ -218,11 +225,11 @@ export async function searchAssets(keyword: string, limit: number = 20): Promise
     'approved', keyword, limit
   ).catch(() => [] as Asset[]);
 
-  if (ftsResults.length > 0) return ftsResults;
+  if (ftsResults.length > 0) return maskAssets(ftsResults);
 
   // FTS5 无结果时，用 LIKE 全字段模糊搜索
   const likePattern = `%${keyword}%`;
-  return query<Asset>(
+  return maskAssets(await query<Asset>(
     `SELECT a.*, u.nickname as publisher_name, u.role as publisher_role
      FROM assets a LEFT JOIN users u ON a.user_id = u.id
      WHERE a.status = ? AND (
@@ -237,7 +244,7 @@ export async function searchAssets(keyword: string, limit: number = 20): Promise
     likePattern, likePattern, likePattern,
     likePattern, likePattern, likePattern,
     likePattern, limit
-  );
+  ));
 }
 
 export async function incrementViews(id: number | string): Promise<void> {
