@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 
 interface ContactCardProps {
+  /** 资产/项目 ID：提供后，登录用户将通过 /api/unlock 获取完整号码（生成线索） */
+  assetId?: number;
+  assetType?: 'asset' | 'bulk_project';
+  /** 脱敏号码（服务端已脱敏，未登录展示用） */
   phone?: string | null;
   name?: string | null;
   attachments?: {
@@ -13,9 +17,10 @@ interface ContactCardProps {
   }[];
 }
 
-export default function ContactCard({ phone, name, attachments = [] }: ContactCardProps) {
+export default function ContactCard({ assetId, assetType = 'asset', phone, name, attachments = [] }: ContactCardProps) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [fullPhone, setFullPhone] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -25,8 +30,24 @@ export default function ContactCard({ phone, name, attachments = [] }: ContactCa
       .finally(() => setChecking(false));
   }, []);
 
-  // 电话脱敏显示
+  // 登录后通过解锁接口获取完整号码（服务端只发脱敏号，完整号码不进页面 HTML）
+  useEffect(() => {
+    if (!loggedIn || !assetId) return;
+    fetch('/api/unlock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ assetId, assetType }),
+    })
+      .then(r => r.json())
+      .then((d: any) => {
+        if (d.success && d.data?.contact_phone) setFullPhone(d.data.contact_phone);
+      })
+      .catch(() => {});
+  }, [loggedIn, assetId, assetType]);
+
+  // 电话脱敏显示（服务端已脱敏时直接透传）
   const maskedPhone = phone ? phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '****';
+  const displayPhone = loggedIn ? (fullPhone || phone || '暂无') : maskedPhone;
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-6">
@@ -39,7 +60,7 @@ export default function ContactCard({ phone, name, attachments = [] }: ContactCa
 
       <div className="bg-gray-50 rounded-lg p-4 text-center mb-4">
         <div className="text-2xl font-bold text-gray-300 tracking-widest">
-          {loggedIn ? (phone || '暂无') : maskedPhone}
+          {displayPhone}
         </div>
         <div className="text-xs text-gray-400 mt-1">
           {loggedIn ? '已解锁' : '登录后查看完整号码'}
