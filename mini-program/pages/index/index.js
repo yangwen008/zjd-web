@@ -52,23 +52,26 @@ Page({
     this.loadDataWithLocation()
   },
 
-  loadDataWithLocation() {
-    const check = () => {
-      const loc = app.globalData.location
-      if (loc.province) {
-        this.updateLocation()
-        this.loadAssets(true)
-      } else {
-        if (!this._locWait) this._locWait = 0
-        this._locWait += 100
-        if (this._locWait < 3000) {
-          setTimeout(check, 100)
-        } else {
-          this.loadAssets(true)
-        }
-      }
+    loadDataWithLocation() {
+    const loc = app.globalData.location
+    if (loc.province) {
+      this.updateLocation()
+      this.loadAssets(true)
+      return
     }
-    check()
+    // 定位还没好：注册回调，app.js 反查成功后会来通知
+    app.locationReadyCallback = () => {
+      this.updateLocation()
+      this.loadAssets(true)
+    }
+    // 兜底：3秒后无论如何先加载列表（避免一直转圈）
+    this._locTimer = setTimeout(() => {
+      this.loadAssets(true)
+    }, 3000)
+  },
+    onUnload() {
+    if (this._locTimer) clearTimeout(this._locTimer)
+    app.locationReadyCallback = null
   },
 
   updateLocation() {
