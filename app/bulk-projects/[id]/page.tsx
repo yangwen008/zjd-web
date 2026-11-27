@@ -296,6 +296,8 @@ export default async function BulkProjectDetailPage({ params }: { params: Promis
 
             {/* Contact + Attachments */}
             <ContactCard
+              assetId={project.id}
+              assetType="bulk_project"
               phone={project.contact_phone}
               name={project.contact_name}
               attachments={[
