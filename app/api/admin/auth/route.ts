@@ -49,7 +49,12 @@ export async function POST(request: Request) {
   const { password } = await request.json() as { password: string };
 
   const env = getEnv();
-  const adminPassword = env.ADMIN_PASSWORD || 'zjd2026admin';
+  const adminPassword = env.ADMIN_PASSWORD;
+
+  // 安全：禁止默认密码回退，未配置 ADMIN_PASSWORD 时直接拒绝登录
+  if (!adminPassword) {
+    return NextResponse.json({ success: false, error: '管理员密码未配置，请设置 ADMIN_PASSWORD 环境变量' }, { status: 503 });
+  }
 
   if (password === adminPassword) {
     const secret = getSigningSecret();
