@@ -25,6 +25,7 @@ Page({
     activeTab: 'history',
     historyList: [],
     favList: [],
+    filterAll: false,
 
     loading: false
   },
@@ -127,10 +128,22 @@ Page({
         filterMode: true,
         filterType: filterType || '',
         filterSource: filterSource || '',
+        filterAll: false,
         filterTitle: this.getTitle(filterType, filterSource)
       })
       this.loadFilterAssets(true)
-    } else if (!this.data.filterMode) {
+    } else if (app.globalData._showAll) {
+      // 首页“查看全部”入口：显示全部资产（不按省份过滤）
+      app.globalData._showAll = false
+      this.setData({
+        filterMode: true,
+        filterType: '',
+        filterSource: '',
+        filterAll: true,
+        filterTitle: '📋 全部资产'
+      })
+      this.loadFilterAssets(true)
+          } else if (!this.data.filterMode) {
       this.setData({ filterMode: false })
       this.loadData()
     }
@@ -146,7 +159,7 @@ Page({
       let url = '/api/assets?page=' + this.data.page + '&limit=10&sort=' + this.data.sort
       if (this.data.filterType) url += '&asset_type=' + encodeURIComponent(this.data.filterType)
       if (this.data.filterSource) url += '&source=' + encodeURIComponent(this.data.filterSource)
-      if (loc.province) url += '&province=' + encodeURIComponent(loc.province)
+      if (!this.data.filterAll && loc.province) url += '&province=' + encodeURIComponent(loc.province)
       const res = await app.request({ url })
       if (res.success && res.data) {
         const newAssets = res.data.map(item => {
@@ -216,18 +229,25 @@ Page({
           locationText: item.asset_province || ''
         }))
         this.setData({ favList: list })
+      } else {
+        wx.showToast({ title: res.error || '收藏加载失败', icon: 'none' })
       }
-    } catch (e) {}
+    } catch (e) {
+      wx.showToast({ title: '网络异常，收藏加载失败', icon: 'none' })
+    }
     finally { this.setData({ loading: false }) }
   },
 
   async removeFav(e) {
     const assetId = e.currentTarget.dataset.id
     try {
-      await app.request({ url: '/api/dashboard/favorites', method: 'POST', data: { assetId } })
+      const res = await app.request({ url: '/api/dashboard/favorites', method: 'POST', data: { assetId } })
+      if (!res.success) { wx.showToast({ title: res.error || '操作失败', icon: 'none' }); return }
       this.setData({ favList: this.data.favList.filter(f => f.asset_id !== assetId) })
       wx.showToast({ title: '已取消收藏', icon: 'none' })
-    } catch (e) {}
+    } catch (e) {
+      wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+    }
   },
 
   // ===== 通用 =====
