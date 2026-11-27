@@ -164,7 +164,8 @@ Page({
         pubInitial: (asset.publisher_name || '平').charAt(0),
         pubRoleText: pubRoleMap[asset.publisher_role] || '个人发布'
       })
-
+      // 记录浏览历史（“看过”列表的数据来源）
+      this.saveHistory(asset)
       // 加载交易保障服务商
       if (asset.province) this.loadProfessionals(asset.province, asset.city)
       // 加载相似推荐
